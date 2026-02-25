@@ -8,14 +8,13 @@ import {
   Flame,
   Sparkles,
   TrendingUp,
-  Layers,
   Cpu,
   Gamepad2,
   Wrench,
   Users,
   Palette,
 } from "lucide-react";
-import type { Project, Category, CATEGORY_COLORS } from "@/lib/mock-data";
+import type { Project, Category } from "@/lib/mock-data";
 
 const categoryIcons: Record<Category, React.ElementType> = {
   DeFi: TrendingUp,
@@ -26,14 +25,18 @@ const categoryIcons: Record<Category, React.ElementType> = {
   Tools: Wrench,
 };
 
-const categoryGradients: Record<Category, { from: string; to: string; glow: string }> = {
-  DeFi: { from: "#0052FF", to: "#3B82F6", glow: "0 8px 32px rgba(0, 82, 255, 0.2)" },
-  Social: { from: "#8B5CF6", to: "#A78BFA", glow: "0 8px 32px rgba(139, 92, 246, 0.2)" },
-  NFT: { from: "#EC4899", to: "#F472B6", glow: "0 8px 32px rgba(236, 72, 153, 0.2)" },
-  Infra: { from: "#00D897", to: "#34D399", glow: "0 8px 32px rgba(0, 216, 151, 0.2)" },
-  Gaming: { from: "#F59E0B", to: "#FBBF24", glow: "0 8px 32px rgba(245, 158, 11, 0.2)" },
-  Tools: { from: "#6B7280", to: "#9CA3AF", glow: "0 8px 32px rgba(107, 114, 128, 0.15)" },
+const categoryGradients: Record<Category, { from: string; to: string }> = {
+  DeFi: { from: "#3B7BF6", to: "#5B9AFF" },
+  Social: { from: "#8B5CF6", to: "#A78BFA" },
+  NFT: { from: "#EC4899", to: "#F472B6" },
+  Infra: { from: "#00D897", to: "#34D399" },
+  Gaming: { from: "#F59E0B", to: "#FBBF24" },
+  Tools: { from: "#6B7280", to: "#9CA3AF" },
 };
+
+/* Unified cyan glow on hover for all cards */
+const CYAN_GLOW = "0 8px 32px rgba(61, 215, 216, 0.18)";
+const CARD_SHADOW = "0 2px 8px rgba(4, 8, 40, 0.5)";
 
 interface ProjectCardProps {
   project: Project;
@@ -53,17 +56,17 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
     >
       <Link href={`/project/${project.id}`} className="group block">
         <div
-          className={`overflow-hidden rounded-xl bg-surface transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.01] ${
+          className={`overflow-hidden rounded-xl bg-surface transition-all duration-300 ease-out group-hover:-translate-y-[3px] group-hover:scale-[1.01] ${
             featured ? "col-span-2 row-span-1" : ""
           }`}
           style={{
-            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+            boxShadow: CARD_SHADOW,
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLDivElement).style.boxShadow = gradient.glow;
+            (e.currentTarget as HTMLDivElement).style.boxShadow = CYAN_GLOW;
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+            (e.currentTarget as HTMLDivElement).style.boxShadow = CARD_SHADOW;
           }}
         >
           {/* Banner — 65% of card */}
@@ -104,13 +107,7 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
             {/* Badges */}
             <div className="absolute top-3 left-3 flex items-center gap-2">
               {project.isHot && (
-                <span
-                  className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
-                  style={{
-                    background: `${gradient.from}20`,
-                    color: gradient.from,
-                  }}
-                >
+                <span className="flex items-center gap-1 rounded-full bg-primary-muted px-2.5 py-1 text-xs font-medium text-primary">
                   <Flame className="h-3 w-3" />
                   Hot
                 </span>

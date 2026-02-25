@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Background & Surface */
-  --color-bg: #0C0C0E;
-  --color-bg-alt: #0A0A0F;
-  --color-surface: #16161A;
-  --color-surface-hover: #1E1E24;
-  --color-surface-raised: #1A1A2E;
-  --color-border: #2A2A32;
-  --color-border-subtle: #1F1F28;
+  /* Background & Surface — Deep navy */
+  --color-bg: #081151;
+  --color-bg-alt: #071050;
+  --color-surface: #0D1A6B;
+  --color-surface-hover: #122080;
+  --color-surface-raised: #0F1D75;
+  --color-border: #1A2580;
+  --color-border-subtle: #152070;
 
-  /* Primary */
-  --color-primary: #0052FF;
-  --color-primary-hover: #0066FF;
-  --color-primary-muted: #0052FF26;
+  /* Primary — Cyan/Teal */
+  --color-primary: #3DD7D8;
+  --color-primary-hover: #50E5E6;
+  --color-primary-muted: #3DD7D826;
 
   /* Semantic */
   --color-success: #00D897;
@@ -24,13 +24,13 @@
   --color-gold-muted: #FFB80026;
 
   /* Text */
-  --color-text-primary: #F5F5F5;
-  --color-text-secondary: #8B8B9A;
-  --color-text-tertiary: #56566B;
+  --color-text-primary: #F0F0FF;
+  --color-text-secondary: #8B8FB8;
+  --color-text-tertiary: #505480;
 
-  /* Category gradients */
-  --color-cat-defi: #0052FF;
-  --color-cat-defi-end: #3B82F6;
+  /* Category gradients (kept for banner variety) */
+  --color-cat-defi: #3B7BF6;
+  --color-cat-defi-end: #5B9AFF;
   --color-cat-social: #8B5CF6;
   --color-cat-social-end: #A78BFA;
   --color-cat-nft: #EC4899;
@@ -48,14 +48,9 @@
   --font-mono: var(--font-jetbrains-mono);
 
   /* Shadows */
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow-blue: 0 8px 32px rgba(0, 82, 255, 0.15);
-  --shadow-glow-purple: 0 8px 32px rgba(139, 92, 246, 0.15);
-  --shadow-glow-pink: 0 8px 32px rgba(236, 72, 153, 0.15);
-  --shadow-glow-green: 0 8px 32px rgba(0, 216, 151, 0.15);
-  --shadow-glow-orange: 0 8px 32px rgba(245, 158, 11, 0.15);
-  --shadow-glow-gray: 0 8px 32px rgba(107, 114, 128, 0.1);
+  --shadow-card: 0 2px 8px rgba(4, 8, 40, 0.5);
+  --shadow-card-hover: 0 8px 24px rgba(4, 8, 40, 0.6);
+  --shadow-glow-cyan: 0 8px 32px rgba(61, 215, 216, 0.18);
 
   /* Transitions */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -114,9 +109,9 @@ body {
   display: none;
 }
 
-/* Glass effect utility */
+/* Glass effect — tuned for navy background */
 .glass {
-  background: rgba(22, 22, 26, 0.7);
+  background: rgba(8, 17, 81, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
@@ -126,4 +121,69 @@ body {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Sonar pulse effect — concentric rings radiating from center */
+.sonar-pulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.sonar-pulse::before,
+.sonar-pulse::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 1px solid rgba(61, 215, 216, 0.06);
+  animation: sonar-ping 4s ease-out infinite;
+  pointer-events: none;
+}
+
+.sonar-pulse::after {
+  animation-delay: 2s;
+}
+
+@keyframes sonar-ping {
+  0% {
+    width: 80px;
+    height: 80px;
+    opacity: 0.4;
+  }
+  100% {
+    width: 900px;
+    height: 900px;
+    opacity: 0;
+  }
+}
+
+/* Dot particle field — scattered ambient dots */
+.dot-field {
+  position: relative;
+}
+
+.dot-field::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(61, 215, 216, 0.25) 50%, transparent 50%),
+    radial-gradient(1px 1px at 25% 65%, rgba(61, 215, 216, 0.15) 50%, transparent 50%),
+    radial-gradient(1px 1px at 40% 35%, rgba(61, 215, 216, 0.2) 50%, transparent 50%),
+    radial-gradient(1px 1px at 55% 80%, rgba(61, 215, 216, 0.12) 50%, transparent 50%),
+    radial-gradient(1px 1px at 70% 15%, rgba(61, 215, 216, 0.18) 50%, transparent 50%),
+    radial-gradient(1px 1px at 85% 55%, rgba(61, 215, 216, 0.22) 50%, transparent 50%),
+    radial-gradient(1px 1px at 95% 40%, rgba(61, 215, 216, 0.14) 50%, transparent 50%),
+    radial-gradient(1px 1px at 15% 90%, rgba(61, 215, 216, 0.16) 50%, transparent 50%),
+    radial-gradient(1px 1px at 50% 10%, rgba(61, 215, 216, 0.2) 50%, transparent 50%),
+    radial-gradient(1px 1px at 75% 70%, rgba(61, 215, 216, 0.13) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 30% 50%, rgba(61, 215, 216, 0.28) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 65% 30%, rgba(61, 215, 216, 0.24) 50%, transparent 50%),
+    radial-gradient(1px 1px at 5% 50%, rgba(61, 215, 216, 0.1) 50%, transparent 50%),
+    radial-gradient(1px 1px at 45% 95%, rgba(61, 215, 216, 0.15) 50%, transparent 50%),
+    radial-gradient(1px 1px at 90% 85%, rgba(61, 215, 216, 0.12) 50%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }

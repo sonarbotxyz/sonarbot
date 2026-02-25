@@ -28,14 +28,18 @@ const categoryIcons: Record<Category, React.ElementType> = {
   Tools: Wrench,
 };
 
-const categoryGradients: Record<Category, { from: string; to: string; glow: string }> = {
-  DeFi: { from: "#0052FF", to: "#3B82F6", glow: "0 8px 32px rgba(0, 82, 255, 0.2)" },
-  Social: { from: "#8B5CF6", to: "#A78BFA", glow: "0 8px 32px rgba(139, 92, 246, 0.2)" },
-  NFT: { from: "#EC4899", to: "#F472B6", glow: "0 8px 32px rgba(236, 72, 153, 0.2)" },
-  Infra: { from: "#00D897", to: "#34D399", glow: "0 8px 32px rgba(0, 216, 151, 0.2)" },
-  Gaming: { from: "#F59E0B", to: "#FBBF24", glow: "0 8px 32px rgba(245, 158, 11, 0.2)" },
-  Tools: { from: "#6B7280", to: "#9CA3AF", glow: "0 8px 32px rgba(107, 114, 128, 0.15)" },
+const categoryGradients: Record<Category, { from: string; to: string }> = {
+  DeFi: { from: "#3B7BF6", to: "#5B9AFF" },
+  Social: { from: "#8B5CF6", to: "#A78BFA" },
+  NFT: { from: "#EC4899", to: "#F472B6" },
+  Infra: { from: "#00D897", to: "#34D399" },
+  Gaming: { from: "#F59E0B", to: "#FBBF24" },
+  Tools: { from: "#6B7280", to: "#9CA3AF" },
 };
+
+/* Unified cyan glow on hover */
+const CYAN_GLOW = "0 8px 32px rgba(61, 215, 216, 0.18)";
+const CARD_SHADOW = "0 2px 8px rgba(4, 8, 40, 0.5)";
 
 export default function UpcomingPage() {
   const [notified, setNotified] = useState<Set<string>>(new Set());
@@ -92,13 +96,13 @@ export default function UpcomingPage() {
               }}
             >
               <div
-                className="group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1"
-                style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+                className="group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-[3px]"
+                style={{ boxShadow: CARD_SHADOW }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = gradient.glow;
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = CYAN_GLOW;
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = CARD_SHADOW;
                 }}
               >
                 {/* Banner */}

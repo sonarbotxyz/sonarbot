@@ -12,19 +12,19 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
   const [query, setQuery] = useState("");
 
   return (
-    <section className="relative overflow-hidden pb-8 pt-12 sm:pt-16">
-      {/* Subtle ambient glow */}
+    <section className="sonar-pulse dot-field relative overflow-hidden pb-8 pt-12 sm:pt-16">
+      {/* Subtle ambient glow — cyan */}
       <div
         className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 opacity-30"
         style={{
           width: "600px",
           height: "300px",
           background:
-            "radial-gradient(ellipse, rgba(0,82,255,0.08) 0%, transparent 70%)",
+            "radial-gradient(ellipse, rgba(61,215,216,0.1) 0%, transparent 70%)",
         }}
       />
 
-      <div className="relative mx-auto max-w-2xl text-center">
+      <div className="relative z-10 mx-auto max-w-2xl text-center">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -42,7 +42,7 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
           className="mt-4 font-[family-name:var(--font-brand)] text-3xl font-bold tracking-tight text-text-primary sm:text-4xl"
         >
           Discover what&apos;s building on{" "}
-          <span className="gradient-text bg-gradient-to-r from-primary to-[#3B82F6]">
+          <span className="gradient-text bg-gradient-to-r from-primary to-[#50E5E6]">
             Base
           </span>
         </motion.h1>

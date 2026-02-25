@@ -37,7 +37,7 @@ const categoryIcons: Record<Category, React.ElementType> = {
 };
 
 const categoryGradients: Record<Category, { from: string; to: string }> = {
-  DeFi: { from: "#0052FF", to: "#3B82F6" },
+  DeFi: { from: "#3B7BF6", to: "#5B9AFF" },
   Social: { from: "#8B5CF6", to: "#A78BFA" },
   NFT: { from: "#EC4899", to: "#F472B6" },
   Infra: { from: "#00D897", to: "#34D399" },

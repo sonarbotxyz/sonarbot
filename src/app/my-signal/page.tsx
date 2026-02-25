@@ -26,7 +26,7 @@ import {
 import { projects, alerts, type Category, type Alert } from "@/lib/mock-data";
 
 const categoryGradients: Record<Category, { from: string; to: string }> = {
-  DeFi: { from: "#0052FF", to: "#3B82F6" },
+  DeFi: { from: "#3B7BF6", to: "#5B9AFF" },
   Social: { from: "#8B5CF6", to: "#A78BFA" },
   NFT: { from: "#EC4899", to: "#F472B6" },
   Infra: { from: "#00D897", to: "#34D399" },
@@ -62,6 +62,8 @@ const watchedProjectIds = [
   "degen-chain",
   "base-paint",
 ];
+
+const CARD_SHADOW = "0 2px 8px rgba(4, 8, 40, 0.5)";
 
 export default function MySignalPage() {
   const [activeTab, setActiveTab] = useState<"alerts" | "watching" | "settings">(
@@ -179,7 +181,7 @@ function AlertsFeed({ alerts: alertList }: { alerts: Alert[] }) {
               {/* Activity dot */}
               <div className="mt-1 shrink-0">
                 {!alert.read ? (
-                  <div className="h-2.5 w-2.5 rounded-full bg-success" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
                 ) : (
                   <div className="h-2.5 w-2.5 rounded-full bg-border" />
                 )}
@@ -245,8 +247,8 @@ function WatchingGrid({
           >
             <Link
               href={`/project/${project.id}`}
-              className="group block overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-1"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+              className="group block overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-[3px]"
+              style={{ boxShadow: CARD_SHADOW }}
             >
               {/* Mini banner */}
               <div
@@ -263,8 +265,8 @@ function WatchingGrid({
 
                 {hasActivity && (
                   <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center">
-                    <div className="absolute h-2 w-2 rounded-full bg-success" />
-                    <div className="absolute h-2 w-2 animate-ping rounded-full bg-success opacity-75" />
+                    <div className="absolute h-2 w-2 rounded-full bg-primary" />
+                    <div className="absolute h-2 w-2 animate-ping rounded-full bg-primary opacity-75" />
                   </div>
                 )}
               </div>

@@ -39,14 +39,14 @@ export function CategoryPills({ selected, onSelect }: CategoryPillsProps) {
             onClick={() => onSelect(cat.value)}
             className={`relative flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
               isActive
-                ? "text-text-primary"
+                ? "text-primary"
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
             {isActive && (
               <motion.div
                 layoutId="pill-bg"
-                className="absolute inset-0 rounded-full bg-surface-hover"
+                className="absolute inset-0 rounded-full bg-primary-muted"
                 style={{ zIndex: 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
