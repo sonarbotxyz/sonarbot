@@ -19,13 +19,13 @@ import {
 } from "lucide-react";
 import { projects, alerts, type Category, type Alert } from "@/lib/mock-data";
 
-const categoryGradients: Record<Category, { from: string; to: string }> = {
-  DeFi: { from: "#3A6AD0", to: "#5080D8" },
-  Social: { from: "#7B55D0", to: "#9575D8" },
-  NFT: { from: "#C84585", to: "#D86098" },
-  Infra: { from: "#20B880", to: "#40C898" },
-  Gaming: { from: "#D89018", to: "#E0A838" },
-  Tools: { from: "#606870", to: "#808890" },
+const categoryGradients: Record<Category, { from: string; via: string; to: string }> = {
+  DeFi: { from: "#2A5DC4", via: "#1A3D94", to: "#0A1D64" },
+  Social: { from: "#6B45C0", via: "#4B2590", to: "#2B0560" },
+  NFT: { from: "#B83575", via: "#882050", to: "#580A30" },
+  Infra: { from: "#18A870", via: "#0A7848", to: "#004828" },
+  Gaming: { from: "#C88018", via: "#986010", to: "#684008" },
+  Tools: { from: "#505860", via: "#383E48", to: "#202428" },
 };
 
 const alertTypeIcons: Record<string, React.ElementType> = {
@@ -48,8 +48,6 @@ const watchedProjectIds = [
   "base-paint",
 ];
 
-const CARD_SHADOW = "0 2px 8px rgba(0, 0, 0, 0.25)";
-
 export default function MySignalPage() {
   const [activeTab, setActiveTab] = useState<"alerts" | "watching" | "settings">(
     "alerts"
@@ -69,7 +67,7 @@ export default function MySignalPage() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-hover">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface">
             <Activity className="h-5 w-5 text-text-secondary" />
           </div>
           <div>
@@ -87,8 +85,8 @@ export default function MySignalPage() {
         </p>
       </motion.div>
 
-      {/* Tabs */}
-      <div className="mt-8 flex gap-1 border-b border-border-subtle">
+      {/* Tabs — no border, surface color for active */}
+      <div className="mt-8 flex gap-1">
         {[
           { key: "alerts" as const, label: "Alerts", icon: Bell, count: alerts.filter((a) => !a.read).length },
           { key: "watching" as const, label: "Watching", icon: Eye, count: watchedProjects.length },
@@ -98,10 +96,10 @@ export default function MySignalPage() {
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.key
-                ? "text-text-primary"
-                : "text-text-secondary hover:text-text-primary"
+                ? "bg-surface text-text-primary"
+                : "text-text-tertiary hover:text-text-secondary"
             }`}
           >
             <tab.icon className="h-4 w-4" />
@@ -116,13 +114,6 @@ export default function MySignalPage() {
               >
                 {tab.count}
               </span>
-            )}
-            {activeTab === tab.key && (
-              <motion.div
-                layoutId="signal-tab"
-                className="absolute right-0 bottom-0 left-0 h-0.5 bg-primary"
-                transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              />
             )}
           </button>
         ))}
@@ -161,7 +152,7 @@ function AlertsFeed({ alerts: alertList }: { alerts: Alert[] }) {
           >
             <Link
               href={`/project/${alert.projectId}`}
-              className="group flex items-start gap-4 rounded-xl bg-surface p-4 transition-colors hover:bg-surface-hover"
+              className="group flex items-start gap-4 rounded-2xl bg-surface p-4 transition-colors hover:bg-surface-hover"
             >
               {/* Activity dot */}
               <div className="mt-1 shrink-0">
@@ -216,7 +207,7 @@ function WatchingGrid({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
       {watchedList.map((project, i) => {
         const gradient = categoryGradients[project.category];
@@ -231,23 +222,15 @@ function WatchingGrid({
           >
             <Link
               href={`/project/${project.id}`}
-              className="group block overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-[3px]"
-              style={{ boxShadow: CARD_SHADOW }}
+              className="group block overflow-hidden rounded-2xl bg-surface transition-transform duration-300 hover:-translate-y-0.5"
             >
-              {/* Mini banner — clean gradient */}
+              {/* Mini banner */}
               <div
-                className="relative flex h-24 items-center justify-center overflow-hidden"
+                className="relative flex h-28 items-center justify-center overflow-hidden"
                 style={{
-                  background: `linear-gradient(135deg, ${gradient.from}14, ${gradient.to}0a, transparent)`,
+                  background: `linear-gradient(160deg, ${gradient.from} 0%, ${gradient.via} 50%, ${gradient.to} 100%)`,
                 }}
               >
-                <div
-                  className="absolute inset-0 opacity-25"
-                  style={{
-                    background: `radial-gradient(ellipse at 50% 80%, ${gradient.from}15, transparent 70%)`,
-                  }}
-                />
-
                 {hasActivity && (
                   <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center">
                     <div className="absolute h-2 w-2 rounded-full bg-primary" />
@@ -257,22 +240,19 @@ function WatchingGrid({
               </div>
 
               {/* Content */}
-              <div className="p-4">
-                <h3 className="font-[family-name:var(--font-brand)] text-sm font-semibold text-text-primary truncate">
+              <div className="p-3.5">
+                <h3 className="font-[family-name:var(--font-brand)] text-[14px] font-bold text-text-primary truncate">
                   {project.name}
                 </h3>
-                <div className="mt-2 flex items-center gap-3 text-text-tertiary">
-                  <span className="flex items-center gap-1">
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="flex items-center gap-1 rounded-full bg-surface-hover px-2 py-0.5 text-text-tertiary">
                     <ChevronUp className="h-3 w-3" />
                     <span className="font-[family-name:var(--font-mono)] text-[11px]">
                       {project.upvotes.toLocaleString()}
                     </span>
                   </span>
-                  <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Eye className="h-3 w-3" />
-                    <span className="font-[family-name:var(--font-mono)] text-[11px]">
-                      {project.watchers.toLocaleString()}
-                    </span>
+                  <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] font-medium text-text-tertiary">
+                    {project.category}
                   </span>
                 </div>
               </div>
@@ -322,7 +302,7 @@ function NotificationSettings() {
           ].map((channel) => (
             <div
               key={channel.key}
-              className="flex items-center justify-between rounded-lg bg-surface p-3"
+              className="flex items-center justify-between rounded-xl bg-surface p-3"
             >
               <span className="text-sm text-text-primary">{channel.label}</span>
               <ToggleSwitch
@@ -357,7 +337,7 @@ function NotificationSettings() {
           ].map((type) => (
             <div
               key={type.key}
-              className="flex items-center justify-between rounded-lg bg-surface p-3"
+              className="flex items-center justify-between rounded-xl bg-surface p-3"
             >
               <span className="flex items-center gap-2 text-sm text-text-primary">
                 <type.icon className="h-4 w-4 text-text-tertiary" />

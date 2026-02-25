@@ -22,15 +22,13 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="border-t border-border-subtle bg-bg">
+    <footer className="bg-bg">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           {/* Brand */}
           <div className="col-span-2 sm:col-span-1">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/12">
-                <Radio className="h-3.5 w-3.5 text-primary" />
-              </div>
+            <div className="flex items-center gap-2">
+              <Radio className="h-3.5 w-3.5 text-primary" />
               <span className="font-[family-name:var(--font-brand)] text-base font-bold text-text-primary">
                 Sonarbot
               </span>
@@ -65,7 +63,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border-subtle pt-6 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 pt-6 sm:flex-row">
           <p className="text-xs text-text-tertiary">
             Built on Base. Powered by on-chain intelligence.
           </p>

@@ -6,24 +6,20 @@ import { motion } from "framer-motion";
 import {
   Rocket,
   Bell,
-  Eye,
   ChevronUp,
   Check,
 } from "lucide-react";
 import { upcomingProjects, type Category } from "@/lib/mock-data";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
-const categoryGradients: Record<Category, { from: string; to: string }> = {
-  DeFi: { from: "#3A6AD0", to: "#5080D8" },
-  Social: { from: "#7B55D0", to: "#9575D8" },
-  NFT: { from: "#C84585", to: "#D86098" },
-  Infra: { from: "#20B880", to: "#40C898" },
-  Gaming: { from: "#D89018", to: "#E0A838" },
-  Tools: { from: "#606870", to: "#808890" },
+const categoryGradients: Record<Category, { from: string; via: string; to: string }> = {
+  DeFi: { from: "#2A5DC4", via: "#1A3D94", to: "#0A1D64" },
+  Social: { from: "#6B45C0", via: "#4B2590", to: "#2B0560" },
+  NFT: { from: "#B83575", via: "#882050", to: "#580A30" },
+  Infra: { from: "#18A870", via: "#0A7848", to: "#004828" },
+  Gaming: { from: "#C88018", via: "#986010", to: "#684008" },
+  Tools: { from: "#505860", via: "#383E48", to: "#202428" },
 };
-
-const CARD_SHADOW = "0 2px 8px rgba(0, 0, 0, 0.25)";
-const CARD_HOVER_SHADOW = "0 8px 24px rgba(0, 0, 0, 0.35)";
 
 export default function UpcomingPage() {
   const [notified, setNotified] = useState<Set<string>>(new Set());
@@ -47,7 +43,7 @@ export default function UpcomingPage() {
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-hover">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface">
             <Rocket className="h-5 w-5 text-text-secondary" />
           </div>
           <div>
@@ -62,7 +58,7 @@ export default function UpcomingPage() {
       </motion.div>
 
       {/* Card grid */}
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {upcomingProjects.map((project, i) => {
           const gradient = categoryGradients[project.category];
           const isNotified = notified.has(project.id);
@@ -78,39 +74,23 @@ export default function UpcomingPage() {
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              <div
-                className="group overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-[3px]"
-                style={{ boxShadow: CARD_SHADOW }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = CARD_HOVER_SHADOW;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = CARD_SHADOW;
-                }}
-              >
-                {/* Banner — clean gradient */}
+              <div className="group overflow-hidden rounded-2xl bg-surface transition-transform duration-300 ease-out hover:-translate-y-0.5">
+                {/* Banner */}
                 <Link href={`/project/${project.id}`}>
                   <div
-                    className="relative flex h-36 items-center justify-center overflow-hidden sm:h-40"
+                    className="relative flex h-44 items-center justify-center overflow-hidden sm:h-48"
                     style={{
-                      background: `linear-gradient(135deg, ${gradient.from}14, ${gradient.to}0a, transparent)`,
+                      background: `linear-gradient(160deg, ${gradient.from} 0%, ${gradient.via} 50%, ${gradient.to} 100%)`,
                     }}
                   >
-                    <div
-                      className="absolute inset-0 opacity-30"
-                      style={{
-                        background: `radial-gradient(ellipse at 50% 80%, ${gradient.from}18, transparent 70%)`,
-                      }}
-                    />
-
                     {/* Countdown overlay */}
                     <div className="absolute right-3 bottom-3">
                       <CountdownTimer targetDate={project.launchDate} />
                     </div>
 
-                    {/* Category pill — gray neutral */}
+                    {/* Category pill */}
                     <div className="absolute top-3 left-3">
-                      <span className="rounded-full bg-border px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-text-secondary uppercase">
+                      <span className="rounded-full bg-black/25 px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-white/80 uppercase backdrop-blur-sm">
                         {project.category}
                       </span>
                     </div>
@@ -118,37 +98,29 @@ export default function UpcomingPage() {
                 </Link>
 
                 {/* Content */}
-                <div className="p-5">
+                <div className="p-3.5">
                   <Link href={`/project/${project.id}`}>
-                    <h3 className="font-[family-name:var(--font-brand)] text-base font-semibold text-text-primary group-hover:text-primary transition-colors">
+                    <h3 className="font-[family-name:var(--font-brand)] text-[15px] font-bold text-text-primary truncate">
                       {project.name}
                     </h3>
-                    <p className="mt-1 text-sm text-text-secondary line-clamp-2">
+                    <p className="mt-0.5 text-[13px] text-text-secondary truncate">
                       {project.tagline}
                     </p>
                   </Link>
 
                   {/* Metrics + Notify */}
-                  <div className="mt-3 flex items-center justify-between pt-3">
-                    <div className="flex items-center gap-3 text-text-secondary">
-                      <span className="flex items-center gap-1">
-                        <ChevronUp className="h-3.5 w-3.5" />
-                        <span className="font-[family-name:var(--font-mono)] text-xs">
-                          {project.upvotes}
-                        </span>
+                  <div className="mt-2.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1 rounded-full bg-surface-hover px-2 py-0.5 text-text-secondary">
+                      <ChevronUp className="h-3 w-3" />
+                      <span className="font-[family-name:var(--font-mono)] text-[11px] font-medium">
+                        {project.upvotes}
                       </span>
-                      <span className="flex items-center gap-1 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100">
-                        <Eye className="h-3.5 w-3.5" />
-                        <span className="font-[family-name:var(--font-mono)] text-xs">
-                          {project.watchers}
-                        </span>
-                      </span>
-                    </div>
+                    </span>
 
                     <button
                       type="button"
                       onClick={() => toggleNotify(project.id)}
-                      className={`flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all ${
+                      className={`flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all ${
                         isNotified
                           ? "bg-primary/12 text-primary"
                           : "bg-surface-hover text-text-secondary hover:text-text-primary"

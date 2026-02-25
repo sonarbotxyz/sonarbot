@@ -17,7 +17,7 @@ export function Sidebar() {
   return (
     <aside className="space-y-5">
       {/* Launching Soon */}
-      <div className="rounded-xl bg-surface p-4">
+      <div className="rounded-2xl bg-surface p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <Rocket className="h-4 w-4 text-text-secondary" />
           Launching Soon
@@ -71,7 +71,7 @@ export function Sidebar() {
       </div>
 
       {/* Ecosystem Stats */}
-      <div className="rounded-xl bg-surface p-4">
+      <div className="rounded-2xl bg-surface p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <BarChart3 className="h-4 w-4 text-text-secondary" />
           Base Ecosystem

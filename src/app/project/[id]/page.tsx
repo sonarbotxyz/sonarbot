@@ -21,13 +21,13 @@ import {
 } from "lucide-react";
 import { projects, upcomingProjects, type Category, type Milestone } from "@/lib/mock-data";
 
-const categoryGradients: Record<Category, { from: string; to: string }> = {
-  DeFi: { from: "#3A6AD0", to: "#5080D8" },
-  Social: { from: "#7B55D0", to: "#9575D8" },
-  NFT: { from: "#C84585", to: "#D86098" },
-  Infra: { from: "#20B880", to: "#40C898" },
-  Gaming: { from: "#D89018", to: "#E0A838" },
-  Tools: { from: "#606870", to: "#808890" },
+const categoryGradients: Record<Category, { from: string; via: string; to: string }> = {
+  DeFi: { from: "#2A5DC4", via: "#1A3D94", to: "#0A1D64" },
+  Social: { from: "#6B45C0", via: "#4B2590", to: "#2B0560" },
+  NFT: { from: "#B83575", via: "#882050", to: "#580A30" },
+  Infra: { from: "#18A870", via: "#0A7848", to: "#004828" },
+  Gaming: { from: "#C88018", via: "#986010", to: "#684008" },
+  Tools: { from: "#505860", via: "#383E48", to: "#202428" },
 };
 
 const milestoneTypeIcons: Record<string, React.ElementType> = {
@@ -72,27 +72,20 @@ export default function ProjectDetailPage({
   return (
     <>
       <div className="min-h-screen">
-        {/* Banner — clean gradient */}
+        {/* Banner */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
           className="relative h-48 overflow-hidden sm:h-56 md:h-64"
           style={{
-            background: `linear-gradient(135deg, ${gradient.from}14, ${gradient.to}0a, transparent)`,
+            background: `linear-gradient(160deg, ${gradient.from} 0%, ${gradient.via} 50%, ${gradient.to} 100%)`,
           }}
         >
-          <div
-            className="absolute inset-0 opacity-25"
-            style={{
-              background: `radial-gradient(ellipse at 30% 100%, ${gradient.from}18, transparent 60%)`,
-            }}
-          />
-
           <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-8 sm:px-6">
             <Link
               href="/"
-              className="absolute top-4 left-4 flex items-center gap-2 rounded-lg bg-surface/60 px-3 py-2 text-sm text-text-secondary backdrop-blur-sm transition-colors hover:text-text-primary sm:left-6"
+              className="absolute top-4 left-4 flex items-center gap-2 rounded-lg bg-black/25 px-3 py-2 text-sm text-white/80 backdrop-blur-sm transition-colors hover:text-white sm:left-6"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -104,24 +97,24 @@ export default function ProjectDetailPage({
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <div className="flex items-center gap-3">
-                <span className="rounded-full bg-border px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-text-secondary uppercase">
+                <span className="rounded-full bg-black/25 px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-white/80 uppercase backdrop-blur-sm">
                   {project.category}
                 </span>
-                <span className="text-xs text-text-tertiary">{project.subcategory}</span>
+                <span className="text-xs text-white/50">{project.subcategory}</span>
               </div>
-              <h1 className="mt-3 font-[family-name:var(--font-brand)] text-2xl font-bold text-text-primary sm:text-3xl md:text-4xl">
+              <h1 className="mt-3 font-[family-name:var(--font-brand)] text-2xl font-bold text-white sm:text-3xl md:text-4xl">
                 {project.name}
               </h1>
-              <p className="mt-2 text-base text-text-secondary sm:text-lg">
+              <p className="mt-2 text-base text-white/70 sm:text-lg">
                 {project.tagline}
               </p>
             </motion.div>
           </div>
         </motion.div>
 
-        {/* Action bar */}
-        <div className="border-b border-border-subtle">
-          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-4 sm:px-6">
+        {/* Action bar — no border, subtle surface difference */}
+        <div className="bg-surface-hover">
+          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
             <button
               type="button"
               onClick={() => {
@@ -130,10 +123,10 @@ export default function ProjectDetailPage({
                 }
                 setWatching(!watching);
               }}
-              className={`flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-medium transition-all ${
+              className={`flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium transition-all ${
                 watching
                   ? "bg-primary text-white"
-                  : "bg-surface text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+                  : "bg-surface text-text-secondary hover:text-text-primary"
               }`}
             >
               {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -143,10 +136,10 @@ export default function ProjectDetailPage({
             <button
               type="button"
               onClick={() => setUpvoted(!upvoted)}
-              className={`flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-medium transition-all ${
+              className={`flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium transition-all ${
                 upvoted
-                  ? "bg-surface-hover text-text-primary"
-                  : "bg-surface text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+                  ? "bg-surface text-primary"
+                  : "bg-surface text-text-secondary hover:text-text-primary"
               }`}
             >
               <ChevronUp className="h-4 w-4" />
@@ -160,7 +153,7 @@ export default function ProjectDetailPage({
                 href={project.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-10 items-center gap-2 rounded-lg bg-surface px-4 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
+                className="flex h-9 items-center gap-2 rounded-lg bg-surface px-4 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
               >
                 <ExternalLink className="h-4 w-4" />
                 Website
@@ -170,7 +163,7 @@ export default function ProjectDetailPage({
             <button
               type="button"
               onClick={() => setShowAlertModal(true)}
-              className="flex h-10 items-center gap-2 rounded-lg bg-surface px-4 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
+              className="flex h-9 items-center gap-2 rounded-lg bg-surface px-4 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
             >
               <Bell className="h-4 w-4" />
               <span className="hidden sm:inline">Alerts</span>
@@ -233,7 +226,7 @@ export default function ProjectDetailPage({
                 </div>
 
                 {project.comments.length === 0 ? (
-                  <div className="mt-4 rounded-xl bg-surface p-6 text-center">
+                  <div className="mt-4 rounded-2xl bg-surface p-6 text-center">
                     <MessageSquare className="mx-auto h-8 w-8 text-text-tertiary" />
                     <p className="mt-2 text-sm text-text-secondary">
                       No comments yet. Be the first to share your thoughts.
@@ -244,7 +237,7 @@ export default function ProjectDetailPage({
                     {project.comments.map((comment) => (
                       <div
                         key={comment.id}
-                        className="rounded-xl bg-surface p-4"
+                        className="rounded-2xl bg-surface p-4"
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-[family-name:var(--font-mono)] text-sm font-medium text-text-primary">
@@ -278,7 +271,7 @@ export default function ProjectDetailPage({
                   <textarea
                     placeholder="Share your thoughts..."
                     rows={3}
-                    className="w-full resize-none rounded-xl bg-surface p-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/40"
+                    className="w-full resize-none rounded-2xl bg-surface p-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:bg-surface-hover"
                   />
                   <div className="mt-2 flex justify-end">
                     <button
@@ -296,7 +289,7 @@ export default function ProjectDetailPage({
             <div className="hidden w-72 shrink-0 lg:block">
               <div className="sticky top-20 space-y-4">
                 {/* Stats card */}
-                <div className="rounded-xl bg-surface p-4">
+                <div className="rounded-2xl bg-surface p-4">
                   <h3 className="text-sm font-semibold text-text-primary">Stats</h3>
                   <div className="mt-3 space-y-3">
                     <div className="flex items-center justify-between">
@@ -330,7 +323,7 @@ export default function ProjectDetailPage({
                 </div>
 
                 {/* Quick subscribe */}
-                <div className="rounded-xl bg-surface p-4">
+                <div className="rounded-2xl bg-surface p-4">
                   <h3 className="text-sm font-semibold text-text-primary">
                     Quick Subscribe
                   </h3>
@@ -394,7 +387,7 @@ function MilestoneItem({
         {!isLast && (
           <div
             className={`w-px flex-1 ${
-              milestone.achieved ? "bg-success/30" : "bg-border-subtle"
+              milestone.achieved ? "bg-success/30" : "bg-surface-hover"
             }`}
             style={{ minHeight: "24px" }}
           />
@@ -489,7 +482,7 @@ function AlertModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-md rounded-xl bg-surface p-5 sm:inset-x-auto sm:w-full"
+        className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-md rounded-2xl bg-surface p-5 sm:inset-x-auto sm:w-full"
       >
         <div className="flex items-center justify-between">
           <div>

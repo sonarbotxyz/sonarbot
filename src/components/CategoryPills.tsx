@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import type { Category } from "@/lib/mock-data";
 
 const categories: { label: string; value: Category | "All" }[] = [
@@ -20,7 +19,7 @@ interface CategoryPillsProps {
 
 export function CategoryPills({ selected, onSelect }: CategoryPillsProps) {
   return (
-    <div className="hide-scrollbar flex gap-1.5 overflow-x-auto pb-1">
+    <div className="hide-scrollbar flex gap-0.5 overflow-x-auto">
       {categories.map((cat) => {
         const isActive = selected === cat.value;
         return (
@@ -28,21 +27,13 @@ export function CategoryPills({ selected, onSelect }: CategoryPillsProps) {
             key={cat.value}
             type="button"
             onClick={() => onSelect(cat.value)}
-            className={`relative shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+            className={`shrink-0 rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors ${
               isActive
-                ? "text-text-primary"
-                : "text-text-secondary hover:text-text-primary"
+                ? "bg-surface-hover text-text-primary"
+                : "text-text-tertiary hover:text-text-secondary"
             }`}
           >
-            {isActive && (
-              <motion.div
-                layoutId="pill-bg"
-                className="absolute inset-0 rounded-full bg-border"
-                style={{ zIndex: 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              />
-            )}
-            <span className="relative z-10">{cat.label}</span>
+            {cat.label}
           </button>
         );
       })}

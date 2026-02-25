@@ -39,7 +39,7 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <Header />
-        <main className="min-h-screen pt-16">{children}</main>
+        <main className="min-h-screen pt-14">{children}</main>
         <Footer />
       </body>
     </html>

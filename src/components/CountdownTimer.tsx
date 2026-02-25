@@ -47,12 +47,12 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
       {blocks.map((block) => (
         <div
           key={block.label}
-          className="flex flex-col items-center rounded-md bg-surface-hover px-2 py-1"
+          className="flex flex-col items-center rounded-md bg-black/25 px-2 py-1 backdrop-blur-sm"
         >
-          <span className="font-[family-name:var(--font-mono)] text-sm font-semibold tabular-nums text-text-primary">
+          <span className="font-[family-name:var(--font-mono)] text-sm font-semibold tabular-nums text-white/90">
             {block.value.toString().padStart(2, "0")}
           </span>
-          <span className="text-[9px] font-medium text-text-tertiary">
+          <span className="text-[9px] font-medium text-white/50">
             {block.label}
           </span>
         </div>
