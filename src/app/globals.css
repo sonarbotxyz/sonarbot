@@ -1,26 +1,129 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Background & Surface */
+  --color-bg: #0C0C0E;
+  --color-bg-alt: #0A0A0F;
+  --color-surface: #16161A;
+  --color-surface-hover: #1E1E24;
+  --color-surface-raised: #1A1A2E;
+  --color-border: #2A2A32;
+  --color-border-subtle: #1F1F28;
+
+  /* Primary */
+  --color-primary: #0052FF;
+  --color-primary-hover: #0066FF;
+  --color-primary-muted: #0052FF26;
+
+  /* Semantic */
+  --color-success: #00D897;
+  --color-success-muted: #00D89726;
+  --color-danger: #FF4466;
+  --color-danger-muted: #FF446626;
+  --color-gold: #FFB800;
+  --color-gold-muted: #FFB80026;
+
+  /* Text */
+  --color-text-primary: #F5F5F5;
+  --color-text-secondary: #8B8B9A;
+  --color-text-tertiary: #56566B;
+
+  /* Category gradients */
+  --color-cat-defi: #0052FF;
+  --color-cat-defi-end: #3B82F6;
+  --color-cat-social: #8B5CF6;
+  --color-cat-social-end: #A78BFA;
+  --color-cat-nft: #EC4899;
+  --color-cat-nft-end: #F472B6;
+  --color-cat-infra: #00D897;
+  --color-cat-infra-end: #34D399;
+  --color-cat-gaming: #F59E0B;
+  --color-cat-gaming-end: #FBBF24;
+  --color-cat-tools: #6B7280;
+  --color-cat-tools-end: #9CA3AF;
+
+  /* Fonts */
+  --font-brand: var(--font-space-grotesk);
+  --font-body: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* Shadows */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow-blue: 0 8px 32px rgba(0, 82, 255, 0.15);
+  --shadow-glow-purple: 0 8px 32px rgba(139, 92, 246, 0.15);
+  --shadow-glow-pink: 0 8px 32px rgba(236, 72, 153, 0.15);
+  --shadow-glow-green: 0 8px 32px rgba(0, 216, 151, 0.15);
+  --shadow-glow-orange: 0 8px 32px rgba(245, 158, 11, 0.15);
+  --shadow-glow-gray: 0 8px 32px rgba(107, 114, 128, 0.1);
+
+  /* Transitions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base reset & dark-only theme */
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* Selection */
+::selection {
+  background: var(--color-primary-muted);
+  color: var(--color-text-primary);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Horizontal scroll container (for pills) */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glass effect utility */
+.glass {
+  background: rgba(22, 22, 26, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
