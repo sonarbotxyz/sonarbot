@@ -28,7 +28,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 sm:col-span-1">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/12">
                 <Radio className="h-3.5 w-3.5 text-primary" />
               </div>
               <span className="font-[family-name:var(--font-brand)] text-base font-bold text-text-primary">

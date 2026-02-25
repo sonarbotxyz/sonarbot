@@ -12,15 +12,15 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
   const [query, setQuery] = useState("");
 
   return (
-    <section className="sonar-pulse dot-field relative overflow-hidden pb-8 pt-12 sm:pt-16">
-      {/* Subtle ambient glow — cyan */}
+    <section className="relative overflow-hidden pb-12 pt-20 sm:pt-24">
+      {/* Very subtle ambient glow */}
       <div
-        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 opacity-30"
+        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 opacity-20"
         style={{
           width: "600px",
           height: "300px",
           background:
-            "radial-gradient(ellipse, rgba(61,215,216,0.1) 0%, transparent 70%)",
+            "radial-gradient(ellipse, rgba(61,215,216,0.06) 0%, transparent 70%)",
         }}
       />
 
@@ -39,7 +39,7 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-4 font-[family-name:var(--font-brand)] text-3xl font-bold tracking-tight text-text-primary sm:text-4xl"
+          className="mt-5 font-[family-name:var(--font-brand)] text-3xl font-medium tracking-tight text-text-primary sm:text-5xl sm:tracking-[-0.02em]"
         >
           Discover what&apos;s building on{" "}
           <span className="gradient-text bg-gradient-to-r from-primary to-[#50E5E6]">
@@ -51,7 +51,7 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-3 text-base text-text-secondary sm:text-lg"
+          className="mt-4 text-base text-text-secondary sm:text-lg"
         >
           Watch projects. Track milestones. Get notified.
         </motion.p>
@@ -60,7 +60,7 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-6"
+          className="mt-8"
         >
           <div className="relative mx-auto max-w-md">
             <Search className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
@@ -72,7 +72,7 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
                 setQuery(e.target.value);
                 onSearch(e.target.value);
               }}
-              className="h-12 w-full rounded-xl bg-surface pl-11 pr-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/50"
+              className="h-12 w-full rounded-xl bg-surface pl-11 pr-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/40"
             />
           </div>
         </motion.div>

@@ -54,7 +54,7 @@ export default function SubmitPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -62,8 +62,8 @@ export default function SubmitPage() {
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-            <PlusCircle className="h-5 w-5 text-primary" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-hover">
+            <PlusCircle className="h-5 w-5 text-text-secondary" />
           </div>
           <div>
             <h1 className="font-[family-name:var(--font-brand)] text-2xl font-bold text-text-primary">
@@ -81,7 +81,7 @@ export default function SubmitPage() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="mt-8 space-y-6"
+        className="mt-10 space-y-6"
         onSubmit={(e) => {
           e.preventDefault();
           setSubmitted(true);
@@ -100,7 +100,7 @@ export default function SubmitPage() {
             type="text"
             required
             placeholder="e.g. Aerodrome Finance"
-            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/50"
+            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/40"
           />
         </div>
 
@@ -120,7 +120,7 @@ export default function SubmitPage() {
             type="text"
             required
             placeholder="e.g. The central trading & liquidity hub on Base"
-            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/50"
+            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/40"
           />
         </div>
 
@@ -137,7 +137,7 @@ export default function SubmitPage() {
                 onClick={() => setSelectedCategory(cat.value)}
                 className={`flex flex-col items-center gap-1.5 rounded-lg p-3 text-xs font-medium transition-all ${
                   selectedCategory === cat.value
-                    ? "bg-primary/15 text-primary ring-1 ring-primary/30"
+                    ? "bg-primary/12 text-primary ring-1 ring-primary/25"
                     : "bg-surface text-text-secondary hover:bg-surface-hover hover:text-text-primary"
                 }`}
               >
@@ -162,7 +162,7 @@ export default function SubmitPage() {
             required
             rows={5}
             placeholder="Tell us about the project. What does it do? Why does it matter for the Base ecosystem?"
-            className="mt-1.5 w-full resize-none rounded-lg bg-surface p-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/50"
+            className="mt-1.5 w-full resize-none rounded-lg bg-surface p-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/40"
           />
         </div>
 
@@ -180,7 +180,7 @@ export default function SubmitPage() {
             type="url"
             required
             placeholder="https://"
-            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/50"
+            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/40"
           />
         </div>
 
@@ -197,7 +197,7 @@ export default function SubmitPage() {
             id="twitter"
             type="text"
             placeholder="@projectname"
-            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/50"
+            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/40"
           />
         </div>
 
@@ -216,7 +216,7 @@ export default function SubmitPage() {
             id="contract"
             type="text"
             placeholder="0x..."
-            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 font-[family-name:var(--font-mono)] text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/50"
+            className="mt-1.5 h-11 w-full rounded-lg bg-surface px-4 font-[family-name:var(--font-mono)] text-sm text-text-primary placeholder:text-text-tertiary outline-none ring-1 ring-border-subtle transition-all focus:ring-primary/40"
           />
         </div>
 

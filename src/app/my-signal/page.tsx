@@ -16,31 +16,16 @@ import {
   Coins,
   ChevronUp,
   Settings,
-  TrendingUp,
-  Users,
-  Palette,
-  Cpu,
-  Gamepad2,
-  Wrench,
 } from "lucide-react";
 import { projects, alerts, type Category, type Alert } from "@/lib/mock-data";
 
 const categoryGradients: Record<Category, { from: string; to: string }> = {
-  DeFi: { from: "#3B7BF6", to: "#5B9AFF" },
-  Social: { from: "#8B5CF6", to: "#A78BFA" },
-  NFT: { from: "#EC4899", to: "#F472B6" },
-  Infra: { from: "#00D897", to: "#34D399" },
-  Gaming: { from: "#F59E0B", to: "#FBBF24" },
-  Tools: { from: "#6B7280", to: "#9CA3AF" },
-};
-
-const categoryIcons: Record<Category, React.ElementType> = {
-  DeFi: TrendingUp,
-  Social: Users,
-  NFT: Palette,
-  Infra: Cpu,
-  Gaming: Gamepad2,
-  Tools: Wrench,
+  DeFi: { from: "#3A6AD0", to: "#5080D8" },
+  Social: { from: "#7B55D0", to: "#9575D8" },
+  NFT: { from: "#C84585", to: "#D86098" },
+  Infra: { from: "#20B880", to: "#40C898" },
+  Gaming: { from: "#D89018", to: "#E0A838" },
+  Tools: { from: "#606870", to: "#808890" },
 };
 
 const alertTypeIcons: Record<string, React.ElementType> = {
@@ -63,7 +48,7 @@ const watchedProjectIds = [
   "base-paint",
 ];
 
-const CARD_SHADOW = "0 2px 8px rgba(4, 8, 40, 0.5)";
+const CARD_SHADOW = "0 2px 8px rgba(0, 0, 0, 0.25)";
 
 export default function MySignalPage() {
   const [activeTab, setActiveTab] = useState<"alerts" | "watching" | "settings">(
@@ -75,7 +60,7 @@ export default function MySignalPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -84,8 +69,8 @@ export default function MySignalPage() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-            <Activity className="h-5 w-5 text-primary" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-hover">
+            <Activity className="h-5 w-5 text-text-secondary" />
           </div>
           <div>
             <h1 className="font-[family-name:var(--font-brand)] text-2xl font-bold text-text-primary">
@@ -103,7 +88,7 @@ export default function MySignalPage() {
       </motion.div>
 
       {/* Tabs */}
-      <div className="mt-6 flex gap-1 border-b border-border-subtle">
+      <div className="mt-8 flex gap-1 border-b border-border-subtle">
         {[
           { key: "alerts" as const, label: "Alerts", icon: Bell, count: alerts.filter((a) => !a.read).length },
           { key: "watching" as const, label: "Watching", icon: Eye, count: watchedProjects.length },
@@ -125,7 +110,7 @@ export default function MySignalPage() {
               <span
                 className={`font-[family-name:var(--font-mono)] text-[11px] ${
                   tab.key === "alerts" && activeTab !== "alerts"
-                    ? "rounded-full bg-primary/20 px-1.5 py-0.5 text-primary"
+                    ? "rounded-full bg-primary/15 px-1.5 py-0.5 text-primary"
                     : "text-text-tertiary"
                 }`}
               >
@@ -144,7 +129,7 @@ export default function MySignalPage() {
       </div>
 
       {/* Tab content */}
-      <div className="mt-6">
+      <div className="mt-8">
         {activeTab === "alerts" && <AlertsFeed alerts={alerts} />}
         {activeTab === "watching" && (
           <WatchingGrid projects={watchedProjects} />
@@ -231,11 +216,10 @@ function WatchingGrid({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
       {watchedList.map((project, i) => {
         const gradient = categoryGradients[project.category];
-        const CategoryIcon = categoryIcons[project.category];
         const hasActivity = project.isHot || project.isNew;
 
         return (
@@ -250,17 +234,18 @@ function WatchingGrid({
               className="group block overflow-hidden rounded-xl bg-surface transition-all duration-300 hover:-translate-y-[3px]"
               style={{ boxShadow: CARD_SHADOW }}
             >
-              {/* Mini banner */}
+              {/* Mini banner — clean gradient */}
               <div
                 className="relative flex h-24 items-center justify-center overflow-hidden"
                 style={{
-                  background: `linear-gradient(135deg, ${gradient.from}20, ${gradient.to}10, transparent)`,
+                  background: `linear-gradient(135deg, ${gradient.from}14, ${gradient.to}0a, transparent)`,
                 }}
               >
-                <CategoryIcon
-                  className="h-10 w-10 opacity-15"
-                  style={{ color: gradient.from }}
-                  strokeWidth={1}
+                <div
+                  className="absolute inset-0 opacity-25"
+                  style={{
+                    background: `radial-gradient(ellipse at 50% 80%, ${gradient.from}15, transparent 70%)`,
+                  }}
                 />
 
                 {hasActivity && (
@@ -272,21 +257,21 @@ function WatchingGrid({
               </div>
 
               {/* Content */}
-              <div className="p-3">
+              <div className="p-4">
                 <h3 className="font-[family-name:var(--font-brand)] text-sm font-semibold text-text-primary truncate">
                   {project.name}
                 </h3>
                 <div className="mt-2 flex items-center gap-3 text-text-tertiary">
                   <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    <span className="font-[family-name:var(--font-mono)] text-[11px]">
-                      {project.watchers.toLocaleString()}
-                    </span>
-                  </span>
-                  <span className="flex items-center gap-1">
                     <ChevronUp className="h-3 w-3" />
                     <span className="font-[family-name:var(--font-mono)] text-[11px]">
                       {project.upvotes.toLocaleString()}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Eye className="h-3 w-3" />
+                    <span className="font-[family-name:var(--font-mono)] text-[11px]">
+                      {project.watchers.toLocaleString()}
                     </span>
                   </span>
                 </div>

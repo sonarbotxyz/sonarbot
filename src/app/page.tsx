@@ -41,18 +41,18 @@ export default function HomePage() {
 
       {/* Featured project */}
       {!searchQuery && selectedCategory === "All" && featured && (
-        <section className="mb-8">
+        <section className="mb-12">
           <ProjectCard project={featured} featured index={0} />
         </section>
       )}
 
       {/* Category filter */}
-      <section className="mb-6">
+      <section className="mb-10">
         <CategoryPills selected={selectedCategory} onSelect={setSelectedCategory} />
       </section>
 
       {/* Main grid + sidebar */}
-      <div className="flex gap-6 pb-16">
+      <div className="flex gap-8 pb-16">
         {/* Card grid */}
         <div className="min-w-0 flex-1">
           {filteredProjects.length === 0 ? (
@@ -65,7 +65,7 @@ export default function HomePage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {(searchQuery || selectedCategory !== "All"
                 ? filteredProjects
                 : gridProjects

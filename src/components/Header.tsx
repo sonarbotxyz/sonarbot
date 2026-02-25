@@ -31,7 +31,7 @@ export function Header() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 transition-colors group-hover:bg-primary/25">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/12 transition-colors group-hover:bg-primary/20">
               <Radio className="h-4 w-4 text-primary" />
             </div>
             <span className="font-[family-name:var(--font-brand)] text-lg font-bold tracking-tight text-text-primary">
@@ -81,7 +81,7 @@ export function Header() {
               href="/my-signal"
               className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
                 pathname === "/my-signal"
-                  ? "bg-primary/15 text-primary"
+                  ? "bg-surface-hover text-text-primary"
                   : "text-text-secondary hover:text-text-primary"
               }`}
             >
@@ -159,7 +159,7 @@ export function Header() {
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
                     pathname === "/my-signal"
-                      ? "bg-primary/15 text-primary"
+                      ? "bg-surface-hover text-text-primary"
                       : "text-text-secondary hover:text-text-primary"
                   }`}
                 >
