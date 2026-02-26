@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Radio, Menu, X } from "lucide-react";
+import { Radio, Menu, X, LogIn, LogOut } from "lucide-react";
+import { useAuth } from "@/components/AuthContext";
 
 const navLinks = [
   { href: "/", label: "Explore" },
@@ -16,6 +17,7 @@ const navLinks = [
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { user, loading, login, logout } = useAuth();
 
   return (
     <>
@@ -29,42 +31,98 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Desktop nav — text links only */}
-          <nav className="hidden items-center gap-1 md:flex">
-            {navLinks.map((link) => {
-              const isActive =
-                link.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`px-3 py-1.5 text-[13px] font-medium transition-colors ${
-                    isActive
-                      ? "text-text-primary"
-                      : "text-text-tertiary hover:text-text-secondary"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Desktop nav + auth */}
+          <div className="hidden items-center gap-1 md:flex">
+            <nav className="flex items-center gap-1">
+              {navLinks.map((link) => {
+                const isActive =
+                  link.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`px-3 py-1.5 text-[13px] font-medium transition-colors ${
+                      isActive
+                        ? "text-text-primary"
+                        : "text-text-tertiary hover:text-text-secondary"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </nav>
 
-          {/* Mobile menu button */}
-          <button
-            type="button"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary transition-colors hover:text-text-primary md:hidden"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          >
-            {mobileOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
+            {/* Auth button */}
+            <div className="ml-3 flex items-center">
+              {loading ? (
+                <div className="h-8 w-20 animate-pulse rounded-lg bg-surface" />
+              ) : user ? (
+                <div className="flex items-center gap-2">
+                  {user.avatar && (
+                    <img
+                      src={user.avatar}
+                      alt=""
+                      className="h-6 w-6 rounded-full"
+                    />
+                  )}
+                  <span className="max-w-[120px] truncate font-[family-name:var(--font-mono)] text-xs text-text-secondary">
+                    {user.handle}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-text-tertiary transition-colors hover:text-text-secondary"
+                    title="Disconnect"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={login}
+                  className="flex h-8 items-center gap-2 rounded-lg bg-surface px-3.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
+                >
+                  <LogIn className="h-3.5 w-3.5" />
+                  Connect
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile: auth + menu button */}
+          <div className="flex items-center gap-2 md:hidden">
+            {!loading && !user && (
+              <button
+                type="button"
+                onClick={login}
+                className="flex h-9 items-center gap-1.5 rounded-lg bg-surface px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-hover"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                Connect
+              </button>
             )}
-          </button>
+            {!loading && user && (
+              <span className="max-w-[80px] truncate font-[family-name:var(--font-mono)] text-xs text-text-secondary">
+                {user.handle}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary transition-colors hover:text-text-primary"
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -108,6 +166,35 @@ export function Header() {
                   );
                 })}
               </nav>
+
+              {/* Mobile auth at bottom of slide-out */}
+              {user && (
+                <div className="mt-auto border-t border-border pt-4">
+                  <div className="flex items-center gap-2 px-4">
+                    {user.avatar && (
+                      <img
+                        src={user.avatar}
+                        alt=""
+                        className="h-7 w-7 rounded-full"
+                      />
+                    )}
+                    <span className="flex-1 truncate font-[family-name:var(--font-mono)] text-sm text-text-secondary">
+                      {user.handle}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      setMobileOpen(false);
+                    }}
+                    className="mt-3 flex w-full items-center gap-2 rounded-lg px-4 py-3 text-sm text-text-tertiary transition-colors hover:text-text-secondary"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Disconnect
+                  </button>
+                </div>
+              )}
             </motion.div>
           </>
         )}

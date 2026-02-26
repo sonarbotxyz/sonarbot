@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { PrivyProvider } from "@/components/PrivyProvider";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
@@ -38,9 +39,11 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <Header />
-        <main className="min-h-screen pt-14">{children}</main>
-        <Footer />
+        <PrivyProvider>
+          <Header />
+          <main className="min-h-screen pt-14">{children}</main>
+          <Footer />
+        </PrivyProvider>
       </body>
     </html>
   );
