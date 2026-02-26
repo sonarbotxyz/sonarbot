@@ -157,7 +157,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
     <>
       <div className="min-h-screen">
         {/* Back nav */}
-        <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
           <Link href="/" className="inline-flex items-center gap-2 text-sm text-text-tertiary hover:text-text-primary transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to discover
           </Link>
@@ -168,7 +168,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="mx-auto max-w-5xl px-4 pt-6 sm:px-6"
+          className="mx-auto max-w-7xl px-4 pt-6 sm:px-6"
         >
           <div className="flex items-start gap-4 sm:gap-5">
             {/* Avatar */}
@@ -237,7 +237,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
         </motion.div>
 
         {/* ─── CATEGORY TAGS + LINKS ─── */}
-        <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
           <div className="flex items-center gap-3 flex-wrap">
             {project.subcategory && (
               <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] text-text-tertiary">
@@ -263,7 +263,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mx-auto max-w-5xl px-4 pt-5 sm:px-6"
+          className="mx-auto max-w-7xl px-4 pt-5 sm:px-6"
         >
           <p className="text-[14px] leading-relaxed text-text-secondary">
             {project.description || project.tagline}
@@ -271,7 +271,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
         </motion.div>
 
         {/* ─── TAB NAVIGATION ─── */}
-        <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
           <div className="flex gap-6 border-b border-white/5">
             {(["overview", "reviews"] as const).map((tab) => (
               <button
@@ -296,7 +296,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mx-auto max-w-5xl px-4 pt-6 sm:px-6"
+            className="mx-auto max-w-7xl px-4 pt-6 sm:px-6"
           >
             <div className="relative">
               {/* Scroll buttons */}
@@ -347,7 +347,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
         )}
 
         {/* ─── CONTENT AREA ─── */}
-        <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 pt-8 pb-16 sm:px-6">
           <div className="flex gap-10">
             {/* Left column */}
             <div className="min-w-0 flex-1 space-y-10">
