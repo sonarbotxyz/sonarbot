@@ -178,21 +178,15 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
   return (
     <>
       <div className="min-h-screen">
-        {/* Dynamic gradient banner based on project brand color */}
-        <div className="relative h-32 overflow-hidden sm:h-40" style={{ background: meshGradient }}>
-          <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: noiseFilter, backgroundSize: "128px 128px" }} />
-          {/* Bottom fade into page bg */}
-          <div className="absolute inset-x-0 bottom-0 h-16" style={{ background: "linear-gradient(to top, var(--background) 0%, transparent 100%)" }} />
-          {/* Back nav overlaid on banner */}
-          <div className="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors">
-              <ArrowLeft className="h-4 w-4" /> Back to discover
-            </Link>
-          </div>
+        {/* Back nav */}
+        <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-text-tertiary hover:text-text-primary transition-colors">
+            <ArrowLeft className="h-4 w-4" /> Back to discover
+          </Link>
         </div>
 
         {/* ─── TWO-COLUMN LAYOUT ─── */}
-        <div className="relative mx-auto max-w-7xl px-4 -mt-12 pb-16 sm:px-6 sm:-mt-16">
+        <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6">
           <div className="flex flex-col lg:flex-row lg:gap-10">
 
             {/* ═══════════════════════════════════════ */}
