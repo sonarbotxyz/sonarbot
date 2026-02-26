@@ -27,17 +27,11 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
+import { useDominantColor, buildMeshGradient, buildAccentColor } from "@/hooks/useDominantColor";
 import type { Project, Comment, Category, Milestone } from "@/lib/mock-data";
 import { projects as allProjects } from "@/lib/mock-data";
 
-const categoryColors: Record<Category, string> = {
-  DeFi: "#2A5DC4",
-  Social: "#6B45C0",
-  NFT: "#B83575",
-  Infra: "#18A870",
-  Gaming: "#C88018",
-  Tools: "#505860",
-};
+const noiseFilter = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`;
 
 const milestoneTypeIcons: Record<string, React.ElementType> = {
   metrics: BarChart3,
@@ -109,8 +103,10 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
     );
   }
 
-  const accentColor = categoryColors[project.category];
   const avatar = getAvatar(project);
+  const { rgb, color: accentColor } = useDominantColor(avatar);
+  const meshGradient = buildMeshGradient(rgb);
+  const accentTextColor = buildAccentColor(rgb);
   const screenshots = getProductScreenshots(project);
   const promotedProject = getPromotedProject(project.id);
   const description = project.description || project.tagline;
@@ -182,15 +178,21 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
   return (
     <>
       <div className="min-h-screen">
-        {/* Back nav */}
-        <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-text-tertiary hover:text-text-primary transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Back to discover
-          </Link>
+        {/* Dynamic gradient banner based on project brand color */}
+        <div className="relative h-32 overflow-hidden sm:h-40" style={{ background: meshGradient }}>
+          <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: noiseFilter, backgroundSize: "128px 128px" }} />
+          {/* Bottom fade into page bg */}
+          <div className="absolute inset-x-0 bottom-0 h-16" style={{ background: "linear-gradient(to top, var(--background) 0%, transparent 100%)" }} />
+          {/* Back nav overlaid on banner */}
+          <div className="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors">
+              <ArrowLeft className="h-4 w-4" /> Back to discover
+            </Link>
+          </div>
         </div>
 
         {/* ─── TWO-COLUMN LAYOUT ─── */}
-        <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6">
+        <div className="relative mx-auto max-w-7xl px-4 -mt-12 pb-16 sm:px-6 sm:-mt-16">
           <div className="flex flex-col lg:flex-row lg:gap-10">
 
             {/* ═══════════════════════════════════════ */}
@@ -218,7 +220,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                       </h1>
                       <span
                         className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
-                        style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                        style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.15)`, color: accentTextColor }}
                       >
                         {project.category}
                       </span>
@@ -457,6 +459,8 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                   alertPrefs={alertPrefs}
                   promotedProject={promotedProject}
                   accentColor={accentColor}
+                  rgb={rgb}
+                  accentTextColor={accentTextColor}
                   onUpvote={handleUpvote}
                   onToggleWatch={() => { if (!watching) setShowAlertModal(true); setWatching(!watching); }}
                   onToggleAlertPref={toggleAlertPref}
@@ -595,9 +599,9 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                     <div className="flex items-center gap-2.5 text-sm text-text-secondary">
                       <span
                         className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full"
-                        style={{ backgroundColor: `${accentColor}30` }}
+                        style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.2)` }}
                       >
-                        <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: accentColor }} />
+                        <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: accentTextColor }} />
                       </span>
                       <span>{project.category}</span>
                       {project.subcategory && (
@@ -635,6 +639,8 @@ function MobileSidebarContent({
   alertPrefs,
   promotedProject,
   accentColor,
+  rgb,
+  accentTextColor,
   onUpvote,
   onToggleWatch,
   onToggleAlertPref,
@@ -648,6 +654,8 @@ function MobileSidebarContent({
   alertPrefs: Set<string>;
   promotedProject: Project | null;
   accentColor: string;
+  rgb: [number, number, number];
+  accentTextColor: string;
   onUpvote: () => void;
   onToggleWatch: () => void;
   onToggleAlertPref: (key: string) => void;
@@ -728,9 +736,9 @@ function MobileSidebarContent({
           <div className="flex items-center gap-2.5 text-sm text-text-secondary">
             <span
               className="flex h-4 w-4 items-center justify-center rounded-full"
-              style={{ backgroundColor: `${accentColor}30` }}
+              style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.2)` }}
             >
-              <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: accentColor }} />
+              <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: accentTextColor }} />
             </span>
             <span>{project.category}</span>
             {project.subcategory && (

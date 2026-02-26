@@ -12,6 +12,7 @@
     "@privy-io/react-auth": "^3.14.1",
     "@privy-io/server-auth": "^1.32.5",
     "@supabase/supabase-js": "^2.97.0",
+    "fast-average-color": "^9.5.0",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
