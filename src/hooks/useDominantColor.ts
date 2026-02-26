@@ -38,6 +38,9 @@ export function useDominantColor(imageUrl: string | null, fallbackColor = "#3DD7
     const img = new Image();
     img.crossOrigin = "anonymous";
 
+    // Route through our proxy to guarantee CORS access for canvas pixel reading
+    const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+
     img.onload = () => {
       try {
         const rgb = extractVibrantColor(img);
@@ -55,7 +58,7 @@ export function useDominantColor(imageUrl: string | null, fallbackColor = "#3DD7
       setResult({ color: fallbackColor, rgb: hexToRgb(fallbackColor), isDark: true, isLoading: false });
     };
 
-    img.src = imageUrl;
+    img.src = proxiedUrl;
   }, [imageUrl, fallbackColor]);
 
   return result;
