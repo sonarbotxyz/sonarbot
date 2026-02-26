@@ -14,6 +14,8 @@ export interface Project {
   launchDate?: string;
   website?: string;
   twitter?: string;
+  logoUrl?: string;
+  twitterHandle?: string;
   milestones: Milestone[];
   comments: Comment[];
 }

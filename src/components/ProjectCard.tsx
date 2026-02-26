@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ChevronUp, Flame, Star } from "lucide-react";
 import type { Project, Category } from "@/lib/mock-data";
@@ -14,6 +15,15 @@ const categoryGradients: Record<Category, { from: string; via: string; to: strin
   Tools: { from: "#505860", via: "#383E48", to: "#202428" },
 };
 
+/** Get an image URL for the project: logo_url > twitter avatar > null */
+function getProjectImage(project: Project): string | null {
+  if (project.logoUrl) return project.logoUrl;
+  if (project.twitterHandle) {
+    return `https://unavatar.io/twitter/${project.twitterHandle}`;
+  }
+  return null;
+}
+
 interface ProjectCardProps {
   project: Project;
   index?: number;
@@ -22,6 +32,7 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, index = 0, featured = false }: ProjectCardProps) {
   const gradient = categoryGradients[project.category];
+  const imageUrl = getProjectImage(project);
 
   if (featured) {
     return (
@@ -34,13 +45,25 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
       >
         <Link href={`/project/${project.id}`} className="group block h-full">
           <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-surface transition-transform duration-300 ease-out group-hover:-translate-y-0.5">
-            {/* Featured banner — warm amber/gold gradient */}
+            {/* Featured banner */}
             <div
-              className="relative flex-1 min-h-0 overflow-hidden"
+              className="relative flex-1 min-h-0 overflow-hidden flex items-center justify-center"
               style={{
                 background: `linear-gradient(160deg, #C8940A 0%, #A87808 30%, #785008 70%, #483008 100%)`,
               }}
             >
+              {/* Project image */}
+              {imageUrl && (
+                <div className="relative w-24 h-24 rounded-2xl overflow-hidden shadow-lg">
+                  <img
+                    src={imageUrl}
+                    alt={project.name}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+
               {/* Featured badge */}
               <div className="absolute top-3 left-3">
                 <span className="flex items-center gap-1 rounded-full bg-black/30 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white/90 uppercase backdrop-blur-sm">
@@ -49,10 +72,9 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
                 </span>
               </div>
 
-              {/* Hot badge */}
               {project.isHot && (
                 <div className="absolute top-3 right-3">
-                  <span className="flex items-center gap-1 rounded-full bg-black/30 px-2 py-1 text-[10px] font-medium text-white/80 backdrop-blur-sm">
+                  <span className="flex items-center gap-1 rounded-full bg-black/30 px-2 py-0.5 text-[10px] font-medium text-white/80 backdrop-blur-sm">
                     <Flame className="h-2.5 w-2.5" />
                     Hot
                   </span>
@@ -60,7 +82,7 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
               )}
             </div>
 
-            {/* Content — richer for featured */}
+            {/* Content */}
             <div className="p-4">
               <h3 className="font-[family-name:var(--font-brand)] text-[15px] font-bold text-text-primary truncate">
                 {project.name}
@@ -69,7 +91,6 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
                 {project.tagline}
               </p>
 
-              {/* Action row */}
               <div className="mt-3 flex items-center gap-2">
                 <span className="flex items-center gap-1 rounded-full bg-surface-hover px-2 py-0.5 text-text-secondary">
                   <ChevronUp className="h-3 w-3" />
@@ -97,13 +118,25 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
     >
       <Link href={`/project/${project.id}`} className="group block">
         <div className="overflow-hidden rounded-2xl bg-surface transition-transform duration-300 ease-out group-hover:-translate-y-0.5">
-          {/* Banner — 75% of card, saturated category gradient */}
+          {/* Banner with project image centered on gradient */}
           <div
-            className="relative h-44 overflow-hidden sm:h-48"
+            className="relative h-44 overflow-hidden sm:h-48 flex items-center justify-center"
             style={{
               background: `linear-gradient(160deg, ${gradient.from} 0%, ${gradient.via} 50%, ${gradient.to} 100%)`,
             }}
           >
+            {/* Project image — centered on gradient */}
+            {imageUrl && (
+              <div className="relative w-20 h-20 rounded-xl overflow-hidden shadow-lg ring-2 ring-white/10">
+                <img
+                  src={imageUrl}
+                  alt={project.name}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
+
             {/* Badges */}
             {project.isHot && (
               <div className="absolute top-3 left-3">
@@ -113,9 +146,17 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
                 </span>
               </div>
             )}
+
+            {project.isNew && (
+              <div className="absolute top-3 right-3">
+                <span className="rounded-full bg-black/25 px-2 py-0.5 text-[10px] font-medium text-white/80 backdrop-blur-sm">
+                  New
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Content — compact bottom 25% */}
+          {/* Content */}
           <div className="p-3.5">
             <h3 className="font-[family-name:var(--font-brand)] text-[15px] font-bold text-text-primary truncate">
               {project.name}
@@ -124,7 +165,6 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
               {project.tagline}
             </p>
 
-            {/* Action row: upvote pill + category tag */}
             <div className="mt-2.5 flex items-center gap-2">
               <span className="flex items-center gap-1 rounded-full bg-surface-hover px-2 py-0.5 text-text-secondary">
                 <ChevronUp className="h-3 w-3" />

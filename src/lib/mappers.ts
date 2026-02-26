@@ -62,6 +62,8 @@ export function mapProject(row: SupabaseProject): Project {
     launchDate: row.launch_date,
     website: row.website_url,
     twitter: row.twitter_handle,
+    logoUrl: row.logo_url || undefined,
+    twitterHandle: row.twitter_handle || undefined,
     milestones: [],
     comments: [],
   };
