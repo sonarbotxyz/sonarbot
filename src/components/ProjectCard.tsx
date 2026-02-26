@@ -27,7 +27,8 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.4, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
         className="row-span-2"
       >
@@ -90,7 +91,8 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
     >
       <Link href={`/project/${project.id}`} className="group block">
