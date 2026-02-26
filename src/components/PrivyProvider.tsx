@@ -1,38 +1,35 @@
 "use client";
 
+import { useState, useEffect, type ReactNode } from "react";
 import { PrivyProvider as Privy } from "@privy-io/react-auth";
 import { AuthProvider } from "./AuthContext";
-import type { ReactNode } from "react";
+
+const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "";
 
 export function PrivyProvider({ children }: { children: ReactNode }) {
-  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+  const [mounted, setMounted] = useState(false);
 
-  if (!appId || appId === "undefined" || typeof window === "undefined") {
-    // Render without Privy during SSR/prerender or if not configured
-    return <AuthFallback>{children}</AuthFallback>;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // During SSR or before mount, render without Privy
+  if (!mounted || !PRIVY_APP_ID) {
+    return <>{children}</>;
   }
 
-  try {
-    return (
-      <Privy
-        appId={appId}
-        config={{
-          appearance: {
-            theme: "dark",
-            accentColor: "#3DD7D8",
-          },
-          loginMethods: ["wallet", "email", "twitter"],
-        }}
-      >
-        <AuthProvider>{children}</AuthProvider>
-      </Privy>
-    );
-  } catch {
-    return <AuthFallback>{children}</AuthFallback>;
-  }
-}
-
-/** Fallback when Privy is not configured — provides no-op auth context. */
-function AuthFallback({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+  return (
+    <Privy
+      appId={PRIVY_APP_ID}
+      config={{
+        appearance: {
+          theme: "dark",
+          accentColor: "#3DD7D8",
+        },
+        loginMethods: ["wallet", "email", "twitter"],
+      }}
+    >
+      <AuthProvider>{children}</AuthProvider>
+    </Privy>
+  );
 }
