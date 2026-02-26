@@ -7,25 +7,29 @@ import type { ReactNode } from "react";
 export function PrivyProvider({ children }: { children: ReactNode }) {
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
-  if (!appId) {
-    // Render without Privy if not configured (dev fallback)
+  if (!appId || appId === "undefined" || typeof window === "undefined") {
+    // Render without Privy during SSR/prerender or if not configured
     return <AuthFallback>{children}</AuthFallback>;
   }
 
-  return (
-    <Privy
-      appId={appId}
-      config={{
-        appearance: {
-          theme: "dark",
-          accentColor: "#3DD7D8",
-        },
-        loginMethods: ["wallet", "email", "twitter"],
-      }}
-    >
-      <AuthProvider>{children}</AuthProvider>
-    </Privy>
-  );
+  try {
+    return (
+      <Privy
+        appId={appId}
+        config={{
+          appearance: {
+            theme: "dark",
+            accentColor: "#3DD7D8",
+          },
+          loginMethods: ["wallet", "email", "twitter"],
+        }}
+      >
+        <AuthProvider>{children}</AuthProvider>
+      </Privy>
+    );
+  } catch {
+    return <AuthFallback>{children}</AuthFallback>;
+  }
 }
 
 /** Fallback when Privy is not configured — provides no-op auth context. */
