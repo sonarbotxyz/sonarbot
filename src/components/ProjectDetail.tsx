@@ -499,7 +499,12 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                   </span>
                 </button>
 
-                {/* 2. WATCH / FOLLOWING BUTTON */}
+                {/* 2. PROMOTED PROJECT CARD — top of sidebar for visibility */}
+                {promotedProject && (
+                  <PromotedProjectCard project={promotedProject} />
+                )}
+
+                {/* 3. WATCH / FOLLOWING BUTTON */}
                 <button
                   type="button"
                   onClick={() => {
@@ -605,10 +610,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                   </div>
                 </div>
 
-                {/* 5. PROMOTED PROJECT CARD */}
-                {promotedProject && (
-                  <PromotedProjectCard project={promotedProject} />
-                )}
+                {/* Promoted card moved to top of sidebar */}
               </div>
             </motion.div>
           </div>
@@ -653,6 +655,9 @@ function MobileSidebarContent({
 }) {
   return (
     <>
+      {/* Promoted — top of mobile sidebar too */}
+      {promotedProject && <PromotedProjectCard project={promotedProject} />}
+
       {/* Upvote + Watch row */}
       <div className="flex gap-3">
         <button
@@ -738,8 +743,6 @@ function MobileSidebarContent({
         </div>
       </div>
 
-      {/* Promoted project */}
-      {promotedProject && <PromotedProjectCard project={promotedProject} />}
     </>
   );
 }
