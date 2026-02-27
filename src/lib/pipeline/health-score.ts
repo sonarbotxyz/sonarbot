@@ -115,15 +115,18 @@ export async function calculateHealthScore(
   const previousLiquidity = oldSnap?.liquidity ?? 0;
   const currentVolume = currentSnap?.volume_24h ?? 0;
   const previousVolume = oldSnap?.volume_24h ?? 0;
-  const engagementRate = social?.x_engagement_rate ?? 0;
-  const commitsWeek = social?.github_commits_7d ?? 0;
-
   // Calculate sub-scores
   const holderSub = calcHolderSub(currentHolders, holdersWeekAgo);
-  const devSub = calcDevSub(commitsWeek);
   const liquiditySub = calcLiquiditySub(currentLiquidity, previousLiquidity);
-  const socialSub = calcSocialSub(engagementRate);
   const volumeSub = calcVolumeSub(currentVolume, previousVolume);
+
+  // Social-derived sub-scores: default to 50 (neutral) if no social data exists
+  const devSub = social
+    ? calcDevSub(social.github_commits_7d ?? 0)
+    : 50;
+  const socialSub = social
+    ? calcSocialSub(social.x_engagement_rate ?? 0)
+    : 50;
 
   // Weighted composite score
   const score = Math.round(
