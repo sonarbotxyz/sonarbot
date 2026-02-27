@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/onchain",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/health-score",
+      "schedule": "30 * * * *"
+    }
+  ]
+}

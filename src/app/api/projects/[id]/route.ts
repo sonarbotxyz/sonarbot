@@ -17,6 +17,7 @@ export async function GET(
 
     const supabase = getSupabase();
 
+    // Fetch project
     const { data, error } = await supabase
       .from("projects")
       .select("*")
@@ -31,7 +32,61 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ project: data });
+    // Fetch related data in parallel
+    const [healthResult, snapshotsResult, whalesResult, socialResult] =
+      await Promise.all([
+        // Latest health score
+        supabase
+          .from("health_scores")
+          .select("*")
+          .eq("project_id", id)
+          .order("timestamp", { ascending: false })
+          .limit(1),
+        // Recent snapshots (last 7 days worth, ~168 hourly snapshots)
+        supabase
+          .from("snapshots")
+          .select("*")
+          .eq("project_id", id)
+          .order("timestamp", { ascending: false })
+          .limit(168),
+        // Whale wallets
+        supabase
+          .from("whale_wallets")
+          .select("*")
+          .eq("project_id", id)
+          .order("balance", { ascending: false })
+          .limit(20),
+        // Latest social snapshot
+        supabase
+          .from("social_snapshots")
+          .select("*")
+          .eq("project_id", id)
+          .order("timestamp", { ascending: false })
+          .limit(1),
+      ]);
+
+    const latestHealth = healthResult.data?.[0] ?? null;
+    const snapshots = snapshotsResult.data ?? [];
+    const whaleWallets = whalesResult.data ?? [];
+    const latestSocial = socialResult.data?.[0] ?? null;
+
+    return NextResponse.json({
+      project: data,
+      health: latestHealth
+        ? {
+            score: latestHealth.score,
+            holder_sub: latestHealth.holder_sub,
+            dev_sub: latestHealth.dev_sub,
+            liquidity_sub: latestHealth.liquidity_sub,
+            social_sub: latestHealth.social_sub,
+            volume_sub: latestHealth.volume_sub,
+            timestamp: latestHealth.timestamp,
+          }
+        : null,
+      snapshots: snapshots.reverse(), // chronological order for charts
+      whale_wallets: whaleWallets,
+      social: latestSocial,
+    });
   } catch (error) {
     console.error("Failed to fetch project:", error);
     return NextResponse.json(

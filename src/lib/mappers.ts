@@ -20,6 +20,14 @@ export interface SupabaseProject {
   submitted_by_twitter?: string;
   created_at?: string;
   launch_date?: string;
+  // v2 analytics fields
+  contract_address?: string;
+  chain?: string;
+  is_boosted?: boolean;
+  boost_expires_at?: string;
+  x_user_id?: string;
+  github_repo?: string;
+  farcaster_handle?: string;
 }
 
 /** Raw comment row from Supabase (snake_case). */
