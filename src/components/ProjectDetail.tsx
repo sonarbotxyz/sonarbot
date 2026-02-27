@@ -288,57 +288,56 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
 
               {/* ─── HEADER ─── */}
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                <div className="flex items-start gap-4 sm:gap-5">
-                  <div className="h-16 w-16 flex-shrink-0 rounded-2xl overflow-hidden ring-1 ring-white/10 sm:h-20 sm:w-20">
+                {/* Mobile: compact horizontal layout */}
+                <div className="flex items-start gap-3 sm:gap-5">
+                  <div className="h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden ring-1 ring-white/10 sm:h-20 sm:w-20 sm:rounded-2xl">
                     <img src={avatar} alt={project.name} className="h-full w-full object-cover" loading="lazy" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <h1 className="font-[family-name:var(--font-brand)] text-xl font-bold text-text-primary sm:text-2xl">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="font-[family-name:var(--font-brand)] text-lg font-bold text-text-primary sm:text-2xl leading-tight">
                         {project.name}
                       </h1>
                       <span
-                        className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                        className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px] sm:px-2.5"
                         style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.15)`, color: accentTextColor }}
                       >
                         {project.category}
                       </span>
-                      {/* Health score badge inline */}
-                      {healthScore && (
-                        <div className="flex items-center gap-1.5">
-                          <HealthScore score={healthScore.overall} size="sm" />
-                        </div>
-                      )}
+                      {healthScore && <HealthScore score={healthScore.overall} size="sm" />}
                     </div>
-                    <p className="mt-1 text-[14px] text-text-secondary sm:text-[15px]">{project.tagline}</p>
-                    <div className="mt-2 flex items-center gap-4 text-[12px] text-text-tertiary">
-                      <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{project.watchers.toLocaleString()} watchers</span>
-                      <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{comments.length} comments</span>
-                      <span className="flex items-center gap-1"><ChevronUp className="h-3 w-3" /><span className="font-[family-name:var(--font-mono)]">{upvoteCount.toLocaleString()}</span> upvotes</span>
-                    </div>
-                    {/* External links */}
-                    <div className="mt-3 flex items-center gap-2 flex-wrap">
-                      {project.website && (
-                        <a
-                          href={project.website.startsWith("http") ? project.website : `https://${project.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-surface px-3 text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary ring-1 ring-white/5"
-                        >
-                          <Globe className="h-3.5 w-3.5" /> Website <ExternalLink className="h-3 w-3 text-text-tertiary" />
-                        </a>
-                      )}
-                      {project.twitter && (
-                        <a
-                          href={`https://x.com/${project.twitter}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-surface px-3 text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary ring-1 ring-white/5"
-                        >
-                          <Twitter className="h-3.5 w-3.5" /> @{project.twitter}
-                        </a>
-                      )}
-                    </div>
+                    <p className="mt-0.5 text-[13px] text-text-secondary sm:mt-1 sm:text-[15px] line-clamp-2">{project.tagline}</p>
+                  </div>
+                </div>
+
+                {/* Stats + links row — compact on mobile */}
+                <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-3 text-[11px] text-text-tertiary sm:text-[12px]">
+                    <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{project.watchers.toLocaleString()}</span>
+                    <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{comments.length}</span>
+                    <span className="flex items-center gap-1"><ChevronUp className="h-3 w-3" /><span className="font-[family-name:var(--font-mono)]">{upvoteCount.toLocaleString()}</span></span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {project.website && (
+                      <a
+                        href={project.website.startsWith("http") ? project.website : `https://${project.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-7 items-center gap-1 rounded-md bg-surface px-2.5 text-[11px] font-medium text-text-secondary transition-colors hover:text-text-primary ring-1 ring-white/5"
+                      >
+                        <Globe className="h-3 w-3" /> Site
+                      </a>
+                    )}
+                    {project.twitter && (
+                      <a
+                        href={`https://x.com/${project.twitter}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-7 items-center gap-1 rounded-md bg-surface px-2.5 text-[11px] font-medium text-text-secondary transition-colors hover:text-text-primary ring-1 ring-white/5"
+                      >
+                        <Twitter className="h-3 w-3" /> X
+                      </a>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -634,8 +633,8 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                 </motion.section>
               )}
 
-              {/* ─── COMMENTS ─── */}
-              {(activeTab === "reviews" || activeTab === "overview") && (
+              {/* ─── COMMENTS (only on reviews tab) ─── */}
+              {activeTab === "reviews" && (
                 <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-10">
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-text-primary">
