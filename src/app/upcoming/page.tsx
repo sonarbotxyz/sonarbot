@@ -9,17 +9,8 @@ import {
   ChevronUp,
   Check,
 } from "lucide-react";
-import { upcomingProjects, type Category } from "@/lib/mock-data";
+import { upcomingProjects } from "@/lib/mock-data";
 import { CountdownTimer } from "@/components/CountdownTimer";
-
-const categoryGradients: Record<Category, { from: string; via: string; to: string }> = {
-  DeFi: { from: "#2A5DC4", via: "#1A3D94", to: "#0A1D64" },
-  Social: { from: "#6B45C0", via: "#4B2590", to: "#2B0560" },
-  NFT: { from: "#B83575", via: "#882050", to: "#580A30" },
-  Infra: { from: "#18A870", via: "#0A7848", to: "#004828" },
-  Gaming: { from: "#C88018", via: "#986010", to: "#684008" },
-  Tools: { from: "#505860", via: "#383E48", to: "#202428" },
-};
 
 export default function UpcomingPage() {
   const [notified, setNotified] = useState<Set<string>>(new Set());
@@ -60,7 +51,6 @@ export default function UpcomingPage() {
       {/* Card grid */}
       <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {upcomingProjects.map((project, i) => {
-          const gradient = categoryGradients[project.category];
           const isNotified = notified.has(project.id);
 
           return (
@@ -74,15 +64,11 @@ export default function UpcomingPage() {
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              <div className="group overflow-hidden rounded-2xl bg-surface transition-transform duration-300 ease-out hover:-translate-y-0.5">
+              <div className="group overflow-hidden rounded-2xl bg-[#13141B] transition-transform duration-300 ease-out hover:-translate-y-0.5">
                 {/* Banner */}
                 <Link href={`/project/${project.id}`}>
-                  <div
-                    className="relative flex h-44 items-center justify-center overflow-hidden sm:h-48"
-                    style={{
-                      background: `linear-gradient(160deg, ${gradient.from} 0%, ${gradient.via} 50%, ${gradient.to} 100%)`,
-                    }}
-                  >
+                  <div className="relative flex h-44 items-center justify-center overflow-hidden bg-[#1A1B23] sm:h-48">
+
                     {/* Countdown overlay */}
                     <div className="absolute right-3 bottom-3">
                       <CountdownTimer targetDate={project.launchDate} />

@@ -1,52 +1,34 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Background & Surface — Bubbble charcoal, no blue tint */
-  --color-bg: #13141B;
-  --color-bg-alt: #111218;
-  --color-surface: #1C1D27;
-  --color-surface-hover: #22232E;
-  --color-surface-raised: #282935;
+  /* Backgrounds — unified palette */
+  --color-bg: #0A0A0F;
+  --color-bg-alt: #0A0A0F;
+  --color-surface: #13141B;
+  --color-surface-hover: #1A1B23;
+  --color-surface-raised: #1A1B23;
 
   /* No visible borders — depth through surface color only */
-  --color-border: #2A2B36;
-  --color-border-subtle: #22232E;
+  --color-border: #1A1B23;
+  --color-border-subtle: #1A1B23;
 
-  /* Primary — Cyan/Teal (used VERY sparingly: upvote active, tiny badges) */
+  /* Primary — Teal (used sparingly: CTA, links, active states) */
   --color-primary: #3DD7D8;
   --color-primary-hover: #50E5E6;
   --color-primary-muted: #3DD7D818;
 
-  /* Semantic */
-  --color-success: #00D897;
-  --color-success-muted: #00D89720;
-  --color-danger: #FF4466;
-  --color-danger-muted: #FF446620;
-  --color-gold: #FFB800;
-  --color-gold-muted: #FFB80020;
+  /* Semantic — strict palette */
+  --color-success: #22C55E;
+  --color-success-muted: #22C55E20;
+  --color-danger: #EF4444;
+  --color-danger-muted: #EF444420;
+  --color-gold: #EAB308;
+  --color-gold-muted: #EAB30820;
 
-  /* Text */
-  --color-text-primary: #F0F0F5;
-  --color-text-secondary: #8A8AA3;
-  --color-text-tertiary: #555570;
-
-  /* Category gradients — more saturated for Bubbble-style visual banners */
-  --color-cat-defi: #2A5DC4;
-  --color-cat-defi-end: #4A7DE8;
-  --color-cat-social: #6B45C0;
-  --color-cat-social-end: #8B65E0;
-  --color-cat-nft: #B83575;
-  --color-cat-nft-end: #D85598;
-  --color-cat-infra: #18A870;
-  --color-cat-infra-end: #38C890;
-  --color-cat-gaming: #C88018;
-  --color-cat-gaming-end: #E8A038;
-  --color-cat-tools: #505860;
-  --color-cat-tools-end: #707880;
-
-  /* Featured/special gradient */
-  --color-featured-from: #C8940A;
-  --color-featured-to: #E8B830;
+  /* Text — unified palette */
+  --color-text-primary: #E8E8ED;
+  --color-text-secondary: #8B8B9E;
+  --color-text-tertiary: #52526B;
 
   /* Fonts */
   --font-brand: var(--font-space-grotesk);
@@ -110,16 +92,9 @@ body {
   display: none;
 }
 
-/* Glass effect — darker charcoal base */
+/* Glass effect — darker base */
 .glass {
-  background: rgba(19, 20, 27, 0.85);
+  background: rgba(10, 10, 15, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-}
-
-/* Gradient text utility */
-.gradient-text {
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }

@@ -9,10 +9,9 @@ interface HealthBreakdownProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score <= 30) return "#EF4444";
-  if (score <= 60) return "#EAB308";
-  if (score <= 80) return "#22C55E";
-  return "#10B981";
+  if (score <= 35) return "#EF4444";
+  if (score <= 65) return "#EAB308";
+  return "#22C55E";
 }
 
 const LABELS: {
@@ -30,8 +29,8 @@ const LABELS: {
 
 export function HealthBreakdown({ health }: HealthBreakdownProps) {
   return (
-    <div className="rounded-2xl bg-surface p-5">
-      <h3 className="text-sm font-semibold text-text-primary">Health Breakdown</h3>
+    <div className="rounded-2xl bg-[#13141B] p-5">
+      <h3 className="text-sm font-semibold text-[#E8E8ED]">Health Breakdown</h3>
       <div className="mt-4 space-y-3.5">
         {LABELS.map(({ key, label, icon: Icon, weightKey }, i) => {
           const score = health.breakdown[key];
@@ -42,9 +41,9 @@ export function HealthBreakdown({ health }: HealthBreakdownProps) {
             <div key={key}>
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <Icon className="h-3.5 w-3.5 text-text-tertiary" />
-                  <span className="text-[13px] text-text-secondary">{label}</span>
-                  <span className="font-[family-name:var(--font-mono)] text-[10px] text-text-tertiary">
+                  <Icon className="h-3.5 w-3.5 text-[#52526B]" />
+                  <span className="text-[13px] text-[#8B8B9E]">{label}</span>
+                  <span className="font-[family-name:var(--font-mono)] text-[10px] text-[#52526B]">
                     {weight}%
                   </span>
                 </div>
@@ -55,7 +54,7 @@ export function HealthBreakdown({ health }: HealthBreakdownProps) {
                   {score}
                 </span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                 <motion.div
                   className="h-full rounded-full"
                   style={{ backgroundColor: color }}

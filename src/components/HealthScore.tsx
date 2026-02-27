@@ -8,10 +8,9 @@ interface HealthScoreProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score <= 30) return "#EF4444";
-  if (score <= 60) return "#EAB308";
-  if (score <= 80) return "#22C55E";
-  return "#10B981";
+  if (score <= 35) return "#EF4444";
+  if (score <= 65) return "#EAB308";
+  return "#22C55E";
 }
 
 export function HealthScore({ score, size = "lg" }: HealthScoreProps) {
@@ -39,7 +38,7 @@ export function HealthScore({ score, size = "lg" }: HealthScoreProps) {
           cy={svgSize / 2}
           r={radius}
           fill="none"
-          stroke="rgba(42, 43, 54, 0.6)"
+          stroke="rgba(255, 255, 255, 0.1)"
           strokeWidth={stroke}
         />
         {/* Animated progress */}

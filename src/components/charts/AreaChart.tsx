@@ -61,7 +61,7 @@ function CustomTooltip({
 
 export function AreaChartComponent({
   data,
-  color = "#0052FF",
+  color = "#3DD7D8",
   height = 280,
   showGrid = true,
   showTooltip = true,

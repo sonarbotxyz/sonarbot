@@ -17,16 +17,7 @@ import {
   ChevronUp,
   Settings,
 } from "lucide-react";
-import { projects, alerts, type Category, type Alert } from "@/lib/mock-data";
-
-const categoryGradients: Record<Category, { from: string; via: string; to: string }> = {
-  DeFi: { from: "#2A5DC4", via: "#1A3D94", to: "#0A1D64" },
-  Social: { from: "#6B45C0", via: "#4B2590", to: "#2B0560" },
-  NFT: { from: "#B83575", via: "#882050", to: "#580A30" },
-  Infra: { from: "#18A870", via: "#0A7848", to: "#004828" },
-  Gaming: { from: "#C88018", via: "#986010", to: "#684008" },
-  Tools: { from: "#505860", via: "#383E48", to: "#202428" },
-};
+import { projects, alerts, type Alert } from "@/lib/mock-data";
 
 const alertTypeIcons: Record<string, React.ElementType> = {
   metrics: BarChart3,
@@ -140,7 +131,6 @@ function AlertsFeed({ alerts: alertList }: { alerts: Alert[] }) {
       className="space-y-2"
     >
       {alertList.map((alert, i) => {
-        const gradient = categoryGradients[alert.category];
         const TypeIcon = alertTypeIcons[alert.type] || Circle;
 
         return (
@@ -152,27 +142,24 @@ function AlertsFeed({ alerts: alertList }: { alerts: Alert[] }) {
           >
             <Link
               href={`/project/${alert.projectId}`}
-              className="group flex items-start gap-4 rounded-2xl bg-surface p-4 transition-colors hover:bg-surface-hover"
+              className="group flex items-start gap-4 rounded-2xl bg-[#13141B] p-4 transition-colors hover:bg-[#1A1B23]"
             >
               {/* Activity dot */}
               <div className="mt-1 shrink-0">
                 {!alert.read ? (
-                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-[#3DD7D8]" />
                 ) : (
-                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-[#52526B]" />
                 )}
               </div>
 
               {/* Content */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span
-                    className="font-[family-name:var(--font-brand)] text-sm font-semibold"
-                    style={{ color: gradient.from }}
-                  >
+                  <span className="font-[family-name:var(--font-brand)] text-sm font-semibold text-[#E8E8ED]">
                     {alert.projectName}
                   </span>
-                  <TypeIcon className="h-3 w-3 text-text-tertiary" />
+                  <TypeIcon className="h-3 w-3 text-[#52526B]" />
                 </div>
                 <p className="mt-0.5 text-sm font-medium text-text-primary">
                   {alert.title}
@@ -210,7 +197,6 @@ function WatchingGrid({
       className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
       {watchedList.map((project, i) => {
-        const gradient = categoryGradients[project.category];
         const hasActivity = project.isHot || project.isNew;
 
         return (
@@ -222,15 +208,11 @@ function WatchingGrid({
           >
             <Link
               href={`/project/${project.id}`}
-              className="group block overflow-hidden rounded-2xl bg-surface transition-transform duration-300 hover:-translate-y-0.5"
+              className="group block overflow-hidden rounded-2xl bg-[#13141B] transition-transform duration-300 hover:-translate-y-0.5"
             >
               {/* Mini banner */}
-              <div
-                className="relative flex h-28 items-center justify-center overflow-hidden"
-                style={{
-                  background: `linear-gradient(160deg, ${gradient.from} 0%, ${gradient.via} 50%, ${gradient.to} 100%)`,
-                }}
-              >
+              <div className="relative flex h-28 items-center justify-center overflow-hidden bg-[#1A1B23]">
+
                 {hasActivity && (
                   <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center">
                     <div className="absolute h-2 w-2 rounded-full bg-primary" />

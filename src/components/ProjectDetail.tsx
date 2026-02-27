@@ -35,7 +35,6 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
-import { useDominantColor, buildMeshGradient, buildAccentColor } from "@/hooks/useDominantColor";
 import type { Project, Comment, Milestone } from "@/lib/mock-data";
 import { projects as allProjects } from "@/lib/mock-data";
 import type {
@@ -79,8 +78,8 @@ type ChartPeriod = 7 | 30 | 90;
 
 const CHART_TABS: { key: ChartMetric; label: string; icon: React.ElementType; color: string }[] = [
   { key: "holders", label: "Holders", icon: Users, color: "#3DD7D8" },
-  { key: "marketCap", label: "Market Cap", icon: DollarSign, color: "#0052FF" },
-  { key: "volume24h", label: "Volume", icon: BarChart3, color: "#8B5CF6" },
+  { key: "marketCap", label: "Market Cap", icon: DollarSign, color: "#3DD7D8" },
+  { key: "volume24h", label: "Volume", icon: BarChart3, color: "#3DD7D8" },
   { key: "liquidity", label: "Liquidity", icon: Droplets, color: "#22C55E" },
 ];
 
@@ -214,9 +213,6 @@ export function ProjectDetail({
   }
 
   const avatar = getAvatar(project);
-  const { rgb, color: accentColor } = useDominantColor(avatar);
-  const meshGradient = buildMeshGradient(rgb);
-  const accentTextColor = buildAccentColor(rgb);
   const screenshots = getProductScreenshots(project);
   const promotedProject = getPromotedProject(project.id);
   const description = project.description || project.tagline;
@@ -315,10 +311,7 @@ export function ProjectDetail({
                       <h1 className="font-[family-name:var(--font-brand)] text-lg font-bold text-text-primary sm:text-2xl leading-tight">
                         {project.name}
                       </h1>
-                      <span
-                        className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px] sm:px-2.5"
-                        style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.15)`, color: accentTextColor }}
-                      >
+                      <span className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px] sm:px-2.5 bg-[#3DD7D8]/12 text-[#3DD7D8]">
                         {project.category}
                       </span>
                       {healthScore && <HealthScore score={healthScore.overall} size="sm" />}
@@ -380,7 +373,7 @@ export function ProjectDetail({
                     trend={stats.marketCap.trend}
                     sparkline={sparklines.marketCap}
                     icon={DollarSign}
-                    color="#0052FF"
+                    color="#3DD7D8"
                   />
                   <StatCard
                     label="24h Volume"
@@ -388,7 +381,7 @@ export function ProjectDetail({
                     trend={stats.volume24h.trend}
                     sparkline={sparklines.volume24h}
                     icon={BarChart3}
-                    color="#8B5CF6"
+                    color="#3DD7D8"
                   />
                   <StatCard
                     label="Liquidity"
@@ -514,45 +507,43 @@ export function ProjectDetail({
                 {/* Health Breakdown */}
                 {healthScore && <HealthBreakdown health={healthScore} />}
 
-                {/* Social Stats */}
-                {socialData && (
-                  <div className="rounded-2xl bg-surface p-5">
-                    <h3 className="text-sm font-semibold text-text-primary">Social & Dev</h3>
-                    <div className="mt-4 space-y-3">
-                      <SocialRow
-                        icon={Twitter}
-                        label="X Followers"
-                        value={formatNumber(socialData.xFollowers)}
-                        change={socialData.xFollowersChange || undefined}
-                      />
-                      <SocialRow
-                        icon={Activity}
-                        label="Engagement Rate"
-                        value={`${socialData.engagementRate.toFixed(1)}%`}
-                      />
-                      <SocialRow
-                        icon={GitBranch}
-                        label="GitHub Commits (30d)"
-                        value={socialData.githubCommits30d.toString()}
-                      />
-                      <SocialRow
-                        icon={Activity}
-                        label="GitHub Stars"
-                        value={formatNumber(socialData.githubStars)}
-                      />
-                      <SocialRow
-                        icon={MessageCircle}
-                        label="Farcaster Followers"
-                        value={formatNumber(socialData.farcasterFollowers)}
-                      />
-                      <SocialRow
-                        icon={Activity}
-                        label="Farcaster Engagement"
-                        value={`${socialData.farcasterEngagement.toFixed(1)}%`}
-                      />
-                    </div>
+                {/* Social Stats — always visible */}
+                <div className="rounded-2xl bg-surface p-5">
+                  <h3 className="text-sm font-semibold text-text-primary">Social & Dev</h3>
+                  <div className="mt-4 space-y-3">
+                    <SocialRow
+                      icon={Twitter}
+                      label="X Followers"
+                      value={socialData ? formatNumber(socialData.xFollowers) : "—"}
+                      change={socialData?.xFollowersChange || undefined}
+                    />
+                    <SocialRow
+                      icon={Activity}
+                      label="Engagement Rate"
+                      value={socialData ? `${socialData.engagementRate.toFixed(1)}%` : "—"}
+                    />
+                    <SocialRow
+                      icon={GitBranch}
+                      label="GitHub Commits (30d)"
+                      value={socialData ? socialData.githubCommits30d.toString() : "—"}
+                    />
+                    <SocialRow
+                      icon={Activity}
+                      label="GitHub Stars"
+                      value={socialData ? formatNumber(socialData.githubStars) : "—"}
+                    />
+                    <SocialRow
+                      icon={MessageCircle}
+                      label="Farcaster Followers"
+                      value={socialData ? formatNumber(socialData.farcasterFollowers) : "—"}
+                    />
+                    <SocialRow
+                      icon={Activity}
+                      label="Farcaster Engagement"
+                      value={socialData ? `${socialData.farcasterEngagement.toFixed(1)}%` : "—"}
+                    />
                   </div>
-                )}
+                </div>
               </motion.div>
 
               {/* ─── WHALE TABLE ─── */}
@@ -716,12 +707,12 @@ export function ProjectDetail({
                         <Twitter className="h-4 w-4" /><span>@{project.twitter}</span><ExternalLink className="h-3 w-3 text-text-tertiary" />
                       </a>
                     )}
-                    <div className="flex items-center gap-2.5 text-sm text-text-secondary">
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full" style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.2)` }}>
-                        <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: accentTextColor }} />
+                    <div className="flex items-center gap-2.5 text-sm text-[#8B8B9E]">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#3DD7D8]/15">
+                        <span className="block h-2 w-2 rounded-full bg-[#3DD7D8]" />
                       </span>
                       <span>{project.category}</span>
-                      {project.subcategory && (<><span className="text-text-tertiary">/</span><span className="text-text-tertiary">{project.subcategory}</span></>)}
+                      {project.subcategory && (<><span className="text-[#52526B]">/</span><span className="text-[#52526B]">{project.subcategory}</span></>)}
                     </div>
                   </div>
                 </div>
@@ -811,9 +802,9 @@ export function ProjectDetail({
                         <ExternalLink className="h-3 w-3 flex-shrink-0 text-text-tertiary" />
                       </a>
                     )}
-                    <div className="flex items-center gap-2.5 text-sm text-text-secondary">
-                      <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.2)` }}>
-                        <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: accentTextColor }} />
+                    <div className="flex items-center gap-2.5 text-sm text-[#8B8B9E]">
+                      <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[#3DD7D8]/15">
+                        <span className="block h-2 w-2 rounded-full bg-[#3DD7D8]" />
                       </span>
                       <span>{project.category}</span>
                       {project.subcategory && (<><span className="text-text-tertiary">/</span><span className="text-text-tertiary">{project.subcategory}</span></>)}
@@ -910,8 +901,6 @@ function MobileSidebarContent({
   upvoteCount,
   watching,
   promotedProject,
-  rgb,
-  accentTextColor,
   onUpvote,
   onToggleWatch,
   onOpenAlertModal,
@@ -923,9 +912,6 @@ function MobileSidebarContent({
   watching: boolean;
   alertPrefs: Set<string>;
   promotedProject: Project | null;
-  accentColor: string;
-  rgb: [number, number, number];
-  accentTextColor: string;
   onUpvote: () => void;
   onToggleWatch: () => void;
   onToggleAlertPref: (key: string) => void;
@@ -941,8 +927,8 @@ function MobileSidebarContent({
           disabled={upvoting}
           className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-bold transition-all ${
             upvoted
-              ? "bg-primary text-white shadow-[0_0_20px_rgba(61,215,216,0.2)]"
-              : "bg-surface text-text-primary ring-1 ring-white/10"
+              ? "bg-[#3DD7D8] text-white"
+              : "bg-[#13141B] text-[#E8E8ED] ring-1 ring-white/10"
           }`}
         >
           {upvoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronUp className="h-4 w-4" />}
@@ -953,8 +939,8 @@ function MobileSidebarContent({
           onClick={onToggleWatch}
           className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all ${
             watching
-              ? "bg-primary/15 text-primary ring-1 ring-primary/20"
-              : "bg-surface text-text-secondary ring-1 ring-white/10"
+              ? "bg-[#3DD7D8]/15 text-[#3DD7D8] ring-1 ring-[#3DD7D8]/20"
+              : "bg-[#13141B] text-[#8B8B9E] ring-1 ring-white/10"
           }`}
         >
           {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -964,29 +950,29 @@ function MobileSidebarContent({
       <button
         type="button"
         onClick={onOpenAlertModal}
-        className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-surface text-sm font-medium text-text-secondary ring-1 ring-white/10 transition-colors hover:bg-surface-hover"
+        className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#13141B] text-sm font-medium text-[#8B8B9E] ring-1 ring-white/10 transition-colors hover:bg-[#1A1B23]"
       >
         <Bell className="h-4 w-4" /> Configure alerts
       </button>
-      <div className="rounded-2xl bg-surface p-4">
-        <h3 className="text-sm font-semibold text-text-primary">Company Info</h3>
+      <div className="rounded-2xl bg-[#13141B] p-4">
+        <h3 className="text-sm font-semibold text-[#E8E8ED]">Company Info</h3>
         <div className="mt-3 space-y-2.5">
           {project.website && (
-            <a href={project.website.startsWith("http") ? project.website : `https://${project.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-primary">
-              <Globe className="h-4 w-4" /><span className="truncate">{project.website.replace(/^https?:\/\//, "")}</span><ExternalLink className="h-3 w-3 text-text-tertiary" />
+            <a href={project.website.startsWith("http") ? project.website : `https://${project.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-[#8B8B9E] transition-colors hover:text-[#3DD7D8]">
+              <Globe className="h-4 w-4" /><span className="truncate">{project.website.replace(/^https?:\/\//, "")}</span><ExternalLink className="h-3 w-3 text-[#52526B]" />
             </a>
           )}
           {project.twitter && (
-            <a href={`https://x.com/${project.twitter}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-primary">
-              <Twitter className="h-4 w-4" /><span>@{project.twitter}</span><ExternalLink className="h-3 w-3 text-text-tertiary" />
+            <a href={`https://x.com/${project.twitter}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-[#8B8B9E] transition-colors hover:text-[#3DD7D8]">
+              <Twitter className="h-4 w-4" /><span>@{project.twitter}</span><ExternalLink className="h-3 w-3 text-[#52526B]" />
             </a>
           )}
-          <div className="flex items-center gap-2.5 text-sm text-text-secondary">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full" style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.2)` }}>
-              <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: accentTextColor }} />
+          <div className="flex items-center gap-2.5 text-sm text-[#8B8B9E]">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#3DD7D8]/15">
+              <span className="block h-2 w-2 rounded-full bg-[#3DD7D8]" />
             </span>
             <span>{project.category}</span>
-            {project.subcategory && (<><span className="text-text-tertiary">/</span><span className="text-text-tertiary">{project.subcategory}</span></>)}
+            {project.subcategory && (<><span className="text-[#52526B]">/</span><span className="text-[#52526B]">{project.subcategory}</span></>)}
           </div>
         </div>
       </div>
@@ -999,26 +985,22 @@ function PromotedProjectCard({ project }: { project: Project }) {
   const avatar = getAvatar(project);
   return (
     <Link href={`/project/${project.id}`} className="group block">
-      <div
-        className="relative overflow-hidden rounded-2xl p-4 transition-transform duration-200 group-hover:-translate-y-0.5"
-        style={{ background: "linear-gradient(160deg, #3DD7D8 0%, #1A8FA0 35%, #0D4F6B 70%, #081838 100%)" }}
-      >
-        <div className="pointer-events-none absolute inset-0 opacity-25" style={{ background: "radial-gradient(ellipse at 30% 20%, rgba(61,215,216,0.4) 0%, transparent 60%)" }} />
-        <div className="relative flex items-center gap-1.5 mb-3">
-          <span className="flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[9px] font-bold tracking-wider text-white uppercase backdrop-blur-sm">
+      <div className="relative overflow-hidden rounded-2xl bg-[#13141B] border-l-2 border-[#3DD7D8] p-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:bg-[#1A1B23]">
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#E8E8ED] uppercase">
             <Sparkles className="h-2.5 w-2.5" /> Promoted
           </span>
         </div>
-        <div className="relative flex items-center gap-3">
-          <div className="h-10 w-10 flex-shrink-0 rounded-full overflow-hidden ring-2 ring-white/20">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 flex-shrink-0 rounded-full overflow-hidden ring-2 ring-white/10">
             <img src={avatar} alt={project.name} className="h-full w-full object-cover" loading="lazy" />
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="font-[family-name:var(--font-brand)] text-[15px] font-bold text-white truncate">{project.name}</h4>
-            <p className="text-[11px] text-white/60 truncate">{project.tagline}</p>
+            <h4 className="font-[family-name:var(--font-brand)] text-[15px] font-bold text-[#E8E8ED] truncate">{project.name}</h4>
+            <p className="text-[11px] text-[#8B8B9E] truncate">{project.tagline}</p>
           </div>
         </div>
-        <div className="relative mt-3 flex items-center gap-1 text-[12px] font-semibold text-white/80 transition-colors group-hover:text-white">
+        <div className="mt-3 flex items-center gap-1 text-[12px] font-semibold text-[#3DD7D8] transition-colors group-hover:text-[#50E5E6]">
           Check it out <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </div>
       </div>
