@@ -42,13 +42,13 @@ export async function GET(
           .eq("project_id", id)
           .order("timestamp", { ascending: false })
           .limit(1),
-        // Recent snapshots (last 7 days worth, ~168 hourly snapshots)
+        // Recent snapshots (last 90 days worth for charts)
         supabase
           .from("snapshots")
           .select("*")
           .eq("project_id", id)
           .order("timestamp", { ascending: false })
-          .limit(168),
+          .limit(2200),
         // Whale wallets
         supabase
           .from("whale_wallets")

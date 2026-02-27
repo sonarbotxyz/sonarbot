@@ -127,9 +127,59 @@ export async function GET(request: NextRequest) {
       enriched.sort((a, b) => (b.health_score ?? -1) - (a.health_score ?? -1));
     }
 
+    // Fetch recent snapshots for all projects (last 7 days for sparklines)
+    const projectIds = enriched.map((p) => p.id as string);
+    let snapshotsByProject: Record<
+      string,
+      Array<{
+        timestamp: string;
+        holders: number;
+        marketcap: number;
+        volume_24h: number;
+        liquidity: number;
+      }>
+    > = {};
+
+    if (projectIds.length > 0) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const { data: recentSnaps } = await supabase
+        .from("snapshots")
+        .select(
+          "project_id, timestamp, holders, marketcap, volume_24h, liquidity",
+        )
+        .in("project_id", projectIds)
+        .gte("timestamp", sevenDaysAgo.toISOString())
+        .order("timestamp", { ascending: true });
+
+      for (const snap of recentSnaps ?? []) {
+        const pid = snap.project_id as string;
+        if (!snapshotsByProject[pid]) snapshotsByProject[pid] = [];
+        snapshotsByProject[pid].push({
+          timestamp: snap.timestamp as string,
+          holders: snap.holders as number,
+          marketcap: snap.marketcap as number,
+          volume_24h: snap.volume_24h as number,
+          liquidity: snap.liquidity as number,
+        });
+      }
+    }
+
+    // Attach snapshot data to each project
+    const withSnapshots = enriched.map((p) => {
+      const snaps = snapshotsByProject[p.id as string] ?? [];
+      const latest = snaps.length > 0 ? snaps[snaps.length - 1] : null;
+      return {
+        ...p,
+        latest_snapshot: latest,
+        recent_snapshots: snaps,
+      };
+    });
+
     return NextResponse.json({
-      projects: enriched,
-      count: enriched.length,
+      projects: withSnapshots,
+      count: withSnapshots.length,
     });
   } catch (error) {
     console.error("Error fetching projects:", error);

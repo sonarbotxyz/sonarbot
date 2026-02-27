@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { ChevronUp, Eye, Flame, Sparkles, TrendingUp, TrendingDown } from "lucide-react";
 import type { Project } from "@/lib/mock-data";
 import { useDominantColor, buildMeshGradient, buildAccentBg, buildAccentColor } from "@/hooks/useDominantColor";
-import { generateMockSnapshots, generateMockHealthScore, computeTrend } from "@/lib/mock-chart-data";
 import { HealthScore } from "@/components/HealthScore";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 
@@ -47,15 +46,30 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
   const accentBg = buildAccentBg(rgb, 0.15);
   const accentText = buildAccentColor(rgb);
 
-  // Mock analytics data for card badges
-  const healthScore = useMemo(() => generateMockHealthScore(project.id), [project.id]);
-  const snapshots = useMemo(() => generateMockSnapshots(project.id, 30), [project.id]);
-  const holderTrend = useMemo(() => computeTrend(snapshots, "holders", 7), [snapshots]);
+  // Derive analytics from enriched project data (populated by server)
+  const score = project.healthScore ?? null;
   const volume24h = useMemo(() => {
-    if (!snapshots.length) return 0;
-    return snapshots[snapshots.length - 1].volume24h;
-  }, [snapshots]);
-  const holderSparkline = useMemo(() => snapshots.slice(-7).map((s) => s.holders), [snapshots]);
+    if (project.latestSnapshot) return project.latestSnapshot.volume_24h;
+    return 0;
+  }, [project.latestSnapshot]);
+
+  const { holderTrend, holderSparkline } = useMemo(() => {
+    const snaps = project.recentSnapshots ?? [];
+    if (snaps.length < 2) return { holderTrend: 0, holderSparkline: [] as number[] };
+    const first = snaps[0].holders;
+    const last = snaps[snaps.length - 1].holders;
+    const trend = first > 0 ? Math.round(((last - first) / first) * 1000) / 10 : 0;
+    // Sample up to 7 data points for sparkline
+    const step = Math.max(1, Math.floor(snaps.length / 7));
+    const sparkline: number[] = [];
+    for (let i = 0; i < snaps.length; i += step) {
+      sparkline.push(snaps[i].holders);
+    }
+    if (sparkline[sparkline.length - 1] !== last) sparkline.push(last);
+    return { holderTrend: trend, holderSparkline: sparkline };
+  }, [project.recentSnapshots]);
+
+  const hasAnalytics = score !== null || volume24h > 0 || holderSparkline.length > 0;
 
   /* ─── FEATURED / PROMOTED CARD ─── */
   if (featured) {
@@ -83,7 +97,7 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
               <span className="flex items-center gap-1 rounded-full bg-white/12 px-2.5 py-1 text-[10px] font-bold tracking-wider text-white/90 uppercase backdrop-blur-sm border border-white/5">
                 <Sparkles className="h-3 w-3" /> Promoted
               </span>
-              <HealthScore score={healthScore.overall} size="sm" />
+              {score !== null && <HealthScore score={score} size="sm" />}
             </div>
 
             <div className="relative flex items-center gap-3 px-4 pt-4">
@@ -121,9 +135,11 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
                 <Eye className="h-3.5 w-3.5" />
                 <span className="font-[family-name:var(--font-mono)] text-[11px]">{project.watchers}</span>
               </span>
-              <span className="ml-auto font-[family-name:var(--font-mono)] text-[11px] text-white/40">
-                Vol {formatCompact(volume24h)}
-              </span>
+              {volume24h > 0 && (
+                <span className="ml-auto font-[family-name:var(--font-mono)] text-[11px] text-white/40">
+                  Vol {formatCompact(volume24h)}
+                </span>
+              )}
             </div>
           </div>
         </Link>
@@ -158,8 +174,7 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
                 <Flame className="h-2.5 w-2.5" />
               </span>
             )}
-            {/* Health score badge */}
-            <HealthScore score={healthScore.overall} size="sm" />
+            {score !== null && <HealthScore score={score} size="sm" />}
           </div>
 
           {/* MIDDLE — screenshot on dynamic mesh gradient */}
@@ -182,18 +197,25 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
           {/* Tagline + Trend */}
           <div className="px-4 pt-2.5">
             <p className="text-[12px] text-text-secondary line-clamp-2 leading-relaxed">{project.tagline}</p>
-            {/* Holder trend + sparkline */}
-            <div className="mt-1.5 flex items-center gap-2">
-              <span className={`flex items-center gap-0.5 font-[family-name:var(--font-mono)] text-[10px] font-semibold ${isHolderUp ? "text-success" : "text-danger"}`}>
-                {isHolderUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
-                {isHolderUp ? "+" : ""}{holderTrend.toFixed(1)}%
-              </span>
-              <span className="text-[10px] text-text-tertiary">holders</span>
-              <MiniSparkline data={holderSparkline} color={isHolderUp ? "#00D897" : "#FF4466"} width={48} height={16} />
-              <span className="ml-auto font-[family-name:var(--font-mono)] text-[10px] text-text-tertiary">
-                Vol {formatCompact(volume24h)}
-              </span>
-            </div>
+            {hasAnalytics && (
+              <div className="mt-1.5 flex items-center gap-2">
+                {holderSparkline.length >= 2 && (
+                  <>
+                    <span className={`flex items-center gap-0.5 font-[family-name:var(--font-mono)] text-[10px] font-semibold ${isHolderUp ? "text-success" : "text-danger"}`}>
+                      {isHolderUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+                      {isHolderUp ? "+" : ""}{holderTrend.toFixed(1)}%
+                    </span>
+                    <span className="text-[10px] text-text-tertiary">holders</span>
+                    <MiniSparkline data={holderSparkline} color={isHolderUp ? "#00D897" : "#FF4466"} width={48} height={16} />
+                  </>
+                )}
+                {volume24h > 0 && (
+                  <span className="ml-auto font-[family-name:var(--font-mono)] text-[10px] text-text-tertiary">
+                    Vol {formatCompact(volume24h)}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* BOTTOM BAR */}

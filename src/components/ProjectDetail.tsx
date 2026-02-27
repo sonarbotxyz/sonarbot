@@ -38,14 +38,19 @@ import { useAuth } from "@/components/AuthContext";
 import { useDominantColor, buildMeshGradient, buildAccentColor } from "@/hooks/useDominantColor";
 import type { Project, Comment, Milestone } from "@/lib/mock-data";
 import { projects as allProjects } from "@/lib/mock-data";
+import type {
+  ApiHealthData,
+  ApiSnapshot,
+  ApiWhaleWallet,
+  ApiSocialData,
+} from "@/lib/types";
 import {
-  generateMockSnapshots,
-  generateMockHealthScore,
-  generateMockWhales,
-  generateMockSocialData,
+  mapApiSnapshot,
+  mapApiHealth,
+  mapApiWhale,
+  mapApiSocial,
   computeTrend,
-} from "@/lib/mock-chart-data";
-import type { Snapshot } from "@/lib/mock-chart-data";
+} from "@/lib/types";
 import { AreaChartComponent } from "@/components/charts/AreaChart";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import { HealthScore } from "@/components/HealthScore";
@@ -116,9 +121,21 @@ interface ProjectDetailProps {
   project: Project | null;
   comments: Comment[];
   projectId: string;
+  healthData: ApiHealthData | null;
+  snapshotsData: ApiSnapshot[];
+  whaleWalletsData: ApiWhaleWallet[];
+  socialData: ApiSocialData | null;
 }
 
-export function ProjectDetail({ project, comments: initialComments, projectId }: ProjectDetailProps) {
+export function ProjectDetail({
+  project,
+  comments: initialComments,
+  projectId,
+  healthData,
+  snapshotsData,
+  whaleWalletsData,
+  socialData: socialDataRaw,
+}: ProjectDetailProps) {
   const { user, login, accessToken } = useAuth();
   const [watching, setWatching] = useState(false);
   const [upvoted, setUpvoted] = useState(false);
@@ -135,22 +152,22 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>(30);
   const galleryRef = useRef<HTMLDivElement>(null);
 
-  // Generate mock analytics data
+  // Map API data to frontend types
   const snapshots90d = useMemo(
-    () => (project ? generateMockSnapshots(project.id, 90) : []),
-    [project],
+    () => snapshotsData.map(mapApiSnapshot),
+    [snapshotsData],
   );
   const healthScore = useMemo(
-    () => (project ? generateMockHealthScore(project.id) : null),
-    [project],
+    () => (healthData ? mapApiHealth(healthData) : null),
+    [healthData],
   );
   const whales = useMemo(
-    () => (project ? generateMockWhales(project.id) : []),
-    [project],
+    () => whaleWalletsData.map(mapApiWhale),
+    [whaleWalletsData],
   );
   const socialData = useMemo(
-    () => (project ? generateMockSocialData(project.id) : null),
-    [project],
+    () => (socialDataRaw ? mapApiSocial(socialDataRaw) : null),
+    [socialDataRaw],
   );
 
   // Compute chart data for selected metric + period
@@ -467,12 +484,22 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                   </div>
                   {/* Chart */}
                   <div className="mt-4">
-                    <AreaChartComponent
-                      data={chartData}
-                      color={activeChartTab.color}
-                      height={280}
-                      formatValue={chartMetric === "holders" ? formatNumber : formatCompact}
-                    />
+                    {chartData.length > 0 ? (
+                      <AreaChartComponent
+                        data={chartData}
+                        color={activeChartTab.color}
+                        height={280}
+                        formatValue={chartMetric === "holders" ? formatNumber : formatCompact}
+                      />
+                    ) : (
+                      <div className="flex h-[280px] items-center justify-center">
+                        <div className="text-center">
+                          <BarChart3 className="mx-auto h-8 w-8 text-text-tertiary" />
+                          <p className="mt-2 text-sm text-text-secondary">No data yet</p>
+                          <p className="mt-1 text-[11px] text-text-tertiary">Chart data will appear once snapshots are collected</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -496,7 +523,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                         icon={Twitter}
                         label="X Followers"
                         value={formatNumber(socialData.xFollowers)}
-                        change={socialData.xFollowersChange}
+                        change={socialData.xFollowersChange || undefined}
                       />
                       <SocialRow
                         icon={Activity}

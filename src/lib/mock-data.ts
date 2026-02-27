@@ -18,6 +18,21 @@ export interface Project {
   twitterHandle?: string;
   milestones: Milestone[];
   comments: Comment[];
+  // Optional analytics fields (populated from real API data)
+  healthScore?: number | null;
+  latestSnapshot?: {
+    holders: number;
+    marketcap: number;
+    volume_24h: number;
+    liquidity: number;
+  } | null;
+  recentSnapshots?: Array<{
+    timestamp: string;
+    holders: number;
+    marketcap: number;
+    volume_24h: number;
+    liquidity: number;
+  }>;
 }
 
 export interface Milestone {
