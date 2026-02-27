@@ -398,6 +398,45 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                 )}
               </motion.div>
 
+              {/* ─── MOBILE: ACTIONS + PROMOTED (before charts) ─── */}
+              <div className="mt-6 space-y-3 lg:hidden">
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleUpvote}
+                    disabled={upvoting}
+                    className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-bold transition-all ${
+                      upvoted
+                        ? "bg-primary text-white shadow-[0_0_20px_rgba(61,215,216,0.2)]"
+                        : "bg-surface text-text-primary ring-1 ring-white/10"
+                    }`}
+                  >
+                    {upvoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronUp className="h-4 w-4" />}
+                    Upvote · <span className="font-[family-name:var(--font-mono)]">{upvoteCount.toLocaleString()}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { if (!watching) setShowAlertModal(true); setWatching(!watching); }}
+                    className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all ${
+                      watching
+                        ? "bg-primary/15 text-primary ring-1 ring-primary/20"
+                        : "bg-surface text-text-secondary ring-1 ring-white/10"
+                    }`}
+                  >
+                    {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {watching ? "Following" : "Watch"}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAlertModal(true)}
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-surface text-sm font-medium text-text-secondary ring-1 ring-white/10 transition-colors hover:bg-surface-hover"
+                >
+                  <Bell className="h-4 w-4" /> Configure alerts
+                </button>
+                {promotedProject && <PromotedProjectCard project={promotedProject} />}
+              </div>
+
               {/* ─── CHART SECTION ─── */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
@@ -652,24 +691,30 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                 </motion.section>
               )}
 
-              {/* ─── MOBILE SIDEBAR ─── */}
-              <div className="mt-10 space-y-4 lg:hidden">
-                <MobileSidebarContent
-                  project={project}
-                  upvoted={upvoted}
-                  upvoting={upvoting}
-                  upvoteCount={upvoteCount}
-                  watching={watching}
-                  alertPrefs={alertPrefs}
-                  promotedProject={promotedProject}
-                  accentColor={accentColor}
-                  rgb={rgb}
-                  accentTextColor={accentTextColor}
-                  onUpvote={handleUpvote}
-                  onToggleWatch={() => { if (!watching) setShowAlertModal(true); setWatching(!watching); }}
-                  onToggleAlertPref={toggleAlertPref}
-                  onOpenAlertModal={() => setShowAlertModal(true)}
-                />
+              {/* ─── MOBILE: COMPANY INFO (after comments) ─── */}
+              <div className="mt-8 lg:hidden">
+                <div className="rounded-2xl bg-surface p-4">
+                  <h3 className="text-sm font-semibold text-text-primary">Company Info</h3>
+                  <div className="mt-3 space-y-2.5">
+                    {project.website && (
+                      <a href={project.website.startsWith("http") ? project.website : `https://${project.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-primary">
+                        <Globe className="h-4 w-4" /><span className="truncate">{project.website.replace(/^https?:\/\//, "")}</span><ExternalLink className="h-3 w-3 text-text-tertiary" />
+                      </a>
+                    )}
+                    {project.twitter && (
+                      <a href={`https://x.com/${project.twitter}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-primary">
+                        <Twitter className="h-4 w-4" /><span>@{project.twitter}</span><ExternalLink className="h-3 w-3 text-text-tertiary" />
+                      </a>
+                    )}
+                    <div className="flex items-center gap-2.5 text-sm text-text-secondary">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full" style={{ backgroundColor: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.2)` }}>
+                        <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: accentTextColor }} />
+                      </span>
+                      <span>{project.category}</span>
+                      {project.subcategory && (<><span className="text-text-tertiary">/</span><span className="text-text-tertiary">{project.subcategory}</span></>)}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
