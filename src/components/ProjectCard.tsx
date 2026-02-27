@@ -1,12 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronUp, Eye, Flame, Sparkles } from "lucide-react";
+import { ChevronUp, Eye, Flame, Sparkles, TrendingUp, TrendingDown } from "lucide-react";
 import type { Project } from "@/lib/mock-data";
 import { useDominantColor, buildMeshGradient, buildAccentBg, buildAccentColor } from "@/hooks/useDominantColor";
+import { generateMockSnapshots, generateMockHealthScore, computeTrend } from "@/lib/mock-chart-data";
+import { HealthScore } from "@/components/HealthScore";
+import { MiniSparkline } from "@/components/charts/MiniSparkline";
 
-/** Inline SVG noise texture */
 const noiseFilter = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`;
 
 function getAvatar(project: Project): string {
@@ -23,6 +26,13 @@ function getProductImage(project: Project): string | null {
   return null;
 }
 
+function formatCompact(value: number): string {
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+  return `$${value.toLocaleString()}`;
+}
+
 interface ProjectCardProps {
   project: Project;
   index?: number;
@@ -36,6 +46,16 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
   const meshGradient = buildMeshGradient(rgb);
   const accentBg = buildAccentBg(rgb, 0.15);
   const accentText = buildAccentColor(rgb);
+
+  // Mock analytics data for card badges
+  const healthScore = useMemo(() => generateMockHealthScore(project.id), [project.id]);
+  const snapshots = useMemo(() => generateMockSnapshots(project.id, 30), [project.id]);
+  const holderTrend = useMemo(() => computeTrend(snapshots, "holders", 7), [snapshots]);
+  const volume24h = useMemo(() => {
+    if (!snapshots.length) return 0;
+    return snapshots[snapshots.length - 1].volume24h;
+  }, [snapshots]);
+  const holderSparkline = useMemo(() => snapshots.slice(-7).map((s) => s.holders), [snapshots]);
 
   /* ─── FEATURED / PROMOTED CARD ─── */
   if (featured) {
@@ -59,10 +79,11 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
           >
             <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: noiseFilter, backgroundSize: "128px 128px" }} />
 
-            <div className="relative flex items-center gap-2 px-4 pt-4">
+            <div className="relative flex items-center justify-between px-4 pt-4">
               <span className="flex items-center gap-1 rounded-full bg-white/12 px-2.5 py-1 text-[10px] font-bold tracking-wider text-white/90 uppercase backdrop-blur-sm border border-white/5">
                 <Sparkles className="h-3 w-3" /> Promoted
               </span>
+              <HealthScore score={healthScore.overall} size="sm" />
             </div>
 
             <div className="relative flex items-center gap-3 px-4 pt-4">
@@ -100,6 +121,9 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
                 <Eye className="h-3.5 w-3.5" />
                 <span className="font-[family-name:var(--font-mono)] text-[11px]">{project.watchers}</span>
               </span>
+              <span className="ml-auto font-[family-name:var(--font-mono)] text-[11px] text-white/40">
+                Vol {formatCompact(volume24h)}
+              </span>
             </div>
           </div>
         </Link>
@@ -108,6 +132,7 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
   }
 
   /* ─── REGULAR CARD ─── */
+  const isHolderUp = holderTrend >= 0;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -133,6 +158,8 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
                 <Flame className="h-2.5 w-2.5" />
               </span>
             )}
+            {/* Health score badge */}
+            <HealthScore score={healthScore.overall} size="sm" />
           </div>
 
           {/* MIDDLE — screenshot on dynamic mesh gradient */}
@@ -152,9 +179,21 @@ export function ProjectCard({ project, index = 0, featured = false }: ProjectCar
             </div>
           </div>
 
-          {/* Tagline */}
+          {/* Tagline + Trend */}
           <div className="px-4 pt-2.5">
             <p className="text-[12px] text-text-secondary line-clamp-2 leading-relaxed">{project.tagline}</p>
+            {/* Holder trend + sparkline */}
+            <div className="mt-1.5 flex items-center gap-2">
+              <span className={`flex items-center gap-0.5 font-[family-name:var(--font-mono)] text-[10px] font-semibold ${isHolderUp ? "text-success" : "text-danger"}`}>
+                {isHolderUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+                {isHolderUp ? "+" : ""}{holderTrend.toFixed(1)}%
+              </span>
+              <span className="text-[10px] text-text-tertiary">holders</span>
+              <MiniSparkline data={holderSparkline} color={isHolderUp ? "#00D897" : "#FF4466"} width={48} height={16} />
+              <span className="ml-auto font-[family-name:var(--font-mono)] text-[10px] text-text-tertiary">
+                Vol {formatCompact(volume24h)}
+              </span>
+            </div>
           </div>
 
           {/* BOTTOM BAR */}
