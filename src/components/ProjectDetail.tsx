@@ -313,9 +313,8 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                 {/* Stats + links row — compact on mobile */}
                 <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-3 text-[11px] text-text-tertiary sm:text-[12px]">
-                    <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{project.watchers.toLocaleString()}</span>
-                    <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{comments.length}</span>
-                    <span className="flex items-center gap-1"><ChevronUp className="h-3 w-3" /><span className="font-[family-name:var(--font-mono)]">{upvoteCount.toLocaleString()}</span></span>
+                    <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{project.watchers.toLocaleString()} watchers</span>
+                    <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{comments.length} comments</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     {project.website && (
@@ -399,33 +398,18 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
 
               {/* ─── MOBILE: ACTIONS + PROMOTED (before charts) ─── */}
               <div className="mt-6 space-y-3 lg:hidden">
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={handleUpvote}
-                    disabled={upvoting}
-                    className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-bold transition-all ${
-                      upvoted
-                        ? "bg-primary text-white shadow-[0_0_20px_rgba(61,215,216,0.2)]"
-                        : "bg-surface text-text-primary ring-1 ring-white/10"
-                    }`}
-                  >
-                    {upvoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronUp className="h-4 w-4" />}
-                    Upvote · <span className="font-[family-name:var(--font-mono)]">{upvoteCount.toLocaleString()}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { if (!watching) setShowAlertModal(true); setWatching(!watching); }}
-                    className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all ${
-                      watching
-                        ? "bg-primary/15 text-primary ring-1 ring-primary/20"
-                        : "bg-surface text-text-secondary ring-1 ring-white/10"
-                    }`}
-                  >
-                    {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    {watching ? "Following" : "Watch"}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => { if (!watching) setShowAlertModal(true); setWatching(!watching); }}
+                  className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-bold transition-all ${
+                    watching
+                      ? "bg-primary text-white shadow-[0_0_20px_rgba(61,215,216,0.2)]"
+                      : "bg-surface text-text-primary ring-1 ring-white/10"
+                  }`}
+                >
+                  {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {watching ? "Watching" : "Watch this project"}
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowAlertModal(true)}
@@ -725,25 +709,7 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
               className="hidden w-[320px] shrink-0 lg:block"
             >
               <div className="sticky top-20 space-y-4">
-                {/* Upvote */}
-                <button
-                  type="button"
-                  onClick={handleUpvote}
-                  disabled={upvoting}
-                  className={`group flex h-14 w-full items-center justify-center gap-3 rounded-2xl text-base font-bold transition-all duration-200 ${
-                    upvoted
-                      ? "bg-primary text-white shadow-[0_0_24px_rgba(61,215,216,0.25)]"
-                      : "bg-surface text-text-primary ring-1 ring-white/10 hover:bg-surface-hover hover:ring-primary/30 hover:shadow-[0_0_16px_rgba(61,215,216,0.1)]"
-                  }`}
-                >
-                  {upvoting ? <Loader2 className="h-5 w-5 animate-spin" /> : <ChevronUp className={`h-5 w-5 transition-transform ${upvoted ? "" : "group-hover:-translate-y-0.5"}`} />}
-                  <span>Upvote<span className="mx-1.5 text-white/40">·</span><span className="font-[family-name:var(--font-mono)]">{upvoteCount.toLocaleString()}</span></span>
-                </button>
-
-                {/* Promoted */}
-                {promotedProject && <PromotedProjectCard project={promotedProject} />}
-
-                {/* Watch */}
+                {/* Watch — primary CTA */}
                 <button
                   type="button"
                   onClick={() => {
@@ -751,15 +717,18 @@ export function ProjectDetail({ project, comments: initialComments, projectId }:
                     if (!watching) setShowAlertModal(true);
                     setWatching(!watching);
                   }}
-                  className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all ${
+                  className={`group flex h-14 w-full items-center justify-center gap-3 rounded-2xl text-base font-bold transition-all duration-200 ${
                     watching
-                      ? "bg-primary/15 text-primary ring-1 ring-primary/20"
-                      : "bg-surface text-text-secondary ring-1 ring-white/10 hover:bg-surface-hover hover:text-text-primary"
+                      ? "bg-primary text-white shadow-[0_0_24px_rgba(61,215,216,0.25)]"
+                      : "bg-surface text-text-primary ring-1 ring-white/10 hover:bg-surface-hover hover:ring-primary/30 hover:shadow-[0_0_16px_rgba(61,215,216,0.1)]"
                   }`}
                 >
-                  {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  {watching ? "Following" : "Watch this project"}
+                  {watching ? <Check className="h-5 w-5" /> : <Eye className={`h-5 w-5 transition-transform ${watching ? "" : "group-hover:scale-110"}`} />}
+                  <span>{watching ? "Watching" : "Watch this project"}</span>
                 </button>
+
+                {/* Promoted */}
+                {promotedProject && <PromotedProjectCard project={promotedProject} />}
 
                 {/* Alert Preferences */}
                 <div className="rounded-2xl bg-surface p-4">
