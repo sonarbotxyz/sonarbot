@@ -82,56 +82,92 @@ export async function fetchHolderCount(
   }
 }
 
+// ---------------------------------------------------------------------------
+// DexScreener data (marketcap, volume, liquidity in one call)
+// ---------------------------------------------------------------------------
+
+interface DexScreenerData {
+  marketcap: number;
+  volume24h: number;
+  liquidity: number;
+}
+
+let _dexCache: Map<string, DexScreenerData> = new Map();
+
 /**
- * Fetch marketcap for a token.
- * TODO: Integrate DexScreener or CoinGecko API for real marketcap data.
+ * Fetch market data from DexScreener API (free, no key needed).
+ * Caches per pipeline run to avoid duplicate calls.
+ */
+export async function fetchDexScreenerData(
+  contractAddress: string
+): Promise<DexScreenerData> {
+  const cached = _dexCache.get(contractAddress.toLowerCase());
+  if (cached) return cached;
+
+  try {
+    const res = await fetch(
+      `https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`
+    );
+    if (!res.ok) throw new Error(`DexScreener HTTP ${res.status}`);
+
+    const json = await res.json();
+    // Pick the highest-liquidity pair on Base
+    const basePairs = (json.pairs || []).filter(
+      (p: { chainId: string }) => p.chainId === "base"
+    );
+    basePairs.sort(
+      (a: { liquidity?: { usd?: number } }, b: { liquidity?: { usd?: number } }) =>
+        (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+    );
+
+    const pair = basePairs[0];
+    const result: DexScreenerData = {
+      marketcap: pair?.marketCap || pair?.fdv || 0,
+      volume24h: pair?.volume?.h24 || 0,
+      liquidity: pair?.liquidity?.usd || 0,
+    };
+
+    _dexCache.set(contractAddress.toLowerCase(), result);
+    return result;
+  } catch (error) {
+    console.error(`DexScreener failed for ${contractAddress}:`, error);
+    return { marketcap: 0, volume24h: 0, liquidity: 0 };
+  }
+}
+
+/** Clear DexScreener cache between pipeline runs */
+export function clearDexCache() {
+  _dexCache = new Map();
+}
+
+/**
+ * Fetch marketcap via DexScreener.
  */
 export async function fetchMarketcap(
   contractAddress: string
 ): Promise<number> {
-  try {
-    // TODO: Call DexScreener API: GET https://api.dexscreener.com/latest/dex/tokens/{address}
-    // For now, stub with mock data
-    console.log(`fetchMarketcap stub for ${contractAddress}`);
-    return Math.floor(Math.random() * 50_000_000) + 100_000;
-  } catch (error) {
-    console.error(`fetchMarketcap failed for ${contractAddress}:`, error);
-    return 0;
-  }
+  const data = await fetchDexScreenerData(contractAddress);
+  return Math.round(data.marketcap);
 }
 
 /**
- * Fetch 24h trading volume.
- * TODO: Integrate DexScreener or on-chain DEX event logs.
+ * Fetch 24h trading volume via DexScreener.
  */
 export async function fetchVolume24h(
   contractAddress: string
 ): Promise<number> {
-  try {
-    // TODO: Call DexScreener API for 24h volume data
-    console.log(`fetchVolume24h stub for ${contractAddress}`);
-    return Math.floor(Math.random() * 5_000_000) + 10_000;
-  } catch (error) {
-    console.error(`fetchVolume24h failed for ${contractAddress}:`, error);
-    return 0;
-  }
+  const data = await fetchDexScreenerData(contractAddress);
+  return Math.round(data.volume24h);
 }
 
 /**
- * Fetch total liquidity across DEX pools.
- * TODO: Integrate Uniswap V3 subgraph or DexScreener for pool liquidity.
+ * Fetch total liquidity via DexScreener.
  */
 export async function fetchLiquidity(
   contractAddress: string
 ): Promise<number> {
-  try {
-    // TODO: Query Uniswap V3 subgraph for pool TVL
-    console.log(`fetchLiquidity stub for ${contractAddress}`);
-    return Math.floor(Math.random() * 10_000_000) + 50_000;
-  } catch (error) {
-    console.error(`fetchLiquidity failed for ${contractAddress}:`, error);
-    return 0;
-  }
+  const data = await fetchDexScreenerData(contractAddress);
+  return Math.round(data.liquidity);
 }
 
 /**
@@ -250,6 +286,7 @@ export async function runOnchainPipeline(): Promise<{
     return { processed: 0, errors: 0 };
   }
 
+  clearDexCache();
   console.log(
     `Running on-chain pipeline for ${projects.length} projects...`
   );
