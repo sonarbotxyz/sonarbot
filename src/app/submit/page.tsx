@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  PlusCircle,
   Upload,
   Globe,
   MessageCircle,
@@ -53,20 +52,30 @@ export default function SubmitPage() {
   // Auth gate
   if (!loading && !user) {
     return (
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-center px-4 py-32 text-center sm:px-6">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface">
-          <LogIn className="h-8 w-8 text-text-tertiary" />
+      <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-center px-5 md:px-20 py-32 text-center">
+        <div
+          className="flex h-16 w-16 items-center justify-center"
+          style={{ background: "var(--bg-secondary)" }}
+        >
+          <LogIn className="h-8 w-8" style={{ color: "var(--text-muted)" }} />
         </div>
-        <h2 className="mt-4 font-[family-name:var(--font-brand)] text-xl font-bold text-text-primary">
+        <h2
+          className="mt-4 font-display text-xl font-bold"
+          style={{ color: "var(--text-primary)" }}
+        >
           Sign in to Submit
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-text-secondary">
+        <p
+          className="mt-2 max-w-sm text-sm"
+          style={{ color: "var(--text-secondary)" }}
+        >
           Connect your wallet or sign in to submit a project to Sonarbot.
         </p>
         <button
           type="button"
           onClick={login}
-          className="mt-6 flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+          className="mt-6 flex h-11 items-center gap-2 px-6 text-xs uppercase tracking-[0.06em] font-semibold text-white transition-colors"
+          style={{ background: "var(--accent)" }}
         >
           <LogIn className="h-4 w-4" />
           Connect to Continue
@@ -77,19 +86,26 @@ export default function SubmitPage() {
 
   if (submitted) {
     return (
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-center px-4 py-32 text-center sm:px-6">
+      <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-center px-5 md:px-20 py-32 text-center">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          className="flex h-16 w-16 items-center justify-center rounded-2xl bg-success/15"
+          className="flex h-16 w-16 items-center justify-center"
+          style={{ background: "var(--color-success-muted)" }}
         >
           <Check className="h-8 w-8 text-success" />
         </motion.div>
-        <h2 className="mt-4 font-[family-name:var(--font-brand)] text-xl font-bold text-text-primary">
+        <h2
+          className="mt-4 font-display text-xl font-bold"
+          style={{ color: "var(--text-primary)" }}
+        >
           Project Submitted
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-text-secondary">
+        <p
+          className="mt-2 max-w-sm text-sm"
+          style={{ color: "var(--text-secondary)" }}
+        >
           Your project has been submitted for review. Our agents will process it
           and it will appear on Sonarbot once approved.
         </p>
@@ -110,9 +126,7 @@ export default function SubmitPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(accessToken
-            ? { Authorization: `Bearer ${accessToken}` }
-            : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           name: formData.get("name"),
@@ -139,39 +153,67 @@ export default function SubmitPage() {
     }
   }
 
+  const inputStyle = {
+    background: "var(--bg-secondary)",
+    color: "var(--text-primary)",
+    border: "1px solid var(--border)",
+  };
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-[1400px] px-5 md:px-20 py-10">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface">
-            <PlusCircle className="h-5 w-5 text-text-secondary" />
-          </div>
-          <div>
-            <h1 className="font-[family-name:var(--font-brand)] text-2xl font-bold text-text-primary">
-              Submit a Project
-            </h1>
-            <p className="text-sm text-text-secondary">
-              Add a Base ecosystem project to Sonarbot
-            </p>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <span
+            className="font-bold text-[10px]"
+            style={{ color: "var(--accent)" }}
+          >
+            &gt;
+          </span>
+          <span
+            className="text-[10px] uppercase tracking-[0.2em]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Submit
+          </span>
         </div>
+        <h1
+          className="mt-3 font-display text-2xl font-bold tracking-tight"
+          style={{ color: "var(--text-primary)" }}
+        >
+          Submit a Project
+        </h1>
+        <p
+          className="mt-1 text-sm"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          Add a Base ecosystem project to Sonarbot
+        </p>
       </motion.div>
+
+      <div className="h-rule mt-8 mb-0" data-label="Form" />
 
       {/* Form */}
       <motion.form
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="mt-10 space-y-6"
+        className="mt-8 max-w-2xl space-y-6"
         onSubmit={handleSubmit}
       >
         {error && (
-          <div className="rounded-xl bg-danger-muted p-3 text-sm text-danger">
+          <div
+            className="p-3 text-sm"
+            style={{
+              background: "var(--color-danger-muted)",
+              color: "var(--color-danger)",
+              border: "1px solid var(--color-danger)",
+            }}
+          >
             {error}
           </div>
         )}
@@ -180,7 +222,8 @@ export default function SubmitPage() {
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-text-primary"
+            className="block text-[10px] uppercase tracking-[0.15em] font-medium"
+            style={{ color: "var(--text-muted)" }}
           >
             Project Name
           </label>
@@ -190,7 +233,8 @@ export default function SubmitPage() {
             type="text"
             required
             placeholder="e.g. Aerodrome Finance"
-            className="mt-1.5 h-11 w-full rounded-xl bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:bg-surface-hover"
+            className="mt-2 h-11 w-full px-4 text-sm font-mono outline-none transition-colors focus:border-[var(--accent)]"
+            style={inputStyle}
           />
         </div>
 
@@ -198,11 +242,15 @@ export default function SubmitPage() {
         <div>
           <label
             htmlFor="tagline"
-            className="block text-sm font-medium text-text-primary"
+            className="block text-[10px] uppercase tracking-[0.15em] font-medium"
+            style={{ color: "var(--text-muted)" }}
           >
             Tagline
           </label>
-          <p className="mt-0.5 text-xs text-text-tertiary">
+          <p
+            className="mt-0.5 text-[11px]"
+            style={{ color: "var(--text-very-muted)" }}
+          >
             One sentence describing what the project does
           </p>
           <input
@@ -211,26 +259,36 @@ export default function SubmitPage() {
             type="text"
             required
             placeholder="e.g. The central trading & liquidity hub on Base"
-            className="mt-1.5 h-11 w-full rounded-xl bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:bg-surface-hover"
+            className="mt-2 h-11 w-full px-4 text-sm font-mono outline-none transition-colors"
+            style={inputStyle}
           />
         </div>
 
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-text-primary">
+          <label
+            className="block text-[10px] uppercase tracking-[0.15em] font-medium"
+            style={{ color: "var(--text-muted)" }}
+          >
             Category
           </label>
-          <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+          <div className="mt-2 grid grid-cols-3 gap-px sm:grid-cols-6" style={{ background: "var(--border)" }}>
             {categories.map((cat) => (
               <button
                 key={cat.value}
                 type="button"
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`flex flex-col items-center gap-1.5 rounded-xl p-3 text-xs font-medium transition-all ${
-                  selectedCategory === cat.value
-                    ? "bg-primary/12 text-primary"
-                    : "bg-surface text-text-secondary hover:bg-surface-hover hover:text-text-primary"
-                }`}
+                className="flex flex-col items-center gap-1.5 p-3 text-[11px] font-medium transition-all"
+                style={{
+                  background:
+                    selectedCategory === cat.value
+                      ? "var(--accent-glow)"
+                      : "var(--bg-primary)",
+                  color:
+                    selectedCategory === cat.value
+                      ? "var(--accent)"
+                      : "var(--text-secondary)",
+                }}
               >
                 <cat.icon className="h-5 w-5" />
                 {cat.label}
@@ -243,9 +301,10 @@ export default function SubmitPage() {
         <div>
           <label
             htmlFor="description"
-            className="flex items-center gap-2 text-sm font-medium text-text-primary"
+            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] font-medium"
+            style={{ color: "var(--text-muted)" }}
           >
-            <FileText className="h-4 w-4 text-text-tertiary" />
+            <FileText className="h-3 w-3" />
             Description
           </label>
           <textarea
@@ -254,7 +313,8 @@ export default function SubmitPage() {
             required
             rows={5}
             placeholder="Tell us about the project. What does it do? Why does it matter for the Base ecosystem?"
-            className="mt-1.5 w-full resize-none rounded-xl bg-surface p-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:bg-surface-hover"
+            className="mt-2 w-full resize-none p-4 text-sm font-mono outline-none transition-colors"
+            style={inputStyle}
           />
         </div>
 
@@ -262,9 +322,10 @@ export default function SubmitPage() {
         <div>
           <label
             htmlFor="website"
-            className="flex items-center gap-2 text-sm font-medium text-text-primary"
+            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] font-medium"
+            style={{ color: "var(--text-muted)" }}
           >
-            <Globe className="h-4 w-4 text-text-tertiary" />
+            <Globe className="h-3 w-3" />
             Website URL
           </label>
           <input
@@ -273,7 +334,8 @@ export default function SubmitPage() {
             type="url"
             required
             placeholder="https://"
-            className="mt-1.5 h-11 w-full rounded-xl bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:bg-surface-hover"
+            className="mt-2 h-11 w-full px-4 text-sm font-mono outline-none transition-colors"
+            style={inputStyle}
           />
         </div>
 
@@ -281,9 +343,10 @@ export default function SubmitPage() {
         <div>
           <label
             htmlFor="twitter"
-            className="flex items-center gap-2 text-sm font-medium text-text-primary"
+            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] font-medium"
+            style={{ color: "var(--text-muted)" }}
           >
-            <MessageCircle className="h-4 w-4 text-text-tertiary" />
+            <MessageCircle className="h-3 w-3" />
             Twitter / X Handle
           </label>
           <input
@@ -291,7 +354,8 @@ export default function SubmitPage() {
             name="twitter"
             type="text"
             placeholder="@projectname"
-            className="mt-1.5 h-11 w-full rounded-xl bg-surface px-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:bg-surface-hover"
+            className="mt-2 h-11 w-full px-4 text-sm font-mono outline-none transition-colors"
+            style={inputStyle}
           />
         </div>
 
@@ -299,11 +363,15 @@ export default function SubmitPage() {
         <div>
           <label
             htmlFor="contract"
-            className="block text-sm font-medium text-text-primary"
+            className="block text-[10px] uppercase tracking-[0.15em] font-medium"
+            style={{ color: "var(--text-muted)" }}
           >
             Contract Address (optional)
           </label>
-          <p className="mt-0.5 text-xs text-text-tertiary">
+          <p
+            className="mt-0.5 text-[11px]"
+            style={{ color: "var(--text-very-muted)" }}
+          >
             Main smart contract on Base, for on-chain tracking
           </p>
           <input
@@ -311,19 +379,27 @@ export default function SubmitPage() {
             name="contract"
             type="text"
             placeholder="0x..."
-            className="mt-1.5 h-11 w-full rounded-xl bg-surface px-4 font-[family-name:var(--font-mono)] text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:bg-surface-hover"
+            className="mt-2 h-11 w-full px-4 text-sm font-mono outline-none transition-colors"
+            style={inputStyle}
           />
         </div>
 
         {/* Submit */}
-        <div className="flex items-center justify-between pt-6">
-          <p className="text-xs text-text-tertiary">
+        <div
+          className="flex items-center justify-between pt-6"
+          style={{ borderTop: "1px solid var(--border)" }}
+        >
+          <p
+            className="text-[11px]"
+            style={{ color: "var(--text-muted)" }}
+          >
             Projects are reviewed before appearing on Sonarbot
           </p>
           <button
             type="submit"
             disabled={submitting}
-            className="flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
+            className="flex h-11 items-center gap-2 px-6 text-xs uppercase tracking-[0.06em] font-semibold text-white transition-colors disabled:opacity-50"
+            style={{ background: "var(--accent)" }}
           >
             {submitting ? (
               <Loader2 className="h-4 w-4 animate-spin" />

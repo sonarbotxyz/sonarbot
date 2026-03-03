@@ -43,16 +43,23 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
   ];
 
   return (
-    <div className="flex gap-1.5">
+    <div className="flex gap-1">
       {blocks.map((block) => (
         <div
           key={block.label}
-          className="flex flex-col items-center rounded-md bg-black/25 px-2 py-1 backdrop-blur-sm"
+          className="flex flex-col items-center px-2 py-1"
+          style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
         >
-          <span className="font-[family-name:var(--font-mono)] text-sm font-semibold tabular-nums text-white/90">
+          <span
+            className="font-mono text-sm font-semibold tabular-nums"
+            style={{ color: "var(--text-primary)" }}
+          >
             {block.value.toString().padStart(2, "0")}
           </span>
-          <span className="text-[9px] font-medium text-white/50">
+          <span
+            className="text-[9px] font-medium uppercase tracking-[0.1em]"
+            style={{ color: "var(--text-very-muted)" }}
+          >
             {block.label}
           </span>
         </div>

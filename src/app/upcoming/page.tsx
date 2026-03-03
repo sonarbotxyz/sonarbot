@@ -3,12 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  Rocket,
-  Bell,
-  ChevronUp,
-  Check,
-} from "lucide-react";
+import { Bell, Check, ArrowRight } from "lucide-react";
 import { upcomingProjects } from "@/lib/mock-data";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
@@ -26,101 +21,128 @@ export default function UpcomingPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-[1400px] px-5 md:px-20 py-10">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface">
-            <Rocket className="h-5 w-5 text-text-secondary" />
-          </div>
-          <div>
-            <h1 className="font-[family-name:var(--font-brand)] text-2xl font-bold text-text-primary">
-              Upcoming
-            </h1>
-            <p className="text-sm text-text-secondary">
-              Projects launching soon on Base
-            </p>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <span
+            className="font-bold text-[10px]"
+            style={{ color: "var(--accent)" }}
+          >
+            &gt;
+          </span>
+          <span
+            className="text-[10px] uppercase tracking-[0.2em]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Upcoming
+          </span>
         </div>
+        <h1
+          className="mt-3 font-display text-2xl font-bold tracking-tight"
+          style={{ color: "var(--text-primary)" }}
+        >
+          Launching Soon
+        </h1>
+        <p
+          className="mt-1 text-sm"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          Projects launching soon on Base
+        </p>
       </motion.div>
 
-      {/* Card grid */}
-      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="h-rule mt-8 mb-0" data-label="Countdown" />
+
+      {/* Project list */}
+      <div
+        style={{ borderTop: "1px solid var(--border)" }}
+      >
         {upcomingProjects.map((project, i) => {
           const isNotified = notified.has(project.id);
 
           return (
             <motion.div
               key={project.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
                 duration: 0.4,
-                delay: i * 0.06,
+                delay: i * 0.05,
                 ease: [0.16, 1, 0.3, 1],
               }}
+              className="theme-guide-row"
             >
-              <div className="group overflow-hidden rounded-2xl bg-[#13141B] transition-transform duration-300 ease-out hover:-translate-y-0.5">
-                {/* Banner */}
-                <Link href={`/project/${project.id}`}>
-                  <div className="relative flex h-44 items-center justify-center overflow-hidden bg-[#1A1B23] sm:h-48">
+              <div
+                className="flex items-center gap-6 py-5 px-4 lg:px-8 transition-all"
+                style={{ borderBottom: "1px solid var(--border)" }}
+              >
+                {/* Number */}
+                <span
+                  className="text-[11px] w-[40px] shrink-0"
+                  style={{
+                    color: "var(--text-very-muted)",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
 
-                    {/* Countdown overlay */}
-                    <div className="absolute right-3 bottom-3">
-                      <CountdownTimer targetDate={project.launchDate} />
-                    </div>
-
-                    {/* Category pill */}
-                    <div className="absolute top-3 left-3">
-                      <span className="rounded-full bg-black/25 px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-white/80 uppercase backdrop-blur-sm">
-                        {project.category}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-
-                {/* Content */}
-                <div className="p-3.5">
-                  <Link href={`/project/${project.id}`}>
-                    <h3 className="font-[family-name:var(--font-brand)] text-[15px] font-bold text-text-primary truncate">
-                      {project.name}
-                    </h3>
-                    <p className="mt-0.5 text-[13px] text-text-secondary truncate">
-                      {project.tagline}
-                    </p>
+                {/* Title + meta */}
+                <div className="flex-1 min-w-0">
+                  <Link
+                    href={`/project/${project.id}`}
+                    className="row-title font-display text-[15px] font-medium no-underline transition-colors"
+                    style={{ color: "var(--text-body)" }}
+                  >
+                    {project.name}
                   </Link>
-
-                  {/* Metrics + Notify */}
-                  <div className="mt-2.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1 rounded-full bg-surface-hover px-2 py-0.5 text-text-secondary">
-                      <ChevronUp className="h-3 w-3" />
-                      <span className="font-[family-name:var(--font-mono)] text-[11px] font-medium">
-                        {project.upvotes}
-                      </span>
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() => toggleNotify(project.id)}
-                      className={`flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all ${
-                        isNotified
-                          ? "bg-primary/12 text-primary"
-                          : "bg-surface-hover text-text-secondary hover:text-text-primary"
-                      }`}
+                  <div className="flex items-center gap-4 mt-1">
+                    <span
+                      className="text-[11px]"
+                      style={{ color: "var(--text-very-muted)" }}
                     >
-                      {isNotified ? (
-                        <Check className="h-3.5 w-3.5" />
-                      ) : (
-                        <Bell className="h-3.5 w-3.5" />
-                      )}
-                      {isNotified ? "Notifying" : "Notify Me"}
-                    </button>
+                      {project.category}
+                    </span>
+                    <span
+                      className="text-[11px]"
+                      style={{ color: "var(--text-very-muted)" }}
+                    >
+                      {project.tagline}
+                    </span>
                   </div>
                 </div>
+
+                {/* Countdown */}
+                <div className="shrink-0 hidden sm:block">
+                  <CountdownTimer targetDate={project.launchDate} />
+                </div>
+
+                {/* Notify button */}
+                <button
+                  type="button"
+                  onClick={() => toggleNotify(project.id)}
+                  className="row-badge shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase font-medium transition-all"
+                  style={{
+                    letterSpacing: "0.1em",
+                    color: isNotified ? "var(--accent)" : "var(--text-muted)",
+                    border: isNotified
+                      ? "1px solid var(--accent-dim)"
+                      : "1px solid var(--border)",
+                    background: isNotified ? "var(--accent-glow)" : "transparent",
+                  }}
+                >
+                  {isNotified ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <Bell className="h-3 w-3" />
+                  )}
+                  {isNotified ? "Notifying" : "Notify Me"}
+                </button>
               </div>
             </motion.div>
           );
