@@ -296,6 +296,62 @@ body {
   color: var(--text-primary) !important;
 }
 
+/* ── TICKER BAR ── */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-bar {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+}
+
+.ticker-track {
+  animation: ticker-scroll 40s linear infinite;
+  width: max-content;
+}
+
+.ticker-bar:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+/* ── FEATURED CARD HOVER ── */
+.featured-card {
+  position: relative;
+}
+.featured-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #FFFFFF;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+.featured-card:hover::before {
+  transform: scaleX(1);
+}
+.featured-card:hover > div {
+  background: #1A5DF5 !important;
+}
+
 /* ── HIDE SCROLLBAR UTILITY ── */
 .hide-scrollbar {
   -ms-overflow-style: none;

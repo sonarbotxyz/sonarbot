@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { CategoryPills } from "@/components/CategoryPills";
 import { ProjectCard } from "@/components/ProjectCard";
+import { TickerBar } from "@/components/TickerBar";
+import { FeaturedCards } from "@/components/FeaturedCards";
 import type { Project, Category } from "@/lib/mock-data";
 
 interface HomeContentProps {
@@ -38,8 +40,10 @@ export function HomeContent({ projects }: HomeContentProps) {
   }, [projects, selectedCategory, searchQuery]);
 
   return (
-    <div className="mx-auto max-w-[1400px] px-5 md:px-20">
-      <HeroSection onSearch={setSearchQuery} />
+    <>
+      <TickerBar projects={projects} />
+      <div className="mx-auto max-w-[1400px] px-5 md:px-20">
+        <HeroSection onSearch={setSearchQuery} />
 
       <div className="h-rule mb-8" data-label="Filter" />
 
@@ -49,6 +53,8 @@ export function HomeContent({ projects }: HomeContentProps) {
           onSelect={setSelectedCategory}
         />
       </section>
+
+      <FeaturedCards projects={projects} />
 
       <div className="h-rule mb-0" data-label="Projects" />
 
@@ -145,5 +151,6 @@ export function HomeContent({ projects }: HomeContentProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }
