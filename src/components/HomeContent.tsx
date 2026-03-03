@@ -37,12 +37,6 @@ export function HomeContent({ projects }: HomeContentProps) {
     return filtered;
   }, [projects, selectedCategory, searchQuery]);
 
-  const isFiltering = searchQuery.trim() !== "" || selectedCategory !== "All";
-  const featured = projects[0];
-  const gridProjects = isFiltering
-    ? filteredProjects
-    : filteredProjects.filter((p) => p.id !== featured?.id);
-
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-20">
       <HeroSection onSearch={setSearchQuery} />
@@ -78,12 +72,6 @@ export function HomeContent({ projects }: HomeContentProps) {
           className="pb-16"
           style={{ borderTop: "1px solid var(--border)" }}
         >
-          {/* Featured project */}
-          {!isFiltering && featured && (
-            <ProjectCard project={featured} featured index={0} />
-          )}
-
-          {/* Grid of projects */}
           <div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
             style={{
@@ -91,13 +79,23 @@ export function HomeContent({ projects }: HomeContentProps) {
               gap: "1px",
             }}
           >
-            {gridProjects.map((project, i) => (
+            {filteredProjects.map((project, i) => (
               <ProjectCard
                 key={project.id}
                 project={project}
-                index={isFiltering ? i : i + 1}
+                index={i}
               />
             ))}
+            {/* Fill empty cells so cards don't stretch on incomplete rows */}
+            {filteredProjects.length % 3 !== 0 &&
+              Array.from({ length: 3 - (filteredProjects.length % 3) }).map(
+                (_, i) => (
+                  <div
+                    key={`fill-${i}`}
+                    style={{ background: "var(--bg-primary)" }}
+                  />
+                )
+              )}
           </div>
         </div>
       )}

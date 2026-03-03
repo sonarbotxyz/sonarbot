@@ -20,7 +20,10 @@ export default async function HomePage() {
       .limit(50);
 
     if (!error && data && data.length > 0) {
-      projects = (data as SupabaseProject[]).map(mapProject);
+      const realProjects = (data as SupabaseProject[]).map(mapProject);
+      const realIds = new Set(realProjects.map((p) => p.id));
+      const remainingMock = mockProjects.filter((p) => !realIds.has(p.id));
+      projects = [...realProjects, ...remainingMock];
     }
   } catch {
     // Fall back to mock data silently

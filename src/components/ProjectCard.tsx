@@ -31,13 +31,11 @@ function formatNumber(value: number): string {
 interface ProjectCardProps {
   project: Project;
   index?: number;
-  featured?: boolean;
 }
 
 export function ProjectCard({
   project,
   index = 0,
-  featured = false,
 }: ProjectCardProps) {
   const score = project.healthScore ?? null;
 
@@ -90,210 +88,20 @@ export function ProjectCard({
   const sparkColor = isHolderUp ? "#22C55E" : "#EF4444";
 
   const stats = [
-    { label: featured ? "Market Cap" : "MCap", value: marketcap, currency: true },
-    { label: featured ? "Liquidity" : "Liq", value: liquidity, currency: true },
+    { label: "MCap", value: marketcap, currency: true },
+    { label: "Liq", value: liquidity, currency: true },
     { label: "Holders", value: holders, currency: false },
-    { label: featured ? "Vol 24H" : "Vol", value: volume24h, currency: true },
+    { label: "Vol", value: volume24h, currency: true },
   ];
 
-  /* ─── FEATURED GUIDE-CARD ─── */
-  if (featured) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="col-span-full"
-      >
-        <Link href={`/project/${project.id}`} className="guide-card block">
-          <div
-            className="flex flex-col transition-all duration-300"
-            style={{
-              background: "var(--card-bg)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            {/* ── Header bar ── */}
-            <div
-              className="flex items-center justify-between px-6 py-3"
-              style={{ borderBottom: "1px solid var(--border)" }}
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="font-mono text-[10px] tracking-[0.15em]"
-                  style={{
-                    color: "var(--text-very-muted)",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {cardNumber}
-                </span>
-                <span
-                  className="inline-flex items-center text-[10px] tracking-[0.12em] uppercase px-2.5 py-1"
-                  style={{
-                    color: "var(--accent)",
-                    border: "1px solid var(--accent-dim)",
-                    background: "var(--accent-glow)",
-                  }}
-                >
-                  {project.category}
-                </span>
-                <span
-                  className="text-[10px] tracking-[0.1em] uppercase"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  {project.subcategory}
-                </span>
-                {project.isHot && (
-                  <span
-                    className="flex items-center gap-1 text-[10px] uppercase tracking-[0.1em]"
-                    style={{ color: "var(--danger, #EF4444)" }}
-                  >
-                    <Flame className="h-3 w-3" /> HOT
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {project.website && (
-                  <ExternalLink
-                    className="h-3.5 w-3.5"
-                    style={{ color: "var(--text-muted)" }}
-                  />
-                )}
-                {score !== null && <HealthScore score={score} size="sm" />}
-              </div>
-            </div>
-
-            {/* ── Title section ── */}
-            <div className="px-6 pt-5 pb-4">
-              <h3
-                className="font-display text-2xl font-semibold leading-snug"
-                style={{
-                  color: "var(--text-primary)",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                {project.name}
-              </h3>
-              <p
-                className="mt-2 text-[13px] leading-relaxed"
-                style={{ color: "var(--text-secondary)", lineHeight: "1.7" }}
-              >
-                {project.tagline}
-              </p>
-            </div>
-
-            {/* ── Stats grid — 4 columns ── */}
-            <div
-              className="grid grid-cols-2 md:grid-cols-4"
-              style={{ borderTop: "1px solid var(--border)" }}
-            >
-              {stats.map((stat, i) => (
-                <div
-                  key={stat.label}
-                  className="px-6 py-4"
-                  style={{
-                    borderRight:
-                      i < 3 ? "1px solid var(--border)" : undefined,
-                    borderBottom:
-                      i < 2 ? "1px solid var(--border)" : undefined,
-                  }}
-                >
-                  <span
-                    className="text-[9px] uppercase tracking-[0.15em] block mb-1.5"
-                    style={{ color: "var(--text-very-muted)" }}
-                  >
-                    {stat.label}
-                  </span>
-                  <span
-                    className="font-mono text-lg font-bold block"
-                    style={{
-                      color:
-                        stat.value > 0
-                          ? "var(--text-primary)"
-                          : "var(--text-very-muted)",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {stat.value > 0
-                      ? stat.currency
-                        ? formatCompact(stat.value)
-                        : formatNumber(stat.value)
-                      : "\u2014"}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* ── Sparkline + holder trend ── */}
-            {sparkData.length >= 2 && (
-              <div
-                className="flex items-center justify-between px-6 py-3"
-                style={{ borderTop: "1px solid var(--border)" }}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="text-[9px] uppercase tracking-[0.15em]"
-                    style={{ color: "var(--text-very-muted)" }}
-                  >
-                    7D Trend
-                  </span>
-                  <span
-                    className={`flex items-center gap-0.5 font-mono text-[11px] font-semibold ${
-                      isHolderUp ? "text-success" : "text-danger"
-                    }`}
-                  >
-                    {isHolderUp ? (
-                      <TrendingUp className="h-3 w-3" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3" />
-                    )}
-                    {isHolderUp ? "+" : ""}
-                    {holderTrend.toFixed(1)}% holders
-                  </span>
-                </div>
-                <MiniSparkline
-                  data={sparkData}
-                  color={sparkColor}
-                  width={160}
-                  height={36}
-                />
-              </div>
-            )}
-
-            {/* ── Footer ── */}
-            <div
-              className="flex items-center justify-between px-6 py-3"
-              style={{ borderTop: "1px solid var(--border)" }}
-            >
-              <span
-                className="flex items-center gap-1.5 text-[11px]"
-                style={{ color: "var(--text-muted)" }}
-              >
-                <Eye className="h-3 w-3" />{" "}
-                {project.watchers.toLocaleString()} watchers
-              </span>
-              <ArrowRight
-                className="card-arrow h-4 w-4 transition-all duration-300"
-                style={{ color: "var(--text-muted)" }}
-              />
-            </div>
-          </div>
-        </Link>
-      </motion.div>
-    );
-  }
-
-  /* ─── REGULAR GUIDE-CARD ─── */
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{
-        duration: 0.4,
-        delay: index * 0.04,
+        duration: 0.35,
+        delay: index * 0.03,
         ease: [0.16, 1, 0.3, 1],
       }}
     >
@@ -302,17 +110,16 @@ export function ProjectCard({
           className="flex flex-col transition-all duration-300"
           style={{
             background: "var(--bg-primary)",
-            border: "1px solid var(--border)",
           }}
         >
-          {/* ── Header: number + badges ── */}
+          {/* ── Header: number + category ── */}
           <div
-            className="flex items-center justify-between px-5 py-2.5"
+            className="flex items-center justify-between px-3.5 py-1.5"
             style={{ borderBottom: "1px solid var(--border)" }}
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <span
-                className="font-mono text-[10px] tracking-[0.15em]"
+                className="font-mono text-[9px] tracking-[0.15em]"
                 style={{
                   color: "var(--text-very-muted)",
                   fontVariantNumeric: "tabular-nums",
@@ -321,7 +128,7 @@ export function ProjectCard({
                 {cardNumber}
               </span>
               <span
-                className="inline-flex items-center text-[10px] tracking-[0.12em] uppercase px-2 py-0.5"
+                className="inline-flex items-center text-[9px] tracking-[0.12em] uppercase px-1.5 py-px"
                 style={{
                   color: "var(--accent)",
                   border: "1px solid var(--accent-dim)",
@@ -331,19 +138,19 @@ export function ProjectCard({
                 {project.category}
               </span>
               <span
-                className="text-[9px] tracking-[0.1em] uppercase"
+                className="text-[8px] tracking-[0.1em] uppercase"
                 style={{ color: "var(--text-muted)" }}
               >
                 {project.subcategory}
               </span>
               {project.isHot && (
-                <Flame className="h-3 w-3" style={{ color: "#EF4444" }} />
+                <Flame className="h-2.5 w-2.5" style={{ color: "#EF4444" }} />
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {project.website && (
                 <ExternalLink
-                  className="h-3 w-3"
+                  className="h-2.5 w-2.5"
                   style={{ color: "var(--text-very-muted)" }}
                 />
               )}
@@ -352,9 +159,9 @@ export function ProjectCard({
           </div>
 
           {/* ── Title + tagline ── */}
-          <div className="px-5 pt-4 pb-3">
+          <div className="px-3.5 pt-2.5 pb-2">
             <h3
-              className="font-display text-lg font-semibold leading-snug"
+              className="font-display text-[15px] font-semibold leading-tight"
               style={{
                 color: "var(--text-primary)",
                 letterSpacing: "-0.02em",
@@ -363,14 +170,14 @@ export function ProjectCard({
               {project.name}
             </h3>
             <p
-              className="mt-1.5 text-[12px] leading-relaxed line-clamp-2"
-              style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}
+              className="mt-1 text-[11px] leading-snug line-clamp-2"
+              style={{ color: "var(--text-secondary)", lineHeight: "1.5" }}
             >
               {project.tagline}
             </p>
           </div>
 
-          {/* ── Stats grid — 4 columns ── */}
+          {/* ── Stats grid — 4 columns, compact ── */}
           <div
             className="grid grid-cols-4"
             style={{ borderTop: "1px solid var(--border)" }}
@@ -378,20 +185,20 @@ export function ProjectCard({
             {stats.map((stat, i) => (
               <div
                 key={stat.label}
-                className="px-3 py-2.5 sm:px-4 sm:py-3"
+                className="px-2.5 py-1.5"
                 style={{
                   borderRight:
                     i < 3 ? "1px solid var(--border)" : undefined,
                 }}
               >
                 <span
-                  className="text-[8px] uppercase tracking-[0.15em] block mb-1"
+                  className="text-[7px] uppercase tracking-[0.15em] block mb-0.5"
                   style={{ color: "var(--text-very-muted)" }}
                 >
                   {stat.label}
                 </span>
                 <span
-                  className="font-mono text-[12px] sm:text-[13px] font-semibold block"
+                  className="font-mono text-[11px] font-semibold block"
                   style={{
                     color:
                       stat.value > 0
@@ -410,55 +217,48 @@ export function ProjectCard({
             ))}
           </div>
 
-          {/* ── Sparkline + trend ── */}
-          {sparkData.length >= 2 && (
-            <div
-              className="flex items-center justify-between px-5 py-2.5"
-              style={{ borderTop: "1px solid var(--border)" }}
-            >
-              <span
-                className={`flex items-center gap-1 font-mono text-[10px] font-semibold ${
-                  isHolderUp ? "text-success" : "text-danger"
-                }`}
-              >
-                {isHolderUp ? (
-                  <TrendingUp className="h-3 w-3" />
-                ) : (
-                  <TrendingDown className="h-3 w-3" />
-                )}
-                {isHolderUp ? "+" : ""}
-                {holderTrend.toFixed(1)}%
-                <span
-                  className="text-[9px] font-normal ml-0.5"
-                  style={{ color: "var(--text-very-muted)" }}
-                >
-                  7D
-                </span>
-              </span>
-              <MiniSparkline
-                data={sparkData}
-                color={sparkColor}
-                width={80}
-                height={24}
-              />
-            </div>
-          )}
-
-          {/* ── Footer ── */}
+          {/* ── Sparkline + trend + watchers (single compact footer) ── */}
           <div
-            className="flex items-center justify-between px-5 py-2.5"
+            className="flex items-center justify-between px-3.5 py-1.5"
             style={{ borderTop: "1px solid var(--border)" }}
           >
-            <span
-              className="flex items-center gap-1 text-[11px]"
-              style={{ color: "var(--text-muted)" }}
-            >
-              <Eye className="h-3 w-3" /> {project.watchers.toLocaleString()}
-            </span>
-            <ArrowRight
-              className="card-arrow h-3.5 w-3.5 transition-all duration-300"
-              style={{ color: "var(--text-muted)" }}
-            />
+            <div className="flex items-center gap-2.5">
+              {sparkData.length >= 2 && (
+                <>
+                  <span
+                    className={`flex items-center gap-0.5 font-mono text-[9px] font-semibold ${
+                      isHolderUp ? "text-success" : "text-danger"
+                    }`}
+                  >
+                    {isHolderUp ? (
+                      <TrendingUp className="h-2.5 w-2.5" />
+                    ) : (
+                      <TrendingDown className="h-2.5 w-2.5" />
+                    )}
+                    {isHolderUp ? "+" : ""}
+                    {holderTrend.toFixed(1)}%
+                  </span>
+                  <MiniSparkline
+                    data={sparkData}
+                    color={sparkColor}
+                    width={56}
+                    height={16}
+                  />
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="flex items-center gap-1 text-[9px]"
+                style={{ color: "var(--text-muted)" }}
+              >
+                <Eye className="h-2.5 w-2.5" /> {project.watchers.toLocaleString()}
+              </span>
+              <ArrowRight
+                className="card-arrow h-3 w-3 transition-all duration-300"
+                style={{ color: "var(--text-muted)" }}
+              />
+            </div>
           </div>
         </div>
       </Link>
