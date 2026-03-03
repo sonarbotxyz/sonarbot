@@ -1,89 +1,302 @@
 @import "tailwindcss";
 
+/* ── TAILWIND V4 THEME TOKENS ──
+   Maps Tailwind utility classes to CSS variables for light/dark support.
+   e.g. `bg-bg` → var(--bg-primary) → resolves per theme.
+   Keeps backward compat with existing page utilities. */
 @theme inline {
-  /* Backgrounds — unified palette */
-  --color-bg: #0A0A0F;
-  --color-bg-alt: #0A0A0F;
-  --color-surface: #13141B;
-  --color-surface-hover: #1A1B23;
-  --color-surface-raised: #1A1B23;
+  /* Backgrounds */
+  --color-bg: var(--bg-primary);
+  --color-bg-alt: var(--bg-secondary);
+  --color-surface: var(--bg-secondary);
+  --color-surface-hover: var(--bg-tertiary);
+  --color-surface-raised: var(--bg-tertiary);
+  --color-card-bg: var(--card-bg);
+  --color-card-hover: var(--card-hover);
 
-  /* No visible borders — depth through surface color only */
-  --color-border: #1A1B23;
-  --color-border-subtle: #1A1B23;
+  /* Borders */
+  --color-border: var(--border);
+  --color-border-subtle: var(--border);
+  --color-border-strong: var(--border-strong);
 
-  /* Primary — Teal (used sparingly: CTA, links, active states) */
-  --color-primary: #3DD7D8;
-  --color-primary-hover: #50E5E6;
-  --color-primary-muted: #3DD7D818;
+  /* Accent */
+  --color-primary: var(--accent);
+  --color-primary-hover: #3370FF;
+  --color-primary-muted: var(--accent-dim);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-glow: var(--accent-glow);
 
-  /* Semantic — strict palette */
+  /* Semantic */
   --color-success: #22C55E;
-  --color-success-muted: #22C55E20;
+  --color-success-muted: rgba(34, 197, 94, 0.125);
   --color-danger: #EF4444;
-  --color-danger-muted: #EF444420;
+  --color-danger-muted: rgba(239, 68, 68, 0.125);
   --color-gold: #EAB308;
-  --color-gold-muted: #EAB30820;
+  --color-gold-muted: rgba(234, 179, 8, 0.125);
 
-  /* Text — unified palette */
-  --color-text-primary: #E8E8ED;
-  --color-text-secondary: #8B8B9E;
-  --color-text-tertiary: #52526B;
+  /* Text */
+  --color-text-primary: var(--text-primary);
+  --color-text-body: var(--text-body);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-muted);
+  --color-text-muted: var(--text-muted);
+  --color-text-very-muted: var(--text-very-muted);
 
   /* Fonts */
+  --font-display: var(--font-space-grotesk);
   --font-brand: var(--font-space-grotesk);
-  --font-body: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
+  --font-body: var(--font-jetbrains-mono);
 
-  /* Transitions */
+  /* Easing */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Animation */
+  --animate-blink: blink 1s step-end infinite;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
 }
 
-/* Base reset & dark-only theme */
+/* ── LIGHT THEME (default) ── */
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --bg-tertiary: #EEEEEE;
+  --text-primary: #0A0A0A;
+  --text-body: #444444;
+  --text-tertiary: #666666;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+  --text-very-muted: #AAAAAA;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --accent: #1652F0;
+  --accent-dim: rgba(22,82,240,0.1);
+  --accent-glow: rgba(22,82,240,0.05);
+  --card-bg: #FFFFFF;
+  --card-hover: #F8F8F8;
+  --nav-bg: rgba(255,255,255,0.85);
+}
+
+/* ── DARK THEME ── */
+.dark {
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1A1A1A;
+  --text-primary: #F5F5F5;
+  --text-body: #CCCCCC;
+  --text-tertiary: #AAAAAA;
+  --text-secondary: #888888;
+  --text-muted: #666666;
+  --text-very-muted: #444444;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --accent: #1652F0;
+  --accent-dim: rgba(22,82,240,0.15);
+  --accent-glow: rgba(22,82,240,0.08);
+  --card-bg: #111111;
+  --card-hover: #1A1A1A;
+  --nav-bg: rgba(10,10,10,0.85);
+}
+
+/* ── BASE STYLES ── */
+* {
+  box-sizing: border-box;
+}
+
 html {
-  color-scheme: dark;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-very-muted) var(--bg-primary);
 }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text-primary);
-  font-family: var(--font-body), system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-tertiary);
+  font-size: 14px;
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg-primary);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--text-very-muted);
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-tertiary);
+  background: var(--text-muted);
 }
 
-/* Selection */
 ::selection {
-  background: var(--color-primary-muted);
-  color: var(--color-text-primary);
+  background-color: var(--accent-dim);
+  color: var(--text-primary);
 }
 
-/* Focus ring */
-:focus-visible {
-  outline: 2px solid var(--color-primary);
+/* ── FOCUS RING ── */
+.focus-ring:focus-visible {
+  outline: 2px solid rgba(22, 82, 240, 0.5);
   outline-offset: 2px;
 }
 
-/* Horizontal scroll container (for pills) */
+/* ── VERTICAL DIVIDERS (persistent) ── */
+.vertical-line {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+  z-index: 100;
+  pointer-events: none;
+}
+.vertical-line.left { left: 48px; }
+.vertical-line.right { right: 48px; }
+
+.vertical-line::before,
+.vertical-line::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-very-muted);
+}
+.vertical-line::before { top: 0; }
+.vertical-line::after { bottom: 0; }
+
+/* ── HORIZONTAL RULES ── */
+.h-rule {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  position: relative;
+}
+.h-rule::before {
+  content: attr(data-label);
+  position: absolute;
+  right: 64px;
+  top: -8px;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  padding: 0 8px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── CTA BOX CORNER DECORATIONS ── */
+.cta-box {
+  position: relative;
+}
+.cta-box::before,
+.cta-box::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--accent);
+}
+.cta-box::before {
+  top: -4px;
+  left: -4px;
+  border-right: none;
+  border-bottom: none;
+}
+.cta-box::after {
+  bottom: -4px;
+  right: -4px;
+  border-left: none;
+  border-top: none;
+}
+
+/* ── GUIDE CARD HOVER LINE ── */
+.guide-card {
+  position: relative;
+}
+.guide-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.guide-card:hover::before {
+  transform: scaleX(1);
+}
+.guide-card:hover {
+  background: var(--card-hover) !important;
+}
+.guide-card:hover .card-arrow {
+  color: var(--accent) !important;
+  transform: translateX(3px);
+}
+
+/* ── THEME GUIDE ROW HOVER ── */
+.theme-guide-row:hover {
+  background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+}
+.theme-guide-row:hover .row-badge {
+  border-color: var(--accent-dim) !important;
+  color: var(--accent) !important;
+}
+.theme-guide-row:hover .row-title {
+  color: var(--text-primary) !important;
+}
+
+/* ── FOOTER LINKS ── */
+.footer-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+.footer-link:hover {
+  color: var(--text-primary);
+}
+
+/* ── HERO BADGES HOVER ── */
+[data-hover-badge]:hover {
+  border-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── HIDE SCROLLBAR UTILITY ── */
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -92,9 +305,13 @@ body {
   display: none;
 }
 
-/* Glass effect — darker base */
-.glass {
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .vertical-line.left { left: 24px; }
+  .vertical-line.right { right: 24px; }
+}
+
+@media (max-width: 768px) {
+  .vertical-line { display: none; }
+  .h-rule::before { display: none; }
 }
