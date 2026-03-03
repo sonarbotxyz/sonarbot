@@ -25,7 +25,10 @@ export function HealthScore({ score, size = "lg" }: HealthScoreProps) {
   const dashOffset = circumference - (clampedScore / 100) * circumference;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: svgSize, height: svgSize }}>
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: svgSize, height: svgSize }}
+    >
       <svg
         width={svgSize}
         height={svgSize}
@@ -38,7 +41,7 @@ export function HealthScore({ score, size = "lg" }: HealthScoreProps) {
           cy={svgSize / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.1)"
+          stroke="var(--border-strong)"
           strokeWidth={stroke}
         />
         {/* Animated progress */}
@@ -58,7 +61,7 @@ export function HealthScore({ score, size = "lg" }: HealthScoreProps) {
       </svg>
       {/* Center number */}
       <span
-        className={`absolute font-[family-name:var(--font-mono)] font-bold ${
+        className={`absolute font-mono font-bold ${
           isSmall ? "text-[11px]" : "text-2xl"
         }`}
         style={{ color }}

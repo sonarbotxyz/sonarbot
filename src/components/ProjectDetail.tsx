@@ -56,8 +56,6 @@ import { HealthScore } from "@/components/HealthScore";
 import { HealthBreakdown } from "@/components/HealthBreakdown";
 import { WhaleTable } from "@/components/WhaleTable";
 
-const noiseFilter = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`;
-
 const milestoneTypeIcons: Record<string, React.ElementType> = {
   metrics: BarChart3,
   launch: Rocket,
@@ -77,15 +75,15 @@ type ChartMetric = "holders" | "marketCap" | "volume24h" | "liquidity";
 type ChartPeriod = 7 | 30 | 90;
 
 const CHART_TABS: { key: ChartMetric; label: string; icon: React.ElementType; color: string }[] = [
-  { key: "holders", label: "Holders", icon: Users, color: "#3DD7D8" },
-  { key: "marketCap", label: "Market Cap", icon: DollarSign, color: "#3DD7D8" },
-  { key: "volume24h", label: "Volume", icon: BarChart3, color: "#3DD7D8" },
+  { key: "holders", label: "Holders", icon: Users, color: "#1652F0" },
+  { key: "marketCap", label: "Market Cap", icon: DollarSign, color: "#1652F0" },
+  { key: "volume24h", label: "Volume", icon: BarChart3, color: "#1652F0" },
   { key: "liquidity", label: "Liquidity", icon: Droplets, color: "#22C55E" },
 ];
 
 function getAvatar(project: Project): string {
   if (project.twitterHandle) return `https://unavatar.io/twitter/${project.twitterHandle}`;
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(project.name)}&background=1C1D27&color=fff&size=128`;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(project.name)}&background=111111&color=F5F5F5&size=128`;
 }
 
 function getProductScreenshots(project: Project): string[] {
@@ -151,34 +149,16 @@ export function ProjectDetail({
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>(30);
   const galleryRef = useRef<HTMLDivElement>(null);
 
-  // Map API data to frontend types
-  const snapshots90d = useMemo(
-    () => snapshotsData.map(mapApiSnapshot),
-    [snapshotsData],
-  );
-  const healthScore = useMemo(
-    () => (healthData ? mapApiHealth(healthData) : null),
-    [healthData],
-  );
-  const whales = useMemo(
-    () => whaleWalletsData.map(mapApiWhale),
-    [whaleWalletsData],
-  );
-  const socialData = useMemo(
-    () => (socialDataRaw ? mapApiSocial(socialDataRaw) : null),
-    [socialDataRaw],
-  );
+  const snapshots90d = useMemo(() => snapshotsData.map(mapApiSnapshot), [snapshotsData]);
+  const healthScore = useMemo(() => (healthData ? mapApiHealth(healthData) : null), [healthData]);
+  const whales = useMemo(() => whaleWalletsData.map(mapApiWhale), [whaleWalletsData]);
+  const socialData = useMemo(() => (socialDataRaw ? mapApiSocial(socialDataRaw) : null), [socialDataRaw]);
 
-  // Compute chart data for selected metric + period
   const chartData = useMemo(() => {
     const sliced = snapshots90d.slice(-chartPeriod);
-    return sliced.map((s) => ({
-      timestamp: s.timestamp,
-      value: s[chartMetric],
-    }));
+    return sliced.map((s) => ({ timestamp: s.timestamp, value: s[chartMetric] }));
   }, [snapshots90d, chartMetric, chartPeriod]);
 
-  // Compute latest stats with trends
   const stats = useMemo(() => {
     if (!snapshots90d.length) return null;
     const latest = snapshots90d[snapshots90d.length - 1];
@@ -190,7 +170,6 @@ export function ProjectDetail({
     };
   }, [snapshots90d]);
 
-  // Sparkline data for stat cards (7d)
   const sparklines = useMemo(() => {
     const last7 = snapshots90d.slice(-7);
     return {
@@ -203,9 +182,9 @@ export function ProjectDetail({
 
   if (!project) {
     return (
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-center px-4 py-32 text-center sm:px-6">
-        <p className="text-xl font-semibold text-text-primary">Project not found</p>
-        <Link href="/" className="mt-4 flex items-center gap-2 text-sm text-primary hover:underline">
+      <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-center px-5 md:px-20 py-32 text-center">
+        <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Project not found</p>
+        <Link href="/" className="mt-4 flex items-center gap-2 text-sm transition-colors" style={{ color: "var(--accent)" }}>
           <ArrowLeft className="h-4 w-4" /> Back to discover
         </Link>
       </div>
@@ -217,7 +196,6 @@ export function ProjectDetail({
   const promotedProject = getPromotedProject(project.id);
   const description = project.description || project.tagline;
   const isLongDesc = description.length > 200;
-
   const activeChartTab = CHART_TABS.find((t) => t.key === chartMetric)!;
 
   async function handleUpvote() {
@@ -287,42 +265,56 @@ export function ProjectDetail({
     <>
       <div className="min-h-screen">
         {/* Back nav */}
-        <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-text-tertiary hover:text-text-primary transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Back to discover
+        <div className="mx-auto max-w-[1400px] px-5 md:px-20 pt-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] transition-colors no-underline"
+            style={{ color: "var(--text-muted)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to discover
           </Link>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6">
+        <div className="mx-auto max-w-[1400px] px-5 md:px-20 pt-6 pb-16">
           <div className="flex flex-col lg:flex-row lg:gap-10">
 
-            {/* ═══ LEFT COLUMN ═══ */}
+            {/* LEFT COLUMN */}
             <div className="min-w-0 flex-1">
 
-              {/* ─── HEADER ─── */}
+              {/* HEADER */}
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                {/* Mobile: compact horizontal layout */}
                 <div className="flex items-start gap-3 sm:gap-5">
-                  <div className="h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden ring-1 ring-white/10 sm:h-20 sm:w-20 sm:rounded-2xl">
+                  <div className="h-12 w-12 flex-shrink-0 overflow-hidden sm:h-20 sm:w-20" style={{ border: "1px solid var(--border)" }}>
                     <img src={avatar} alt={project.name} className="h-full w-full object-cover" loading="lazy" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h1 className="font-[family-name:var(--font-brand)] text-lg font-bold text-text-primary sm:text-2xl leading-tight">
+                      <h1 className="font-display text-lg font-bold sm:text-2xl leading-tight" style={{ color: "var(--text-primary)" }}>
                         {project.name}
                       </h1>
-                      <span className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px] sm:px-2.5 bg-[#3DD7D8]/12 text-[#3DD7D8]">
+                      <span
+                        className="px-2 py-0.5 text-[10px] uppercase tracking-[0.12em]"
+                        style={{
+                          color: "var(--accent)",
+                          border: "1px solid var(--accent-dim)",
+                          background: "var(--accent-glow)",
+                        }}
+                      >
                         {project.category}
                       </span>
                       {healthScore && <HealthScore score={healthScore.overall} size="sm" />}
                     </div>
-                    <p className="mt-0.5 text-[13px] text-text-secondary sm:mt-1 sm:text-[15px] line-clamp-2">{project.tagline}</p>
+                    <p className="mt-1 text-[13px] sm:text-[15px] line-clamp-2" style={{ color: "var(--text-secondary)" }}>
+                      {project.tagline}
+                    </p>
                   </div>
                 </div>
 
-                {/* Stats + links row — compact on mobile */}
+                {/* Stats + links row */}
                 <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-3 text-[11px] text-text-tertiary sm:text-[12px]">
+                  <div className="flex items-center gap-3 text-[11px]" style={{ color: "var(--text-muted)" }}>
                     <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{project.watchers.toLocaleString()} watchers</span>
                     <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{comments.length} comments</span>
                   </div>
@@ -332,7 +324,10 @@ export function ProjectDetail({
                         href={project.website.startsWith("http") ? project.website : `https://${project.website}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-7 items-center gap-1 rounded-md bg-surface px-2.5 text-[11px] font-medium text-text-secondary transition-colors hover:text-text-primary ring-1 ring-white/5"
+                        className="inline-flex h-7 items-center gap-1 px-2.5 text-[11px] font-medium transition-colors"
+                        style={{ color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary)"; }}
                       >
                         <Globe className="h-3 w-3" /> Site
                       </a>
@@ -342,7 +337,10 @@ export function ProjectDetail({
                         href={`https://x.com/${project.twitter}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-7 items-center gap-1 rounded-md bg-surface px-2.5 text-[11px] font-medium text-text-secondary transition-colors hover:text-text-primary ring-1 ring-white/5"
+                        className="inline-flex h-7 items-center gap-1 px-2.5 text-[11px] font-medium transition-colors"
+                        style={{ color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary)"; }}
                       >
                         <Twitter className="h-3 w-3" /> X
                       </a>
@@ -351,71 +349,45 @@ export function ProjectDetail({
                 </div>
               </motion.div>
 
-              {/* ─── STATS ROW ─── */}
+              {/* STATS ROW */}
               {stats && (
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4"
+                  className="mt-6 grid grid-cols-2 gap-px sm:grid-cols-4"
+                  style={{ background: "var(--border)" }}
                 >
-                  <StatCard
-                    label="Holders"
-                    value={formatNumber(stats.holders.value)}
-                    trend={stats.holders.trend}
-                    sparkline={sparklines.holders}
-                    icon={Users}
-                    color="#3DD7D8"
-                  />
-                  <StatCard
-                    label="Market Cap"
-                    value={formatCompact(stats.marketCap.value)}
-                    trend={stats.marketCap.trend}
-                    sparkline={sparklines.marketCap}
-                    icon={DollarSign}
-                    color="#3DD7D8"
-                  />
-                  <StatCard
-                    label="24h Volume"
-                    value={formatCompact(stats.volume24h.value)}
-                    trend={stats.volume24h.trend}
-                    sparkline={sparklines.volume24h}
-                    icon={BarChart3}
-                    color="#3DD7D8"
-                  />
-                  <StatCard
-                    label="Liquidity"
-                    value={formatCompact(stats.liquidity.value)}
-                    trend={stats.liquidity.trend}
-                    sparkline={sparklines.liquidity}
-                    icon={Droplets}
-                    color="#22C55E"
-                  />
+                  <StatCard label="Holders" value={formatNumber(stats.holders.value)} trend={stats.holders.trend} sparkline={sparklines.holders} icon={Users} color="#1652F0" />
+                  <StatCard label="Market Cap" value={formatCompact(stats.marketCap.value)} trend={stats.marketCap.trend} sparkline={sparklines.marketCap} icon={DollarSign} color="#1652F0" />
+                  <StatCard label="24h Volume" value={formatCompact(stats.volume24h.value)} trend={stats.volume24h.trend} sparkline={sparklines.volume24h} icon={BarChart3} color="#1652F0" />
+                  <StatCard label="Liquidity" value={formatCompact(stats.liquidity.value)} trend={stats.liquidity.trend} sparkline={sparklines.liquidity} icon={Droplets} color="#22C55E" />
                 </motion.div>
               )}
 
-              {/* ─── DESCRIPTION ─── */}
+              {/* DESCRIPTION */}
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mt-6">
-                <p className={`text-[14px] leading-relaxed text-text-secondary ${!descExpanded && isLongDesc ? "line-clamp-3" : ""}`}>
+                <p className={`text-[14px] leading-relaxed ${!descExpanded && isLongDesc ? "line-clamp-3" : ""}`} style={{ color: "var(--text-secondary)" }}>
                   {description}
                 </p>
                 {isLongDesc && (
-                  <button type="button" onClick={() => setDescExpanded(!descExpanded)} className="mt-1 text-[13px] font-medium text-primary hover:text-primary-hover transition-colors">
+                  <button type="button" onClick={() => setDescExpanded(!descExpanded)} className="mt-1 text-[13px] font-medium transition-colors" style={{ color: "var(--accent)" }}>
                     {descExpanded ? "See less" : "See more"}
                   </button>
                 )}
               </motion.div>
 
-              {/* ─── MOBILE: ACTIONS + PROMOTED (before charts) ─── */}
+              {/* MOBILE: ACTIONS */}
               <div className="mt-6 space-y-3 lg:hidden">
                 <button
                   type="button"
                   onClick={() => { if (!watching) setShowAlertModal(true); setWatching(!watching); }}
-                  className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-bold transition-all ${
-                    watching
-                      ? "bg-primary text-white shadow-[0_0_20px_rgba(61,215,216,0.2)]"
-                      : "bg-surface text-text-primary ring-1 ring-white/10"
-                  }`}
+                  className="flex h-12 w-full items-center justify-center gap-2 text-sm font-bold transition-all"
+                  style={{
+                    background: watching ? "var(--accent)" : "var(--bg-secondary)",
+                    color: watching ? "#FFFFFF" : "var(--text-primary)",
+                    border: watching ? "none" : "1px solid var(--border)",
+                  }}
                 >
                   {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   {watching ? "Watching" : "Watch this project"}
@@ -423,22 +395,17 @@ export function ProjectDetail({
                 <button
                   type="button"
                   onClick={() => setShowAlertModal(true)}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-surface text-sm font-medium text-text-secondary ring-1 ring-white/10 transition-colors hover:bg-surface-hover"
+                  className="flex h-10 w-full items-center justify-center gap-2 text-sm font-medium transition-colors"
+                  style={{ background: "var(--bg-secondary)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
                 >
                   <Bell className="h-4 w-4" /> Configure alerts
                 </button>
                 {promotedProject && <PromotedProjectCard project={promotedProject} />}
               </div>
 
-              {/* ─── CHART SECTION ─── */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="mt-8"
-              >
-                <div className="rounded-2xl bg-surface p-5">
-                  {/* Chart tabs */}
+              {/* CHART SECTION */}
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8">
+                <div className="p-5" style={{ background: "var(--bg-secondary)" }}>
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <div className="flex gap-1">
                       {CHART_TABS.map((tab) => (
@@ -446,50 +413,43 @@ export function ProjectDetail({
                           key={tab.key}
                           type="button"
                           onClick={() => setChartMetric(tab.key)}
-                          className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                            chartMetric === tab.key
-                              ? "bg-white/10 text-text-primary"
-                              : "text-text-tertiary hover:text-text-secondary hover:bg-white/5"
-                          }`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium transition-colors"
+                          style={{
+                            color: chartMetric === tab.key ? "var(--text-primary)" : "var(--text-muted)",
+                            background: chartMetric === tab.key ? "var(--border-strong)" : "transparent",
+                          }}
                         >
                           <tab.icon className="h-3.5 w-3.5" />
                           <span className="hidden sm:inline">{tab.label}</span>
                         </button>
                       ))}
                     </div>
-                    {/* Period selector */}
                     <div className="flex gap-1">
                       {([7, 30, 90] as ChartPeriod[]).map((p) => (
                         <button
                           key={p}
                           type="button"
                           onClick={() => setChartPeriod(p)}
-                          className={`rounded-md px-2.5 py-1 font-[family-name:var(--font-mono)] text-[11px] font-medium transition-colors ${
-                            chartPeriod === p
-                              ? "bg-white/10 text-text-primary"
-                              : "text-text-tertiary hover:text-text-secondary"
-                          }`}
+                          className="px-2.5 py-1 font-mono text-[11px] font-medium transition-colors"
+                          style={{
+                            color: chartPeriod === p ? "var(--text-primary)" : "var(--text-muted)",
+                            background: chartPeriod === p ? "var(--border-strong)" : "transparent",
+                          }}
                         >
                           {p}d
                         </button>
                       ))}
                     </div>
                   </div>
-                  {/* Chart */}
                   <div className="mt-4">
                     {chartData.length > 0 ? (
-                      <AreaChartComponent
-                        data={chartData}
-                        color={activeChartTab.color}
-                        height={280}
-                        formatValue={chartMetric === "holders" ? formatNumber : formatCompact}
-                      />
+                      <AreaChartComponent data={chartData} color={activeChartTab.color} height={280} formatValue={chartMetric === "holders" ? formatNumber : formatCompact} />
                     ) : (
                       <div className="flex h-[280px] items-center justify-center">
                         <div className="text-center">
-                          <BarChart3 className="mx-auto h-8 w-8 text-text-tertiary" />
-                          <p className="mt-2 text-sm text-text-secondary">No data yet</p>
-                          <p className="mt-1 text-[11px] text-text-tertiary">Chart data will appear once snapshots are collected</p>
+                          <BarChart3 className="mx-auto h-8 w-8" style={{ color: "var(--text-muted)" }} />
+                          <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>No data yet</p>
+                          <p className="mt-1 text-[11px]" style={{ color: "var(--text-muted)" }}>Chart data will appear once snapshots are collected</p>
                         </div>
                       </div>
                     )}
@@ -497,80 +457,42 @@ export function ProjectDetail({
                 </div>
               </motion.div>
 
-              {/* ─── HEALTH + SOCIAL (Two Column) ─── */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-                className="mt-6 grid gap-4 md:grid-cols-2"
-              >
-                {/* Health Breakdown */}
+              {/* HEALTH + SOCIAL */}
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="mt-6 grid gap-px md:grid-cols-2" style={{ background: "var(--border)" }}>
                 {healthScore && <HealthBreakdown health={healthScore} />}
-
-                {/* Social Stats — always visible */}
-                <div className="rounded-2xl bg-surface p-5">
-                  <h3 className="text-sm font-semibold text-text-primary">Social & Dev</h3>
+                <div className="p-5" style={{ background: "var(--bg-secondary)" }}>
+                  <h3 className="text-[10px] uppercase tracking-[0.15em] font-medium" style={{ color: "var(--text-muted)" }}>Social & Dev</h3>
                   <div className="mt-4 space-y-3">
-                    <SocialRow
-                      icon={Twitter}
-                      label="X Followers"
-                      value={socialData ? formatNumber(socialData.xFollowers) : "—"}
-                      change={socialData?.xFollowersChange || undefined}
-                    />
-                    <SocialRow
-                      icon={Activity}
-                      label="Engagement Rate"
-                      value={socialData ? `${socialData.engagementRate.toFixed(1)}%` : "—"}
-                    />
-                    <SocialRow
-                      icon={GitBranch}
-                      label="GitHub Commits (30d)"
-                      value={socialData ? socialData.githubCommits30d.toString() : "—"}
-                    />
-                    <SocialRow
-                      icon={Activity}
-                      label="GitHub Stars"
-                      value={socialData ? formatNumber(socialData.githubStars) : "—"}
-                    />
-                    <SocialRow
-                      icon={MessageCircle}
-                      label="Farcaster Followers"
-                      value={socialData ? formatNumber(socialData.farcasterFollowers) : "—"}
-                    />
-                    <SocialRow
-                      icon={Activity}
-                      label="Farcaster Engagement"
-                      value={socialData ? `${socialData.farcasterEngagement.toFixed(1)}%` : "—"}
-                    />
+                    <SocialRow icon={Twitter} label="X Followers" value={socialData ? formatNumber(socialData.xFollowers) : "—"} change={socialData?.xFollowersChange || undefined} />
+                    <SocialRow icon={Activity} label="Engagement Rate" value={socialData ? `${socialData.engagementRate.toFixed(1)}%` : "—"} />
+                    <SocialRow icon={GitBranch} label="GitHub Commits (30d)" value={socialData ? socialData.githubCommits30d.toString() : "—"} />
+                    <SocialRow icon={Activity} label="GitHub Stars" value={socialData ? formatNumber(socialData.githubStars) : "—"} />
+                    <SocialRow icon={MessageCircle} label="Farcaster Followers" value={socialData ? formatNumber(socialData.farcasterFollowers) : "—"} />
+                    <SocialRow icon={Activity} label="Farcaster Engagement" value={socialData ? `${socialData.farcasterEngagement.toFixed(1)}%` : "—"} />
                   </div>
                 </div>
               </motion.div>
 
-              {/* ─── WHALE TABLE ─── */}
+              {/* WHALE TABLE */}
               {whales.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-6"
-                >
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6">
                   <WhaleTable whales={whales} />
                 </motion.div>
               )}
 
-              {/* ─── TAB NAVIGATION ─── */}
+              {/* TAB NAVIGATION */}
               <div className="mt-8">
-                <div className="flex gap-6 border-b border-white/5">
+                <div className="flex gap-6" style={{ borderBottom: "1px solid var(--border)" }}>
                   {(["overview", "reviews"] as const).map((tab) => (
                     <button
                       key={tab}
                       type="button"
                       onClick={() => setActiveTab(tab)}
-                      className={`pb-3 text-sm font-medium capitalize transition-colors ${
-                        activeTab === tab
-                          ? "text-text-primary border-b-2 border-primary"
-                          : "text-text-tertiary hover:text-text-secondary"
-                      }`}
+                      className="pb-3 text-[11px] uppercase tracking-[0.08em] font-medium capitalize transition-colors"
+                      style={{
+                        color: activeTab === tab ? "var(--text-primary)" : "var(--text-muted)",
+                        borderBottom: activeTab === tab ? "2px solid var(--accent)" : "2px solid transparent",
+                      }}
                     >
                       {tab === "reviews" ? `Reviews (${comments.length})` : tab}
                     </button>
@@ -578,34 +500,36 @@ export function ProjectDetail({
                 </div>
               </div>
 
-              {/* ─── SCREENSHOT GALLERY ─── */}
+              {/* SCREENSHOT GALLERY */}
               {activeTab === "overview" && screenshots.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mt-6">
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => scrollGallery("left")}
-                      className="absolute -left-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface ring-1 ring-white/10 text-text-secondary hover:text-text-primary transition-colors shadow-lg sm:flex"
+                      className="absolute -left-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center transition-colors sm:flex"
+                      style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>
                     <button
                       type="button"
                       onClick={() => scrollGallery("right")}
-                      className="absolute -right-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface ring-1 ring-white/10 text-text-secondary hover:text-text-primary transition-colors shadow-lg sm:flex"
+                      className="absolute -right-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center transition-colors sm:flex"
+                      style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
                     <div
                       ref={galleryRef}
-                      className="flex gap-4 overflow-x-auto scroll-smooth pb-4 snap-x snap-mandatory scrollbar-hide"
+                      className="flex gap-4 overflow-x-auto scroll-smooth pb-4 snap-x snap-mandatory"
                       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                     >
                       {screenshots.map((src, i) => (
                         <div
                           key={i}
-                          className="flex-shrink-0 snap-start overflow-hidden rounded-xl bg-surface ring-1 ring-white/5"
-                          style={{ width: "min(85%, 520px)" }}
+                          className="flex-shrink-0 snap-start overflow-hidden"
+                          style={{ width: "min(85%, 520px)", border: "1px solid var(--border)" }}
                         >
                           <div className="relative h-64 sm:h-80">
                             <img
@@ -623,11 +547,14 @@ export function ProjectDetail({
                 </motion.div>
               )}
 
-              {/* ─── MILESTONES ─── */}
+              {/* MILESTONES */}
               {activeTab === "overview" && project.milestones.length > 0 && (
                 <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-10">
-                  <h2 className="text-lg font-semibold text-text-primary">Milestones</h2>
-                  <div className="mt-4 space-y-0">
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <span className="font-bold text-[10px]" style={{ color: "var(--accent)" }}>&gt;</span>
+                    <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Milestones</span>
+                  </div>
+                  <div className="space-y-0">
                     {project.milestones.map((milestone, i) => (
                       <MilestoneItem key={milestone.id} milestone={milestone} isLast={i === project.milestones.length - 1} />
                     ))}
@@ -635,33 +562,32 @@ export function ProjectDetail({
                 </motion.section>
               )}
 
-              {/* ─── COMMENTS (only on reviews tab) ─── */}
+              {/* COMMENTS */}
               {activeTab === "reviews" && (
                 <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-10">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-text-primary">
-                      {activeTab === "reviews" ? "Reviews" : "Discussion"}
-                    </h2>
-                    <span className="font-[family-name:var(--font-mono)] text-sm text-text-tertiary">{comments.length}</span>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <span className="font-bold text-[10px]" style={{ color: "var(--accent)" }}>&gt;</span>
+                    <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Reviews</span>
+                    <span className="font-mono text-[11px]" style={{ color: "var(--text-very-muted)" }}>{comments.length}</span>
                   </div>
                   {comments.length === 0 ? (
-                    <div className="mt-4 rounded-2xl bg-surface p-6 text-center">
-                      <MessageSquare className="mx-auto h-8 w-8 text-text-tertiary" />
-                      <p className="mt-2 text-sm text-text-secondary">No comments yet. Be the first to share your thoughts.</p>
+                    <div className="p-6 text-center" style={{ background: "var(--bg-secondary)" }}>
+                      <MessageSquare className="mx-auto h-8 w-8" style={{ color: "var(--text-muted)" }} />
+                      <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>No comments yet. Be the first to share your thoughts.</p>
                     </div>
                   ) : (
-                    <div className="mt-4 space-y-3">
+                    <div style={{ borderTop: "1px solid var(--border)" }}>
                       {comments.map((comment) => (
-                        <div key={comment.id} className="rounded-2xl bg-surface p-4">
+                        <div key={comment.id} className="p-4" style={{ borderBottom: "1px solid var(--border)" }}>
                           <div className="flex items-center justify-between">
-                            <span className="font-[family-name:var(--font-mono)] text-sm font-medium text-text-primary">{comment.author}</span>
-                            <span className="text-xs text-text-tertiary">{formatDate(comment.date)}</span>
+                            <span className="font-mono text-sm font-medium" style={{ color: "var(--text-primary)" }}>{comment.author}</span>
+                            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>{formatDate(comment.date)}</span>
                           </div>
-                          <p className="mt-2 text-sm leading-relaxed text-text-secondary">{comment.text}</p>
+                          <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{comment.text}</p>
                           <div className="mt-3">
-                            <button type="button" className="flex items-center gap-1.5 text-xs text-text-tertiary transition-colors hover:text-text-secondary">
+                            <button type="button" className="flex items-center gap-1.5 text-xs transition-colors" style={{ color: "var(--text-muted)" }}>
                               <ChevronUp className="h-3 w-3" />
-                              <span className="font-[family-name:var(--font-mono)]">{comment.upvotes}</span>
+                              <span className="font-mono">{comment.upvotes}</span>
                             </button>
                           </div>
                         </div>
@@ -675,14 +601,20 @@ export function ProjectDetail({
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
                       onFocus={() => { if (!user) login(); }}
-                      className="w-full resize-none rounded-2xl bg-surface p-4 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:bg-surface-hover"
+                      className="w-full resize-none p-4 text-sm outline-none transition-colors"
+                      style={{
+                        background: "var(--bg-secondary)",
+                        color: "var(--text-primary)",
+                        border: "1px solid var(--border)",
+                      }}
                     />
                     <div className="mt-2 flex justify-end">
                       <button
                         type="button"
                         onClick={handlePostComment}
                         disabled={posting || !commentText.trim()}
-                        className="flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
+                        className="flex h-9 items-center gap-2 px-4 text-xs uppercase tracking-[0.06em] font-medium text-white transition-colors disabled:opacity-50"
+                        style={{ background: "var(--accent)" }}
                       >
                         {posting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                         Post Comment
@@ -692,34 +624,34 @@ export function ProjectDetail({
                 </motion.section>
               )}
 
-              {/* ─── MOBILE: COMPANY INFO (after comments) ─── */}
+              {/* MOBILE: COMPANY INFO */}
               <div className="mt-8 lg:hidden">
-                <div className="rounded-2xl bg-surface p-4">
-                  <h3 className="text-sm font-semibold text-text-primary">Company Info</h3>
+                <div className="p-4" style={{ background: "var(--bg-secondary)" }}>
+                  <h3 className="text-[10px] uppercase tracking-[0.15em] font-medium" style={{ color: "var(--text-muted)" }}>Company Info</h3>
                   <div className="mt-3 space-y-2.5">
                     {project.website && (
-                      <a href={project.website.startsWith("http") ? project.website : `https://${project.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-primary">
-                        <Globe className="h-4 w-4" /><span className="truncate">{project.website.replace(/^https?:\/\//, "")}</span><ExternalLink className="h-3 w-3 text-text-tertiary" />
+                      <a href={project.website.startsWith("http") ? project.website : `https://${project.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm transition-colors" style={{ color: "var(--text-secondary)" }}>
+                        <Globe className="h-4 w-4" /><span className="truncate">{project.website.replace(/^https?:\/\//, "")}</span><ExternalLink className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
                       </a>
                     )}
                     {project.twitter && (
-                      <a href={`https://x.com/${project.twitter}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-primary">
-                        <Twitter className="h-4 w-4" /><span>@{project.twitter}</span><ExternalLink className="h-3 w-3 text-text-tertiary" />
+                      <a href={`https://x.com/${project.twitter}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm transition-colors" style={{ color: "var(--text-secondary)" }}>
+                        <Twitter className="h-4 w-4" /><span>@{project.twitter}</span><ExternalLink className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
                       </a>
                     )}
-                    <div className="flex items-center gap-2.5 text-sm text-[#8B8B9E]">
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#3DD7D8]/15">
-                        <span className="block h-2 w-2 rounded-full bg-[#3DD7D8]" />
+                    <div className="flex items-center gap-2.5 text-sm" style={{ color: "var(--text-secondary)" }}>
+                      <span className="flex h-4 w-4 items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+                        <span className="block h-2 w-2" style={{ background: "var(--accent)", borderRadius: "50%" }} />
                       </span>
                       <span>{project.category}</span>
-                      {project.subcategory && (<><span className="text-[#52526B]">/</span><span className="text-[#52526B]">{project.subcategory}</span></>)}
+                      {project.subcategory && (<><span style={{ color: "var(--text-muted)" }}>/</span><span style={{ color: "var(--text-muted)" }}>{project.subcategory}</span></>)}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ═══ RIGHT SIDEBAR ═══ */}
+            {/* RIGHT SIDEBAR */}
             <motion.div
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
@@ -727,7 +659,7 @@ export function ProjectDetail({
               className="hidden w-[320px] shrink-0 lg:block"
             >
               <div className="sticky top-20 space-y-4">
-                {/* Watch — primary CTA */}
+                {/* Watch CTA */}
                 <button
                   type="button"
                   onClick={() => {
@@ -735,13 +667,14 @@ export function ProjectDetail({
                     if (!watching) setShowAlertModal(true);
                     setWatching(!watching);
                   }}
-                  className={`group flex h-14 w-full items-center justify-center gap-3 rounded-2xl text-base font-bold transition-all duration-200 ${
-                    watching
-                      ? "bg-primary text-white shadow-[0_0_24px_rgba(61,215,216,0.25)]"
-                      : "bg-surface text-text-primary ring-1 ring-white/10 hover:bg-surface-hover hover:ring-primary/30 hover:shadow-[0_0_16px_rgba(61,215,216,0.1)]"
-                  }`}
+                  className="group flex h-14 w-full items-center justify-center gap-3 text-sm font-bold transition-all duration-200"
+                  style={{
+                    background: watching ? "var(--accent)" : "var(--bg-secondary)",
+                    color: watching ? "#FFFFFF" : "var(--text-primary)",
+                    border: watching ? "1px solid var(--accent)" : "1px solid var(--border)",
+                  }}
                 >
-                  {watching ? <Check className="h-5 w-5" /> : <Eye className={`h-5 w-5 transition-transform ${watching ? "" : "group-hover:scale-110"}`} />}
+                  {watching ? <Check className="h-5 w-5" /> : <Eye className="h-5 w-5 transition-transform group-hover:scale-110" />}
                   <span>{watching ? "Watching" : "Watch this project"}</span>
                 </button>
 
@@ -749,26 +682,38 @@ export function ProjectDetail({
                 {promotedProject && <PromotedProjectCard project={promotedProject} />}
 
                 {/* Alert Preferences */}
-                <div className="rounded-2xl bg-surface p-4">
+                <div className="p-4" style={{ background: "var(--bg-secondary)" }}>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-text-primary">Alert Preferences</h3>
-                    <Bell className="h-4 w-4 text-text-tertiary" />
+                    <h3 className="text-[10px] uppercase tracking-[0.15em] font-medium" style={{ color: "var(--text-muted)" }}>Alert Preferences</h3>
+                    <Bell className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
                   </div>
-                  <p className="mt-1 text-[11px] text-text-tertiary">Choose which signals to receive</p>
+                  <p className="mt-1 text-[11px]" style={{ color: "var(--text-muted)" }}>Choose which signals to receive</p>
                   <div className="mt-3 space-y-2.5">
                     {signalTypes.map((st) => {
                       const active = alertPrefs.has(st.key);
                       return (
                         <button key={st.key} type="button" onClick={() => toggleAlertPref(st.key)} className="flex w-full items-center gap-3 text-left">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <st.icon className="h-3.5 w-3.5 flex-shrink-0 text-text-tertiary" />
+                            <st.icon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
                             <div className="min-w-0">
-                              <span className="block text-[13px] font-medium text-text-primary truncate">{st.label}</span>
-                              <span className="block text-[11px] text-text-tertiary truncate">{st.desc}</span>
+                              <span className="block text-[13px] font-medium truncate" style={{ color: "var(--text-primary)" }}>{st.label}</span>
+                              <span className="block text-[11px] truncate" style={{ color: "var(--text-muted)" }}>{st.desc}</span>
                             </div>
                           </div>
-                          <div className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${active ? "bg-primary" : "bg-surface-hover"}`}>
-                            <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${active ? "translate-x-4" : "translate-x-0.5"}`} />
+                          <div
+                            className="relative h-5 w-9 flex-shrink-0 transition-colors"
+                            style={{
+                              background: active ? "var(--accent)" : "var(--bg-tertiary)",
+                              borderRadius: "10px",
+                            }}
+                          >
+                            <div
+                              className="absolute top-0.5 h-4 w-4 bg-white shadow-sm transition-transform"
+                              style={{
+                                borderRadius: "50%",
+                                transform: active ? "translateX(16px)" : "translateX(2px)",
+                              }}
+                            />
                           </div>
                         </button>
                       );
@@ -777,37 +722,39 @@ export function ProjectDetail({
                 </div>
 
                 {/* Company Info */}
-                <div className="rounded-2xl bg-surface p-4">
-                  <h3 className="text-sm font-semibold text-text-primary">Company Info</h3>
+                <div className="p-4" style={{ background: "var(--bg-secondary)" }}>
+                  <h3 className="text-[10px] uppercase tracking-[0.15em] font-medium" style={{ color: "var(--text-muted)" }}>Company Info</h3>
                   <div className="mt-3 space-y-2.5">
                     {project.website && (
                       <a
                         href={project.website.startsWith("http") ? project.website : `https://${project.website}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-primary"
+                        className="flex items-center gap-2.5 text-sm transition-colors"
+                        style={{ color: "var(--text-secondary)" }}
                       >
                         <Globe className="h-4 w-4 flex-shrink-0" />
                         <span className="truncate">{project.website.replace(/^https?:\/\//, "")}</span>
-                        <ExternalLink className="h-3 w-3 flex-shrink-0 text-text-tertiary" />
+                        <ExternalLink className="h-3 w-3 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
                       </a>
                     )}
                     {project.twitter && (
                       <a
                         href={`https://x.com/${project.twitter}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-primary"
+                        className="flex items-center gap-2.5 text-sm transition-colors"
+                        style={{ color: "var(--text-secondary)" }}
                       >
                         <Twitter className="h-4 w-4 flex-shrink-0" />
                         <span>@{project.twitter}</span>
-                        <ExternalLink className="h-3 w-3 flex-shrink-0 text-text-tertiary" />
+                        <ExternalLink className="h-3 w-3 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
                       </a>
                     )}
-                    <div className="flex items-center gap-2.5 text-sm text-[#8B8B9E]">
-                      <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[#3DD7D8]/15">
-                        <span className="block h-2 w-2 rounded-full bg-[#3DD7D8]" />
+                    <div className="flex items-center gap-2.5 text-sm" style={{ color: "var(--text-secondary)" }}>
+                      <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center" style={{ background: "var(--accent-dim)" }}>
+                        <span className="block h-2 w-2" style={{ background: "var(--accent)", borderRadius: "50%" }} />
                       </span>
                       <span>{project.category}</span>
-                      {project.subcategory && (<><span className="text-text-tertiary">/</span><span className="text-text-tertiary">{project.subcategory}</span></>)}
+                      {project.subcategory && (<><span style={{ color: "var(--text-muted)" }}>/</span><span style={{ color: "var(--text-muted)" }}>{project.subcategory}</span></>)}
                     </div>
                   </div>
                 </div>
@@ -825,35 +772,25 @@ export function ProjectDetail({
   );
 }
 
-/* ─── STAT CARD ─── */
+/* STAT CARD */
 function StatCard({
-  label,
-  value,
-  trend,
-  sparkline,
-  icon: Icon,
-  color,
+  label, value, trend, sparkline, icon: Icon, color,
 }: {
-  label: string;
-  value: string;
-  trend: number;
-  sparkline: number[];
-  icon: React.ElementType;
-  color: string;
+  label: string; value: string; trend: number; sparkline: number[]; icon: React.ElementType; color: string;
 }) {
   const isUp = trend >= 0;
   return (
-    <div className="rounded-xl bg-surface p-3.5">
+    <div className="p-3.5" style={{ background: "var(--bg-secondary)" }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Icon className="h-3.5 w-3.5 text-text-tertiary" />
-          <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-wide">{label}</span>
+          <Icon className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
+          <span className="text-[10px] font-medium uppercase tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>{label}</span>
         </div>
         <MiniSparkline data={sparkline} color={color} width={48} height={20} />
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="font-[family-name:var(--font-mono)] text-lg font-bold text-text-primary">{value}</span>
-        <span className={`flex items-center gap-0.5 font-[family-name:var(--font-mono)] text-[11px] font-semibold ${isUp ? "text-success" : "text-danger"}`}>
+        <span className="font-mono text-lg font-bold" style={{ color: "var(--text-primary)" }}>{value}</span>
+        <span className={`flex items-center gap-0.5 font-mono text-[11px] font-semibold ${isUp ? "text-success" : "text-danger"}`}>
           {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
           {isUp ? "+" : ""}{trend.toFixed(1)}%
         </span>
@@ -862,28 +799,18 @@ function StatCard({
   );
 }
 
-/* ─── SOCIAL ROW ─── */
-function SocialRow({
-  icon: Icon,
-  label,
-  value,
-  change,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  change?: number;
-}) {
+/* SOCIAL ROW */
+function SocialRow({ icon: Icon, label, value, change }: { icon: React.ElementType; label: string; value: string; change?: number; }) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Icon className="h-3.5 w-3.5 text-text-tertiary" />
-        <span className="text-[13px] text-text-secondary">{label}</span>
+        <Icon className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
+        <span className="text-[13px]" style={{ color: "var(--text-secondary)" }}>{label}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="font-[family-name:var(--font-mono)] text-[13px] font-semibold text-text-primary">{value}</span>
+        <span className="font-mono text-[13px] font-semibold" style={{ color: "var(--text-primary)" }}>{value}</span>
         {change !== undefined && (
-          <span className={`flex items-center gap-0.5 font-[family-name:var(--font-mono)] text-[10px] font-semibold ${change >= 0 ? "text-success" : "text-danger"}`}>
+          <span className={`flex items-center gap-0.5 font-mono text-[10px] font-semibold ${change >= 0 ? "text-success" : "text-danger"}`}>
             {change >= 0 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
             {change >= 0 ? "+" : ""}{change.toFixed(1)}%
           </span>
@@ -893,114 +820,38 @@ function SocialRow({
   );
 }
 
-/* ─── MOBILE SIDEBAR CONTENT ─── */
-function MobileSidebarContent({
-  project,
-  upvoted,
-  upvoting,
-  upvoteCount,
-  watching,
-  promotedProject,
-  onUpvote,
-  onToggleWatch,
-  onOpenAlertModal,
-}: {
-  project: Project;
-  upvoted: boolean;
-  upvoting: boolean;
-  upvoteCount: number;
-  watching: boolean;
-  alertPrefs: Set<string>;
-  promotedProject: Project | null;
-  onUpvote: () => void;
-  onToggleWatch: () => void;
-  onToggleAlertPref: (key: string) => void;
-  onOpenAlertModal: () => void;
-}) {
-  return (
-    <>
-      {promotedProject && <PromotedProjectCard project={promotedProject} />}
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onUpvote}
-          disabled={upvoting}
-          className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-bold transition-all ${
-            upvoted
-              ? "bg-[#3DD7D8] text-white"
-              : "bg-[#13141B] text-[#E8E8ED] ring-1 ring-white/10"
-          }`}
-        >
-          {upvoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronUp className="h-4 w-4" />}
-          Upvote · <span className="font-[family-name:var(--font-mono)]">{upvoteCount.toLocaleString()}</span>
-        </button>
-        <button
-          type="button"
-          onClick={onToggleWatch}
-          className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all ${
-            watching
-              ? "bg-[#3DD7D8]/15 text-[#3DD7D8] ring-1 ring-[#3DD7D8]/20"
-              : "bg-[#13141B] text-[#8B8B9E] ring-1 ring-white/10"
-          }`}
-        >
-          {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          {watching ? "Following" : "Watch"}
-        </button>
-      </div>
-      <button
-        type="button"
-        onClick={onOpenAlertModal}
-        className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#13141B] text-sm font-medium text-[#8B8B9E] ring-1 ring-white/10 transition-colors hover:bg-[#1A1B23]"
-      >
-        <Bell className="h-4 w-4" /> Configure alerts
-      </button>
-      <div className="rounded-2xl bg-[#13141B] p-4">
-        <h3 className="text-sm font-semibold text-[#E8E8ED]">Company Info</h3>
-        <div className="mt-3 space-y-2.5">
-          {project.website && (
-            <a href={project.website.startsWith("http") ? project.website : `https://${project.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-[#8B8B9E] transition-colors hover:text-[#3DD7D8]">
-              <Globe className="h-4 w-4" /><span className="truncate">{project.website.replace(/^https?:\/\//, "")}</span><ExternalLink className="h-3 w-3 text-[#52526B]" />
-            </a>
-          )}
-          {project.twitter && (
-            <a href={`https://x.com/${project.twitter}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-[#8B8B9E] transition-colors hover:text-[#3DD7D8]">
-              <Twitter className="h-4 w-4" /><span>@{project.twitter}</span><ExternalLink className="h-3 w-3 text-[#52526B]" />
-            </a>
-          )}
-          <div className="flex items-center gap-2.5 text-sm text-[#8B8B9E]">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#3DD7D8]/15">
-              <span className="block h-2 w-2 rounded-full bg-[#3DD7D8]" />
-            </span>
-            <span>{project.category}</span>
-            {project.subcategory && (<><span className="text-[#52526B]">/</span><span className="text-[#52526B]">{project.subcategory}</span></>)}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-/* ─── PROMOTED PROJECT CARD ─── */
+/* PROMOTED PROJECT CARD */
 function PromotedProjectCard({ project }: { project: Project }) {
   const avatar = getAvatar(project);
   return (
-    <Link href={`/project/${project.id}`} className="group block">
-      <div className="relative overflow-hidden rounded-2xl bg-[#13141B] border-l-2 border-[#3DD7D8] p-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:bg-[#1A1B23]">
+    <Link href={`/project/${project.id}`} className="group block no-underline">
+      <div
+        className="relative overflow-hidden p-4 transition-all duration-200"
+        style={{
+          background: "var(--bg-secondary)",
+          borderLeft: "2px solid var(--accent)",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--card-hover)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "var(--bg-secondary)"; }}
+      >
         <div className="flex items-center gap-1.5 mb-3">
-          <span className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#E8E8ED] uppercase">
+          <span
+            className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase"
+            style={{ color: "var(--text-secondary)", background: "var(--border-strong)" }}
+          >
             <Sparkles className="h-2.5 w-2.5" /> Promoted
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 flex-shrink-0 rounded-full overflow-hidden ring-2 ring-white/10">
+          <div className="h-10 w-10 flex-shrink-0 overflow-hidden" style={{ border: "1px solid var(--border)" }}>
             <img src={avatar} alt={project.name} className="h-full w-full object-cover" loading="lazy" />
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="font-[family-name:var(--font-brand)] text-[15px] font-bold text-[#E8E8ED] truncate">{project.name}</h4>
-            <p className="text-[11px] text-[#8B8B9E] truncate">{project.tagline}</p>
+            <h4 className="font-display text-[15px] font-bold truncate" style={{ color: "var(--text-primary)" }}>{project.name}</h4>
+            <p className="text-[11px] truncate" style={{ color: "var(--text-secondary)" }}>{project.tagline}</p>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-1 text-[12px] font-semibold text-[#3DD7D8] transition-colors group-hover:text-[#50E5E6]">
+        <div className="mt-3 flex items-center gap-1 text-[12px] font-semibold transition-colors" style={{ color: "var(--accent)" }}>
           Check it out <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </div>
       </div>
@@ -1008,27 +859,40 @@ function PromotedProjectCard({ project }: { project: Project }) {
   );
 }
 
-/* ─── MILESTONE ITEM ─── */
+/* MILESTONE ITEM */
 function MilestoneItem({ milestone, isLast }: { milestone: Milestone; isLast: boolean }) {
   const Icon = milestoneTypeIcons[milestone.type] || Circle;
   return (
     <div className="flex gap-4">
       <div className="flex flex-col items-center">
-        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${milestone.achieved ? "bg-success/15" : "bg-surface-hover"}`}>
-          {milestone.achieved ? <Check className="h-4 w-4 text-success" /> : <Icon className="h-4 w-4 text-text-tertiary" />}
+        <div
+          className="flex h-8 w-8 shrink-0 items-center justify-center"
+          style={{
+            background: milestone.achieved ? "var(--color-success-muted)" : "var(--bg-tertiary)",
+          }}
+        >
+          {milestone.achieved ? <Check className="h-4 w-4 text-success" /> : <Icon className="h-4 w-4" style={{ color: "var(--text-muted)" }} />}
         </div>
-        {!isLast && <div className={`w-px flex-1 ${milestone.achieved ? "bg-success/30" : "bg-surface-hover"}`} style={{ minHeight: "24px" }} />}
+        {!isLast && (
+          <div
+            className="w-px flex-1"
+            style={{
+              minHeight: "24px",
+              background: milestone.achieved ? "rgba(34,197,94,0.3)" : "var(--bg-tertiary)",
+            }}
+          />
+        )}
       </div>
       <div className={`pb-6 ${isLast ? "pb-0" : ""}`}>
-        <p className={`text-sm font-medium ${milestone.achieved ? "text-text-primary" : "text-text-secondary"}`}>{milestone.title}</p>
-        <p className="mt-0.5 text-xs text-text-tertiary">{milestone.description}</p>
-        <p className="mt-1 font-[family-name:var(--font-mono)] text-[11px] text-text-tertiary">{formatDate(milestone.date)}</p>
+        <p className="text-sm font-medium" style={{ color: milestone.achieved ? "var(--text-primary)" : "var(--text-secondary)" }}>{milestone.title}</p>
+        <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>{milestone.description}</p>
+        <p className="mt-1 font-mono text-[11px]" style={{ color: "var(--text-muted)" }}>{formatDate(milestone.date)}</p>
       </div>
     </div>
   );
 }
 
-/* ─── ALERT MODAL ─── */
+/* ALERT MODAL */
 function AlertModal({ projectName, onClose }: { projectName: string; onClose: () => void }) {
   const [selected, setSelected] = useState<Set<string>>(new Set(["metrics", "launch"]));
   const toggleType = (type: string) => {
@@ -1052,14 +916,15 @@ function AlertModal({ projectName, onClose }: { projectName: string; onClose: ()
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-md rounded-2xl bg-surface p-5 sm:inset-x-auto sm:w-full"
+        className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-md p-5 sm:inset-x-auto sm:w-full"
+        style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-strong)" }}
       >
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-text-primary">Choose Your Signals</h2>
-            <p className="mt-0.5 text-xs text-text-tertiary">for {projectName}</p>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Choose Your Signals</h2>
+            <p className="mt-0.5 text-[11px]" style={{ color: "var(--text-muted)" }}>for {projectName}</p>
           </div>
-          <button type="button" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:text-text-primary">
+          <button type="button" onClick={onClose} className="flex h-8 w-8 items-center justify-center transition-colors" style={{ color: "var(--text-muted)" }}>
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -1069,25 +934,36 @@ function AlertModal({ projectName, onClose }: { projectName: string; onClose: ()
             return (
               <button
                 key={st.key} type="button" onClick={() => toggleType(st.key)}
-                className={`flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors ${isChecked ? "bg-primary/8" : "bg-surface-hover/50 hover:bg-surface-hover"}`}
+                className="flex w-full items-start gap-3 p-3 text-left transition-colors"
+                style={{ background: isChecked ? "var(--accent-glow)" : "var(--bg-tertiary)" }}
               >
-                <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${isChecked ? "border-primary bg-primary" : "border-border bg-transparent"}`}>
+                <div
+                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center transition-colors"
+                  style={{
+                    border: isChecked ? "1px solid var(--accent)" : "1px solid var(--border-strong)",
+                    background: isChecked ? "var(--accent)" : "transparent",
+                  }}
+                >
                   {isChecked && <Check className="h-3 w-3 text-white" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <st.icon className="h-3.5 w-3.5 text-text-secondary" />
-                    <span className="text-sm font-medium text-text-primary">{st.label}</span>
+                    <st.icon className="h-3.5 w-3.5" style={{ color: "var(--text-secondary)" }} />
+                    <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{st.label}</span>
                   </div>
-                  <p className="mt-0.5 text-xs text-text-tertiary">{st.desc}</p>
+                  <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>{st.desc}</p>
                 </div>
               </button>
             );
           })}
         </div>
         <div className="mt-4 flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="flex h-9 items-center rounded-lg px-4 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary">Cancel</button>
-          <button type="button" onClick={onClose} className="flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover">
+          <button type="button" onClick={onClose} className="flex h-9 items-center px-4 text-sm font-medium transition-colors" style={{ color: "var(--text-secondary)" }}>Cancel</button>
+          <button
+            type="button" onClick={onClose}
+            className="flex h-9 items-center gap-2 px-4 text-xs uppercase tracking-[0.06em] font-medium text-white transition-colors"
+            style={{ background: "var(--accent)" }}
+          >
             <Bell className="h-3.5 w-3.5" /> Save Preferences
           </button>
         </div>

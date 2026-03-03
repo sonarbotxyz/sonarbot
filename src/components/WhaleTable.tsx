@@ -12,7 +12,8 @@ function truncateAddress(addr: string): string {
 }
 
 function formatBalance(balance: number): string {
-  if (balance >= 1_000_000_000) return `${(balance / 1_000_000_000).toFixed(2)}B`;
+  if (balance >= 1_000_000_000)
+    return `${(balance / 1_000_000_000).toFixed(2)}B`;
   if (balance >= 1_000_000) return `${(balance / 1_000_000).toFixed(2)}M`;
   if (balance >= 1_000) return `${(balance / 1_000).toFixed(1)}K`;
   return balance.toLocaleString();
@@ -32,12 +33,23 @@ export function WhaleTable({ whales }: WhaleTableProps) {
   if (!whales.length) return null;
 
   return (
-    <div className="rounded-2xl bg-surface p-5">
-      <h3 className="text-sm font-semibold text-text-primary">Top Holders</h3>
+    <div className="p-5" style={{ background: "var(--bg-secondary)" }}>
+      <h3
+        className="text-[10px] uppercase tracking-[0.15em] font-medium"
+        style={{ color: "var(--text-muted)" }}
+      >
+        Top Holders
+      </h3>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[560px]">
           <thead>
-            <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
+            <tr
+              className="text-left text-[10px] font-medium uppercase"
+              style={{
+                color: "var(--text-very-muted)",
+                letterSpacing: "0.12em",
+              }}
+            >
               <th className="pb-3 pr-3">#</th>
               <th className="pb-3 pr-3">Address</th>
               <th className="pb-3 pr-3 text-right">Balance</th>
@@ -50,9 +62,19 @@ export function WhaleTable({ whales }: WhaleTableProps) {
             {whales.map((whale) => (
               <tr
                 key={whale.address}
-                className="border-t border-white/5 transition-colors hover:bg-white/[0.02]"
+                className="transition-colors"
+                style={{ borderTop: "1px solid var(--border)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--accent-glow)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
               >
-                <td className="py-3 pr-3 font-[family-name:var(--font-mono)] text-[12px] text-text-tertiary">
+                <td
+                  className="py-3 pr-3 font-mono text-[12px]"
+                  style={{ color: "var(--text-very-muted)" }}
+                >
                   {whale.rank}
                 </td>
                 <td className="py-3 pr-3">
@@ -60,28 +82,54 @@ export function WhaleTable({ whales }: WhaleTableProps) {
                     href={`https://basescan.org/address/${whale.address}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group inline-flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-[13px] text-text-secondary transition-colors hover:text-primary"
+                    className="group inline-flex items-center gap-1.5 font-mono text-[13px] transition-colors"
+                    style={{ color: "var(--text-secondary)" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "var(--accent)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                    }}
                   >
                     {truncateAddress(whale.address)}
-                    <ExternalLink className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100 text-text-tertiary" />
+                    <ExternalLink
+                      className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100"
+                      style={{ color: "var(--text-muted)" }}
+                    />
                   </a>
                 </td>
-                <td className="py-3 pr-3 text-right font-[family-name:var(--font-mono)] text-[13px] text-text-primary">
+                <td
+                  className="py-3 pr-3 text-right font-mono text-[13px]"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   {formatBalance(whale.balance)}
                 </td>
-                <td className="py-3 pr-3 text-right font-[family-name:var(--font-mono)] text-[13px] text-text-secondary">
+                <td
+                  className="py-3 pr-3 text-right font-mono text-[13px]"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   {whale.percentSupply.toFixed(2)}%
                 </td>
-                <td className="py-3 pr-3 text-right text-[12px] text-text-tertiary">
+                <td
+                  className="py-3 pr-3 text-right text-[12px]"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   {formatRelativeTime(whale.lastActivity)}
                 </td>
                 <td className="py-3 text-right">
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                      whale.type === "buy"
-                        ? "bg-success/12 text-success"
-                        : "bg-danger/12 text-danger"
-                    }`}
+                    className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold uppercase"
+                    style={{
+                      letterSpacing: "0.1em",
+                      color:
+                        whale.type === "buy"
+                          ? "var(--color-success)"
+                          : "var(--color-danger)",
+                      background:
+                        whale.type === "buy"
+                          ? "var(--color-success-muted)"
+                          : "var(--color-danger-muted)",
+                    }}
                   >
                     {whale.type}
                   </span>
