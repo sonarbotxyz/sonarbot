@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   Eye,
@@ -12,6 +13,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import type { Project } from "@/lib/mock-data";
+import { CATEGORY_COLORS } from "@/lib/mock-data";
 import { HealthScore } from "@/components/HealthScore";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 
@@ -94,8 +96,11 @@ export function ProjectCard({
     { label: "Vol", value: volume24h, currency: true },
   ];
 
+  const categoryColor = CATEGORY_COLORS[project.category]?.from ?? "var(--accent)";
+
   return (
     <motion.div
+      className="h-full"
       initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -105,16 +110,16 @@ export function ProjectCard({
         ease: [0.16, 1, 0.3, 1],
       }}
     >
-      <Link href={`/project/${project.id}`} className="guide-card block">
+      <Link href={`/project/${project.id}`} className="guide-card block h-full">
         <div
-          className="flex flex-col transition-all duration-300"
+          className="flex h-full flex-col transition-all duration-300"
           style={{
             background: "var(--bg-primary)",
           }}
         >
           {/* ── Header: number + category ── */}
           <div
-            className="flex items-center justify-between px-3.5 py-1.5"
+            className="flex h-[32px] shrink-0 items-center justify-between px-3.5"
             style={{ borderBottom: "1px solid var(--border)" }}
           >
             <div className="flex items-center gap-2">
@@ -158,20 +163,52 @@ export function ProjectCard({
             </div>
           </div>
 
-          {/* ── Title + tagline ── */}
-          <div className="px-3.5 pt-2.5 pb-2">
-            <h3
-              className="font-display text-[15px] font-semibold leading-tight"
-              style={{
-                color: "var(--text-primary)",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {project.name}
-            </h3>
+          {/* ── Title + tagline (flex-1 absorbs height differences) ── */}
+          <div className="flex min-h-[72px] flex-1 flex-col justify-center px-3.5 py-2.5">
+            <div className="flex items-center gap-2.5">
+              {/* Project logo / avatar */}
+              {project.logoUrl ? (
+                <div
+                  className="relative h-8 w-8 shrink-0 overflow-hidden"
+                  style={{ border: "1px solid var(--border)" }}
+                >
+                  <Image
+                    src={project.logoUrl}
+                    alt={project.name}
+                    width={32}
+                    height={32}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center font-mono text-[13px] font-bold uppercase"
+                  style={{
+                    background: categoryColor,
+                    color: "#FFFFFF",
+                    border: "1px solid var(--border)",
+                  }}
+                >
+                  {project.name.charAt(0)}
+                </div>
+              )}
+              <h3
+                className="font-display text-[15px] font-semibold leading-tight"
+                style={{
+                  color: "var(--text-primary)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {project.name}
+              </h3>
+            </div>
             <p
-              className="mt-1 text-[11px] leading-snug line-clamp-2"
-              style={{ color: "var(--text-secondary)", lineHeight: "1.5" }}
+              className="mt-1.5 text-[11px] leading-snug line-clamp-2"
+              style={{
+                color: "var(--text-secondary)",
+                lineHeight: "1.5",
+                minHeight: "33px",
+              }}
             >
               {project.tagline}
             </p>
@@ -179,7 +216,7 @@ export function ProjectCard({
 
           {/* ── Stats grid — 4 columns, compact ── */}
           <div
-            className="grid grid-cols-4"
+            className="grid h-[44px] shrink-0 grid-cols-4"
             style={{ borderTop: "1px solid var(--border)" }}
           >
             {stats.map((stat, i) => (
@@ -217,13 +254,13 @@ export function ProjectCard({
             ))}
           </div>
 
-          {/* ── Sparkline + trend + watchers (single compact footer) ── */}
+          {/* ── Sparkline + trend + watchers (fixed footer) ── */}
           <div
-            className="flex items-center justify-between px-3.5 py-1.5"
+            className="flex h-[30px] shrink-0 items-center justify-between px-3.5"
             style={{ borderTop: "1px solid var(--border)" }}
           >
             <div className="flex items-center gap-2.5">
-              {sparkData.length >= 2 && (
+              {sparkData.length >= 2 ? (
                 <>
                   <span
                     className={`flex items-center gap-0.5 font-mono text-[9px] font-semibold ${
@@ -245,6 +282,13 @@ export function ProjectCard({
                     height={16}
                   />
                 </>
+              ) : (
+                <span
+                  className="font-mono text-[9px]"
+                  style={{ color: "var(--text-very-muted)" }}
+                >
+                  —
+                </span>
               )}
             </div>
             <div className="flex items-center gap-2">
