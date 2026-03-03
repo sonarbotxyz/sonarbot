@@ -8,9 +8,9 @@ interface HealthScoreProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score <= 35) return "#EF4444";
-  if (score <= 65) return "#EAB308";
-  return "#22C55E";
+  if (score < 40) return "#FF4466";
+  if (score < 70) return "#1652F0";
+  return "#00D897";
 }
 
 export function HealthScore({ score, size = "lg" }: HealthScoreProps) {
@@ -18,9 +18,9 @@ export function HealthScore({ score, size = "lg" }: HealthScoreProps) {
   const clampedScore = Math.max(0, Math.min(100, score));
   const isSmall = size === "sm";
 
-  const radius = isSmall ? 16 : 44;
-  const stroke = isSmall ? 3 : 5;
-  const svgSize = isSmall ? 40 : 104;
+  const radius = isSmall ? 12 : 44;
+  const stroke = isSmall ? 2.5 : 5;
+  const svgSize = isSmall ? 30 : 104;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference - (clampedScore / 100) * circumference;
 

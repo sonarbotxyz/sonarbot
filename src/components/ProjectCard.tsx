@@ -159,39 +159,38 @@ export function ProjectCard({
                   style={{ color: "var(--text-very-muted)" }}
                 />
               )}
-              {score !== null && <HealthScore score={score} size="sm" />}
             </div>
           </div>
 
-          {/* ── Title + tagline (flex-1 absorbs height differences) ── */}
-          <div className="flex min-h-[72px] flex-1 flex-col justify-center px-3.5 py-2.5">
-            <div className="flex items-center gap-2.5">
-              {/* Project logo / avatar */}
-              {project.logoUrl ? (
-                <div
-                  className="relative h-8 w-8 shrink-0 overflow-hidden"
-                  style={{ border: "1px solid var(--border)" }}
-                >
-                  <Image
-                    src={project.logoUrl}
-                    alt={project.name}
-                    width={32}
-                    height={32}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div
-                  className="flex h-8 w-8 shrink-0 items-center justify-center font-mono text-[13px] font-bold uppercase"
-                  style={{
-                    background: categoryColor,
-                    color: "#FFFFFF",
-                    border: "1px solid var(--border)",
-                  }}
-                >
-                  {project.name.charAt(0)}
-                </div>
-              )}
+          {/* ── Logo + name + tagline + score ── */}
+          <div className="flex min-h-[72px] flex-1 items-center gap-3 px-3.5 py-2.5">
+            {/* Project logo / avatar */}
+            {project.logoUrl ? (
+              <div
+                className="relative h-10 w-10 shrink-0 overflow-hidden"
+                style={{ border: "1px solid var(--border)" }}
+              >
+                <Image
+                  src={project.logoUrl}
+                  alt={project.name}
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : (
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center font-mono text-[14px] font-bold uppercase"
+                style={{
+                  background: categoryColor,
+                  color: "#FFFFFF",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                {project.name.charAt(0)}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
               <h3
                 className="font-display text-[15px] font-semibold leading-tight"
                 style={{
@@ -201,17 +200,17 @@ export function ProjectCard({
               >
                 {project.name}
               </h3>
+              <p
+                className="mt-0.5 text-[11px] leading-snug line-clamp-2"
+                style={{
+                  color: "var(--text-secondary)",
+                  lineHeight: "1.5",
+                }}
+              >
+                {project.tagline}
+              </p>
             </div>
-            <p
-              className="mt-1.5 text-[11px] leading-snug line-clamp-2"
-              style={{
-                color: "var(--text-secondary)",
-                lineHeight: "1.5",
-                minHeight: "33px",
-              }}
-            >
-              {project.tagline}
-            </p>
+            {score !== null && <HealthScore score={score} size="sm" />}
           </div>
 
           {/* ── Stats grid — 4 columns, compact ── */}
