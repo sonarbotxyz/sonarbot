@@ -38,46 +38,114 @@ export function HomeContent({ projects }: HomeContentProps) {
   }, [projects, selectedCategory, searchQuery]);
 
   const isFiltering = searchQuery.trim() !== "" || selectedCategory !== "All";
-  const featured = projects[0]; // First project is featured (highest upvotes)
+  const featured = projects[0];
   const gridProjects = isFiltering
     ? filteredProjects
     : filteredProjects.filter((p) => p.id !== featured?.id);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <div className="mx-auto max-w-[1400px] px-5 md:px-20">
       <HeroSection onSearch={setSearchQuery} />
 
-      <section className="mb-5">
+      <div className="h-rule mb-8" data-label="Filter" />
+
+      <section className="mb-8">
         <CategoryPills
           selected={selectedCategory}
           onSelect={setSelectedCategory}
         />
       </section>
 
+      <div className="h-rule mb-0" data-label="Projects" />
+
       {filteredProjects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-lg font-medium text-text-secondary">
+          <p
+            className="text-sm font-medium"
+            style={{ color: "var(--text-secondary)" }}
+          >
             No projects found
           </p>
-          <p className="mt-1 text-sm text-text-tertiary">
+          <p
+            className="mt-1 text-[11px]"
+            style={{ color: "var(--text-muted)" }}
+          >
             Try a different category or search term
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 pb-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          className="pb-16"
+          style={{ borderTop: "1px solid var(--border)" }}
+        >
+          {/* Featured project */}
           {!isFiltering && featured && (
             <ProjectCard project={featured} featured index={0} />
           )}
 
-          {gridProjects.map((project, i) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              index={isFiltering ? i : i + 1}
-            />
-          ))}
+          {/* Grid of projects */}
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            style={{
+              background: "var(--border)",
+              gap: "1px",
+            }}
+          >
+            {gridProjects.map((project, i) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                index={isFiltering ? i : i + 1}
+              />
+            ))}
+          </div>
         </div>
       )}
+
+      {/* CTA Section */}
+      <div className="cta-box mb-16 text-center" style={{
+        border: "1px solid var(--border-strong)",
+        background: `linear-gradient(135deg, var(--accent-glow) 0%, transparent 50%), var(--bg-secondary)`,
+        padding: "48px 32px",
+      }}>
+        <h2
+          className="font-display text-2xl md:text-3xl font-bold tracking-tight"
+          style={{ color: "var(--text-primary)", letterSpacing: "-0.04em" }}
+        >
+          Submit your project
+        </h2>
+        <p
+          className="mt-3 text-sm max-w-md mx-auto"
+          style={{ color: "var(--text-secondary)", lineHeight: "1.8" }}
+        >
+          Building on Base? Get discovered by the community. Our agents track
+          your metrics and surface your milestones.
+        </p>
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a
+            href="/submit"
+            className="inline-flex items-center gap-2.5 px-8 py-3.5 text-xs uppercase font-medium no-underline transition-colors"
+            style={{
+              letterSpacing: "0.06em",
+              background: "var(--accent)",
+              color: "#FFFFFF",
+            }}
+          >
+            Submit Project
+          </a>
+          <a
+            href="/upcoming"
+            className="inline-flex items-center gap-2.5 px-8 py-3.5 text-xs uppercase font-medium no-underline transition-colors"
+            style={{
+              letterSpacing: "0.06em",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border-strong)",
+            }}
+          >
+            View Upcoming
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

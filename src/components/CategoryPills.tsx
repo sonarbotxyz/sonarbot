@@ -19,7 +19,7 @@ interface CategoryPillsProps {
 
 export function CategoryPills({ selected, onSelect }: CategoryPillsProps) {
   return (
-    <div className="hide-scrollbar flex gap-0.5 overflow-x-auto">
+    <div className="hide-scrollbar flex gap-2 overflow-x-auto">
       {categories.map((cat) => {
         const isActive = selected === cat.value;
         return (
@@ -27,11 +27,16 @@ export function CategoryPills({ selected, onSelect }: CategoryPillsProps) {
             key={cat.value}
             type="button"
             onClick={() => onSelect(cat.value)}
-            className={`shrink-0 rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors ${
-              isActive
-                ? "bg-surface-hover text-text-primary"
-                : "text-text-tertiary hover:text-text-secondary"
-            }`}
+            data-hover-badge
+            className="shrink-0 px-3 py-1.5 text-[11px] font-mono uppercase transition-all"
+            style={{
+              letterSpacing: "0.08em",
+              color: isActive ? "var(--accent)" : "var(--text-muted)",
+              border: isActive
+                ? "1px solid var(--accent-dim)"
+                : "1px solid var(--border)",
+              background: isActive ? "var(--accent-glow)" : "transparent",
+            }}
           >
             {cat.label}
           </button>
