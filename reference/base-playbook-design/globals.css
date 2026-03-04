@@ -1,0 +1,269 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── LIGHT THEME (default) ── */
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --bg-tertiary: #EEEEEE;
+  --text-primary: #0A0A0A;
+  --text-body: #444444;
+  --text-tertiary: #666666;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+  --text-very-muted: #AAAAAA;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --accent: #1652F0;
+  --accent-dim: rgba(22,82,240,0.1);
+  --accent-glow: rgba(22,82,240,0.05);
+  --card-bg: #FFFFFF;
+  --card-hover: #F8F8F8;
+  --nav-bg: rgba(255,255,255,0.85);
+  --code-bg: #F5F5F5;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── DARK THEME ── */
+.dark {
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1A1A1A;
+  --text-primary: #F5F5F5;
+  --text-body: #CCCCCC;
+  --text-tertiary: #AAAAAA;
+  --text-secondary: #888888;
+  --text-muted: #666666;
+  --text-very-muted: #444444;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --accent: #1652F0;
+  --accent-dim: rgba(22,82,240,0.15);
+  --accent-glow: rgba(22,82,240,0.08);
+  --card-bg: #111111;
+  --card-hover: #1A1A1A;
+  --nav-bg: rgba(10,10,10,0.85);
+  --code-bg: #111111;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-very-muted) var(--bg-primary);
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-tertiary);
+  font-size: 14px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-very-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+::selection {
+  background-color: var(--accent-dim);
+  color: var(--text-primary);
+}
+
+/* ── VERTICAL DIVIDERS (persistent) ── */
+.vertical-line {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+  z-index: 100;
+  pointer-events: none;
+}
+.vertical-line.left { left: 48px; }
+.vertical-line.right { right: 48px; }
+
+.vertical-line::before,
+.vertical-line::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-very-muted);
+}
+.vertical-line::before { top: 0; }
+.vertical-line::after { bottom: 0; }
+
+/* ── HORIZONTAL RULES ── */
+.h-rule {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  position: relative;
+}
+.h-rule::before {
+  content: attr(data-label);
+  position: absolute;
+  right: 64px;
+  top: -8px;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  padding: 0 8px;
+}
+
+/* ── READING PROGRESS BAR ── */
+.reading-progress {
+  background: var(--accent);
+}
+
+/* ── CODE SYNTAX HIGHLIGHTING ── */
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* ── FOCUS RING ── */
+.focus-ring:focus-visible {
+  outline: 2px solid rgba(22, 82, 240, 0.5);
+  outline-offset: 2px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── CTA BOX CORNER DECORATIONS ── */
+.cta-box {
+  position: relative;
+}
+.cta-box::before,
+.cta-box::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--accent);
+}
+.cta-box::before {
+  top: -4px;
+  left: -4px;
+  border-right: none;
+  border-bottom: none;
+}
+.cta-box::after {
+  bottom: -4px;
+  right: -4px;
+  border-left: none;
+  border-top: none;
+}
+
+/* ── GUIDE CARD HOVER LINE ── */
+.guide-card {
+  position: relative;
+}
+.guide-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.guide-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* ── GUIDE CARD HOVER ── */
+.guide-card:hover {
+  background: var(--card-hover) !important;
+}
+.guide-card:hover .card-arrow {
+  color: var(--accent) !important;
+  transform: translateX(3px);
+}
+
+/* ── THEME GUIDE ROW HOVER ── */
+.theme-guide-row:hover {
+  background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+}
+.theme-guide-row:hover .row-badge {
+  border-color: var(--accent-dim) !important;
+  color: var(--accent) !important;
+}
+.theme-guide-row:hover .row-title {
+  color: var(--text-primary) !important;
+}
+
+/* ── FOOTER LINKS ── */
+.footer-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+.footer-link:hover {
+  color: var(--text-primary);
+}
+
+/* ── HERO BADGES HOVER ── */
+[data-hover-badge]:hover {
+  border-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .vertical-line.left { left: 24px; }
+  .vertical-line.right { right: 24px; }
+}
+
+@media (max-width: 768px) {
+  .vertical-line { display: none; }
+  .h-rule::before { display: none; }
+}
