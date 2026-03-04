@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -136,6 +136,7 @@ export function ProjectDetail({
 }: ProjectDetailProps) {
   const { user, login, accessToken } = useAuth();
   const [watching, setWatching] = useState(false);
+  const [watchLoading, setWatchLoading] = useState(false);
   const [upvoted, setUpvoted] = useState(false);
   const [upvoteCount, setUpvoteCount] = useState(project?.upvotes ?? 0);
   const [upvoting, setUpvoting] = useState(false);
@@ -149,6 +150,106 @@ export function ProjectDetail({
   const [chartMetric, setChartMetric] = useState<ChartMetric>("holders");
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>(30);
   const galleryRef = useRef<HTMLDivElement>(null);
+
+  // Map DB column names to frontend keys
+  const PREF_KEY_MAP: Record<string, string> = {
+    metrics_milestones: "metrics",
+    new_features_launches: "launch",
+    partnerships_integrations: "partnership",
+    all_updates: "update",
+    token_events: "token",
+  };
+  const PREF_KEY_MAP_REVERSE: Record<string, string> = {
+    metrics: "metrics_milestones",
+    launch: "new_features_launches",
+    partnership: "partnerships_integrations",
+    update: "all_updates",
+    token: "token_events",
+  };
+
+  // Check watch status on mount
+  useEffect(() => {
+    if (!user || !accessToken || !projectId) return;
+    fetch(`/api/projects/${projectId}/watch`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        setWatching(data.watched ?? false);
+        if (data.preferences) {
+          const set = new Set<string>();
+          for (const [dbKey, uiKey] of Object.entries(PREF_KEY_MAP)) {
+            if (data.preferences[dbKey]) set.add(uiKey);
+          }
+          setAlertPrefs(set);
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, accessToken, projectId]);
+
+  const handleWatch = useCallback(async () => {
+    if (!user) { login(); return; }
+    if (watchLoading) return;
+    setWatchLoading(true);
+    try {
+      if (watching) {
+        // Unwatch
+        const res = await fetch(`/api/projects/${projectId}/watch`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) setWatching(false);
+      } else {
+        // Watch — show modal first
+        setShowAlertModal(true);
+        const res = await fetch(`/api/projects/${projectId}/watch`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setWatching(true);
+          if (data.preferences) {
+            const set = new Set<string>();
+            for (const [dbKey, uiKey] of Object.entries(PREF_KEY_MAP)) {
+              if (data.preferences[dbKey]) set.add(uiKey);
+            }
+            setAlertPrefs(set);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Watch error:", e);
+    } finally {
+      setWatchLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, watching, projectId, accessToken, watchLoading]);
+
+  const handleSaveAlertPrefs = useCallback(async (selected: Set<string>) => {
+    if (!accessToken) return;
+    const body: Record<string, boolean> = {};
+    for (const [uiKey, dbKey] of Object.entries(PREF_KEY_MAP_REVERSE)) {
+      body[dbKey] = selected.has(uiKey);
+    }
+    try {
+      const res = await fetch(`/api/projects/${projectId}/alerts`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setAlertPrefs(new Set(selected));
+      }
+    } catch (e) {
+      console.error("Alert pref error:", e);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, accessToken]);
 
   const snapshots90d = useMemo(() => snapshotsData.map(mapApiSnapshot), [snapshotsData]);
   const healthScore = useMemo(() => (healthData ? mapApiHealth(healthData) : null), [healthData]);
@@ -382,15 +483,17 @@ export function ProjectDetail({
               <div className="mt-6 space-y-3 lg:hidden">
                 <button
                   type="button"
-                  onClick={() => { if (!watching) setShowAlertModal(true); setWatching(!watching); }}
+                  onClick={handleWatch}
+                  disabled={watchLoading}
                   className="flex h-12 w-full items-center justify-center gap-2 text-sm font-bold transition-all"
                   style={{
                     background: watching ? "var(--accent)" : "var(--bg-secondary)",
                     color: watching ? "#FFFFFF" : "var(--text-primary)",
                     border: watching ? "none" : "1px solid var(--border)",
+                    opacity: watchLoading ? 0.6 : 1,
                   }}
                 >
-                  {watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {watchLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : watching ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   {watching ? "Watching" : "Watch this project"}
                 </button>
                 <button
@@ -663,19 +766,17 @@ export function ProjectDetail({
                 {/* Watch CTA */}
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!user) { login(); return; }
-                    if (!watching) setShowAlertModal(true);
-                    setWatching(!watching);
-                  }}
+                  onClick={handleWatch}
+                  disabled={watchLoading}
                   className="group flex h-14 w-full items-center justify-center gap-3 text-sm font-bold transition-all duration-200"
                   style={{
                     background: watching ? "var(--accent)" : "var(--bg-secondary)",
                     color: watching ? "#FFFFFF" : "var(--text-primary)",
                     border: watching ? "1px solid var(--accent)" : "1px solid var(--border)",
+                    opacity: watchLoading ? 0.6 : 1,
                   }}
                 >
-                  {watching ? <Check className="h-5 w-5" /> : <Eye className="h-5 w-5 transition-transform group-hover:scale-110" />}
+                  {watchLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : watching ? <Check className="h-5 w-5" /> : <Eye className="h-5 w-5 transition-transform group-hover:scale-110" />}
                   <span>{watching ? "Watching" : "Watch this project"}</span>
                 </button>
 
@@ -767,7 +868,7 @@ export function ProjectDetail({
 
       {/* Alert modal */}
       <AnimatePresence>
-        {showAlertModal && <AlertModal projectName={project.name} onClose={() => setShowAlertModal(false)} />}
+        {showAlertModal && <AlertModal projectName={project.name} onClose={() => setShowAlertModal(false)} initialSelected={alertPrefs} onSave={handleSaveAlertPrefs} />}
       </AnimatePresence>
     </>
   );
@@ -876,8 +977,9 @@ function MilestoneItem({ milestone, isLast }: { milestone: Milestone; isLast: bo
 }
 
 /* ALERT MODAL */
-function AlertModal({ projectName, onClose }: { projectName: string; onClose: () => void }) {
-  const [selected, setSelected] = useState<Set<string>>(new Set(["metrics", "launch"]));
+function AlertModal({ projectName, onClose, initialSelected, onSave }: { projectName: string; onClose: () => void; initialSelected: Set<string>; onSave: (selected: Set<string>) => void }) {
+  const [selected, setSelected] = useState<Set<string>>(new Set(initialSelected));
+  const [saving, setSaving] = useState(false);
   const toggleType = (type: string) => {
     const next = new Set(selected);
     if (next.has(type)) next.delete(type); else next.add(type);
@@ -943,11 +1045,18 @@ function AlertModal({ projectName, onClose }: { projectName: string; onClose: ()
         <div className="mt-4 flex justify-end gap-3">
           <button type="button" onClick={onClose} className="flex h-9 items-center px-4 text-sm font-medium transition-colors" style={{ color: "var(--text-secondary)" }}>Cancel</button>
           <button
-            type="button" onClick={onClose}
+            type="button"
+            disabled={saving}
+            onClick={async () => {
+              setSaving(true);
+              await onSave(selected);
+              setSaving(false);
+              onClose();
+            }}
             className="flex h-9 items-center gap-2 px-4 text-xs uppercase tracking-[0.06em] font-medium text-white transition-colors"
-            style={{ background: "var(--accent)" }}
+            style={{ background: "var(--accent)", opacity: saving ? 0.6 : 1 }}
           >
-            <Bell className="h-3.5 w-3.5" /> Save Preferences
+            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />} Save Preferences
           </button>
         </div>
       </motion.div>
