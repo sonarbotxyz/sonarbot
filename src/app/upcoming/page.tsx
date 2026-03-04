@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Bell, Check, ArrowRight } from "lucide-react";
+import { Bell, Check, ArrowRight, Sparkles } from "lucide-react";
 import { upcomingProjects } from "@/lib/mock-data";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
@@ -64,6 +64,7 @@ export default function UpcomingPage() {
       >
         {upcomingProjects.map((project, i) => {
           const isNotified = notified.has(project.id);
+          const isPromoted = i === 0;
 
           return (
             <motion.div
@@ -75,17 +76,33 @@ export default function UpcomingPage() {
                 delay: i * 0.05,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="theme-guide-row"
+              className={isPromoted ? "" : "theme-guide-row"}
             >
+              {isPromoted && (
+                <div
+                  className="flex items-center gap-1.5 px-4 lg:px-8 py-1.5"
+                  style={{ background: "#1652F0" }}
+                >
+                  <span
+                    className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase"
+                    style={{ color: "#FFFFFF", background: "rgba(255,255,255,0.12)" }}
+                  >
+                    <Sparkles className="h-2.5 w-2.5" /> Promoted
+                  </span>
+                </div>
+              )}
               <div
                 className="flex items-center gap-6 py-5 px-4 lg:px-8 transition-all"
-                style={{ borderBottom: "1px solid var(--border)" }}
+                style={{
+                  borderBottom: "1px solid var(--border)",
+                  background: isPromoted ? "#1652F0" : undefined,
+                }}
               >
                 {/* Number */}
                 <span
                   className="text-[11px] w-[40px] shrink-0"
                   style={{
-                    color: "var(--text-very-muted)",
+                    color: isPromoted ? "rgba(255,255,255,0.5)" : "var(--text-very-muted)",
                     fontVariantNumeric: "tabular-nums",
                   }}
                 >
@@ -97,20 +114,20 @@ export default function UpcomingPage() {
                   <Link
                     href={`/project/${project.id}`}
                     className="row-title font-display text-[15px] font-medium no-underline transition-colors"
-                    style={{ color: "var(--text-body)" }}
+                    style={{ color: isPromoted ? "#FFFFFF" : "var(--text-body)" }}
                   >
                     {project.name}
                   </Link>
                   <div className="flex items-center gap-4 mt-1">
                     <span
                       className="text-[11px]"
-                      style={{ color: "var(--text-very-muted)" }}
+                      style={{ color: isPromoted ? "rgba(255,255,255,0.6)" : "var(--text-very-muted)" }}
                     >
                       {project.category}
                     </span>
                     <span
                       className="text-[11px]"
-                      style={{ color: "var(--text-very-muted)" }}
+                      style={{ color: isPromoted ? "rgba(255,255,255,0.6)" : "var(--text-very-muted)" }}
                     >
                       {project.tagline}
                     </span>
@@ -119,7 +136,7 @@ export default function UpcomingPage() {
 
                 {/* Countdown */}
                 <div className="shrink-0 hidden sm:block">
-                  <CountdownTimer targetDate={project.launchDate} />
+                  <CountdownTimer targetDate={project.launchDate} variant={isPromoted ? "promoted" : "default"} />
                 </div>
 
                 {/* Notify button */}
@@ -129,11 +146,17 @@ export default function UpcomingPage() {
                   className="row-badge shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase font-medium transition-all"
                   style={{
                     letterSpacing: "0.1em",
-                    color: isNotified ? "var(--accent)" : "var(--text-muted)",
-                    border: isNotified
-                      ? "1px solid var(--accent-dim)"
-                      : "1px solid var(--border)",
-                    background: isNotified ? "var(--accent-glow)" : "transparent",
+                    color: isPromoted
+                      ? "#FFFFFF"
+                      : isNotified ? "var(--accent)" : "var(--text-muted)",
+                    border: isPromoted
+                      ? "1px solid rgba(255,255,255,0.25)"
+                      : isNotified
+                        ? "1px solid var(--accent-dim)"
+                        : "1px solid var(--border)",
+                    background: isPromoted
+                      ? isNotified ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)"
+                      : isNotified ? "var(--accent-glow)" : "transparent",
                   }}
                 >
                   {isNotified ? (

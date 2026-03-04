@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 interface CountdownTimerProps {
   targetDate: string;
+  variant?: "default" | "promoted";
 }
 
 interface TimeLeft {
@@ -25,7 +26,7 @@ function calcTimeLeft(target: string): TimeLeft {
   };
 }
 
-export function CountdownTimer({ targetDate }: CountdownTimerProps) {
+export function CountdownTimer({ targetDate, variant = "default" }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calcTimeLeft(targetDate));
 
   useEffect(() => {
@@ -34,6 +35,8 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
     }, 1000);
     return () => clearInterval(interval);
   }, [targetDate]);
+
+  const isPromoted = variant === "promoted";
 
   const blocks: { label: string; value: number }[] = [
     { label: "D", value: timeLeft.days },
@@ -48,17 +51,20 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
         <div
           key={block.label}
           className="flex flex-col items-center px-2 py-1"
-          style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
+          style={{
+            background: isPromoted ? "rgba(255,255,255,0.1)" : "var(--bg-primary)",
+            border: isPromoted ? "1px solid rgba(255,255,255,0.2)" : "1px solid var(--border)",
+          }}
         >
           <span
             className="font-mono text-sm font-semibold tabular-nums"
-            style={{ color: "var(--text-primary)" }}
+            style={{ color: isPromoted ? "#FFFFFF" : "var(--text-primary)" }}
           >
             {block.value.toString().padStart(2, "0")}
           </span>
           <span
             className="text-[9px] font-medium uppercase tracking-[0.1em]"
-            style={{ color: "var(--text-very-muted)" }}
+            style={{ color: isPromoted ? "rgba(255,255,255,0.5)" : "var(--text-very-muted)" }}
           >
             {block.label}
           </span>
