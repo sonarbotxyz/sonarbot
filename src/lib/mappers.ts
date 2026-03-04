@@ -28,6 +28,29 @@ export interface SupabaseProject {
   x_user_id?: string;
   github_repo?: string;
   farcaster_handle?: string;
+  // Enriched fields (attached after query)
+  health_score?: number | null;
+  health_breakdown?: {
+    holder_sub: number;
+    dev_sub: number;
+    liquidity_sub: number;
+    social_sub: number;
+    volume_sub: number;
+  } | null;
+  latest_snapshot?: {
+    timestamp: string;
+    holders: number;
+    marketcap: number;
+    volume_24h: number;
+    liquidity: number;
+  } | null;
+  recent_snapshots?: Array<{
+    timestamp: string;
+    holders: number;
+    marketcap: number;
+    volume_24h: number;
+    liquidity: number;
+  }>;
 }
 
 /** Raw comment row from Supabase (snake_case). */
@@ -74,6 +97,9 @@ export function mapProject(row: SupabaseProject): Project {
     twitterHandle: row.twitter_handle || undefined,
     milestones: [],
     comments: [],
+    healthScore: row.health_score ?? null,
+    latestSnapshot: row.latest_snapshot ?? null,
+    recentSnapshots: row.recent_snapshots ?? [],
   };
 }
 
