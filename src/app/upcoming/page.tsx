@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Bell, Check, ArrowRight, Sparkles } from "lucide-react";
-import { upcomingProjects } from "@/lib/mock-data";
+import Image from "next/image";
+import { Bell, Check, Sparkles } from "lucide-react";
+import { upcomingProjects, CATEGORY_COLORS } from "@/lib/mock-data";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
 export default function UpcomingPage() {
@@ -78,19 +79,6 @@ export default function UpcomingPage() {
               }}
               className={isPromoted ? "" : "theme-guide-row"}
             >
-              {isPromoted && (
-                <div
-                  className="flex items-center gap-1.5 px-4 lg:px-8 py-1.5"
-                  style={{ background: "#1652F0" }}
-                >
-                  <span
-                    className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase"
-                    style={{ color: "#FFFFFF", background: "rgba(255,255,255,0.12)" }}
-                  >
-                    <Sparkles className="h-2.5 w-2.5" /> Promoted
-                  </span>
-                </div>
-              )}
               <div
                 className="flex items-center gap-6 py-5 px-4 lg:px-8 transition-all"
                 style={{
@@ -109,15 +97,52 @@ export default function UpcomingPage() {
                   {String(i + 1).padStart(2, "0")}
                 </span>
 
+                {/* Project logo / avatar */}
+                {project.logoUrl ? (
+                  <div
+                    className="relative h-9 w-9 shrink-0 overflow-hidden"
+                    style={{ border: isPromoted ? "1px solid rgba(255,255,255,0.25)" : "1px solid var(--border-strong)" }}
+                  >
+                    <Image
+                      src={project.logoUrl}
+                      alt={project.name}
+                      width={36}
+                      height={36}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="flex h-9 w-9 shrink-0 items-center justify-center font-mono text-[13px] font-bold uppercase"
+                    style={{
+                      background: isPromoted ? "rgba(255,255,255,0.15)" : (CATEGORY_COLORS[project.category]?.from ?? "var(--accent)"),
+                      color: "#FFFFFF",
+                      border: isPromoted ? "1px solid rgba(255,255,255,0.25)" : "1px solid var(--border-strong)",
+                    }}
+                  >
+                    {project.name.charAt(0)}
+                  </div>
+                )}
+
                 {/* Title + meta */}
                 <div className="flex-1 min-w-0">
-                  <Link
-                    href={`/project/${project.id}`}
-                    className="row-title font-display text-[15px] font-medium no-underline transition-colors"
-                    style={{ color: isPromoted ? "#FFFFFF" : "var(--text-body)" }}
-                  >
-                    {project.name}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/project/${project.id}`}
+                      className="row-title font-display text-[15px] font-medium no-underline transition-colors"
+                      style={{ color: isPromoted ? "#FFFFFF" : "var(--text-body)" }}
+                    >
+                      {project.name}
+                    </Link>
+                    {isPromoted && (
+                      <span
+                        className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase"
+                        style={{ color: "#FFFFFF", background: "rgba(255,255,255,0.15)" }}
+                      >
+                        <Sparkles className="h-2.5 w-2.5" /> Promoted
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-4 mt-1">
                     <span
                       className="text-[11px]"
