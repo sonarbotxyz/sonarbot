@@ -97,9 +97,7 @@ function getProductScreenshots(project: Project): string[] {
   return shots;
 }
 
-function getPromotedProject(_currentId: string): Project | null {
-  return null;
-}
+// Promoted project is fetched via useEffect in the component
 
 function formatCompact(value: number): string {
   if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
@@ -147,6 +145,7 @@ export function ProjectDetail({
   const [descExpanded, setDescExpanded] = useState(false);
   const [alertPrefs, setAlertPrefs] = useState<Set<string>>(new Set(["metrics", "launch"]));
   const [chartMetric, setChartMetric] = useState<ChartMetric>("holders");
+  const [promotedProject, setPromotedProject] = useState<Project | null>(null);
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>(30);
   const galleryRef = useRef<HTMLDivElement>(null);
 
@@ -294,7 +293,20 @@ export function ProjectDetail({
 
   const avatar = getAvatar(project);
   const screenshots = getProductScreenshots(project);
-  const promotedProject = getPromotedProject(project.id);
+
+  useEffect(() => {
+    async function fetchPromoted() {
+      try {
+        const res = await fetch("/api/projects?boosted=true&limit=1");
+        if (res.ok) {
+          const data = await res.json();
+          const promo = (data.projects || []).find((p: Project) => p.id !== project?.id);
+          setPromotedProject(promo || null);
+        }
+      } catch { /* ignore */ }
+    }
+    if (project) fetchPromoted();
+  }, [project]);
   const description = project.description || project.tagline;
   const isLongDesc = description.length > 200;
   const activeChartTab = CHART_TABS.find((t) => t.key === chartMetric)!;

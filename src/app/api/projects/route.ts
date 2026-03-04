@@ -50,6 +50,11 @@ export async function GET(request: NextRequest) {
       )
       .eq("is_approved", true);
 
+    const boosted = searchParams.get("boosted");
+    if (boosted === "true") {
+      query = query.eq("is_boosted", true);
+    }
+
     if (category && category !== "all") {
       query = query.eq("category", category.toLowerCase());
     }
