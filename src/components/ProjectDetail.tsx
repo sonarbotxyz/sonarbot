@@ -55,6 +55,7 @@ import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import { HealthScore } from "@/components/HealthScore";
 import { HealthBreakdown } from "@/components/HealthBreakdown";
 import { WhaleTable } from "@/components/WhaleTable";
+import { ProjectCard } from "@/components/ProjectCard";
 
 const milestoneTypeIcons: Record<string, React.ElementType> = {
   metrics: BarChart3,
@@ -820,42 +821,24 @@ function SocialRow({ icon: Icon, label, value, change }: { icon: React.ElementTy
   );
 }
 
-/* PROMOTED PROJECT CARD */
+/* PROMOTED PROJECT CARD — uses the same blue featured style as homepage */
 function PromotedProjectCard({ project }: { project: Project }) {
-  const avatar = getAvatar(project);
   return (
-    <Link href={`/project/${project.id}`} className="group block no-underline">
+    <div className="relative">
+      {/* Promoted label */}
       <div
-        className="relative overflow-hidden p-4 transition-all duration-200"
-        style={{
-          background: "var(--bg-secondary)",
-          borderLeft: "2px solid var(--accent)",
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--card-hover)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = "var(--bg-secondary)"; }}
+        className="flex items-center gap-1.5 px-3.5 py-1.5"
+        style={{ background: "#1652F0" }}
       >
-        <div className="flex items-center gap-1.5 mb-3">
-          <span
-            className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase"
-            style={{ color: "var(--text-secondary)", background: "var(--border-strong)" }}
-          >
-            <Sparkles className="h-2.5 w-2.5" /> Promoted
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 flex-shrink-0 overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-            <img src={avatar} alt={project.name} className="h-full w-full object-cover" loading="lazy" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h4 className="font-display text-[15px] font-bold truncate" style={{ color: "var(--text-primary)" }}>{project.name}</h4>
-            <p className="text-[11px] truncate" style={{ color: "var(--text-secondary)" }}>{project.tagline}</p>
-          </div>
-        </div>
-        <div className="mt-3 flex items-center gap-1 text-[12px] font-semibold transition-colors" style={{ color: "var(--accent)" }}>
-          Check it out <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </div>
+        <span
+          className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase"
+          style={{ color: "#FFFFFF", background: "rgba(255,255,255,0.12)" }}
+        >
+          <Sparkles className="h-2.5 w-2.5" /> Promoted
+        </span>
       </div>
-    </Link>
+      <ProjectCard project={project} variant="featured" />
+    </div>
   );
 }
 
