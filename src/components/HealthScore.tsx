@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 interface HealthScoreProps {
   score: number;
   size?: "sm" | "lg";
+  variant?: "default" | "light";
 }
 
 function getScoreColor(score: number): string {
@@ -13,8 +14,8 @@ function getScoreColor(score: number): string {
   return "#00D897";
 }
 
-export function HealthScore({ score, size = "lg" }: HealthScoreProps) {
-  const color = getScoreColor(score);
+export function HealthScore({ score, size = "lg", variant = "default" }: HealthScoreProps) {
+  const color = variant === "light" ? "#FFFFFF" : getScoreColor(score);
   const clampedScore = Math.max(0, Math.min(100, score));
   const isSmall = size === "sm";
 

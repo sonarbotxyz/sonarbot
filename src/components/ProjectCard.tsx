@@ -33,13 +33,29 @@ function formatNumber(value: number): string {
 interface ProjectCardProps {
   project: Project;
   index?: number;
+  variant?: "default" | "featured";
 }
 
 export function ProjectCard({
   project,
   index = 0,
+  variant = "default",
 }: ProjectCardProps) {
   const score = project.healthScore ?? null;
+  const isFeatured = variant === "featured";
+
+  const c = {
+    bg: isFeatured ? "#1652F0" : "var(--bg-primary)",
+    border: isFeatured ? "rgba(255,255,255,0.12)" : "var(--border)",
+    textPrimary: isFeatured ? "#FFFFFF" : "var(--text-primary)",
+    textSecondary: isFeatured ? "rgba(255,255,255,0.6)" : "var(--text-secondary)",
+    textMuted: isFeatured ? "rgba(255,255,255,0.5)" : "var(--text-muted)",
+    textVeryMuted: isFeatured ? "rgba(255,255,255,0.4)" : "var(--text-very-muted)",
+    categoryBg: isFeatured ? "rgba(255,255,255,0.08)" : "var(--accent-glow)",
+    categoryBorder: isFeatured ? "rgba(255,255,255,0.25)" : "var(--accent-dim)",
+    categoryText: isFeatured ? "#FFFFFF" : "var(--accent)",
+    borderStrong: isFeatured ? "rgba(255,255,255,0.2)" : "var(--border)",
+  };
 
   const { marketcap, liquidity, volume24h, holders } = useMemo(() => {
     const snap = project.latestSnapshot;
@@ -114,19 +130,19 @@ export function ProjectCard({
         <div
           className="flex h-full flex-col transition-all duration-300"
           style={{
-            background: "var(--bg-primary)",
+            background: c.bg,
           }}
         >
           {/* ── Header: number + category ── */}
           <div
             className="flex h-[32px] shrink-0 items-center justify-between px-3.5"
-            style={{ borderBottom: "1px solid var(--border)" }}
+            style={{ borderBottom: `1px solid ${c.border}` }}
           >
             <div className="flex items-center gap-2">
               <span
                 className="font-mono text-[9px] tracking-[0.15em]"
                 style={{
-                  color: "var(--text-very-muted)",
+                  color: c.textVeryMuted,
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
@@ -135,16 +151,16 @@ export function ProjectCard({
               <span
                 className="inline-flex items-center text-[9px] tracking-[0.12em] uppercase px-1.5 py-px"
                 style={{
-                  color: "var(--accent)",
-                  border: "1px solid var(--accent-dim)",
-                  background: "var(--accent-glow)",
+                  color: c.categoryText,
+                  border: `1px solid ${c.categoryBorder}`,
+                  background: c.categoryBg,
                 }}
               >
                 {project.category}
               </span>
               <span
                 className="text-[8px] tracking-[0.1em] uppercase"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: c.textMuted }}
               >
                 {project.subcategory}
               </span>
@@ -156,7 +172,7 @@ export function ProjectCard({
               {project.website && (
                 <ExternalLink
                   className="h-2.5 w-2.5"
-                  style={{ color: "var(--text-very-muted)" }}
+                  style={{ color: c.textVeryMuted }}
                 />
               )}
             </div>
@@ -168,7 +184,7 @@ export function ProjectCard({
             {project.logoUrl ? (
               <div
                 className="relative h-10 w-10 shrink-0 overflow-hidden"
-                style={{ border: "1px solid var(--border)" }}
+                style={{ border: `1px solid ${c.borderStrong}` }}
               >
                 <Image
                   src={project.logoUrl}
@@ -184,7 +200,7 @@ export function ProjectCard({
                 style={{
                   background: categoryColor,
                   color: "#FFFFFF",
-                  border: "1px solid var(--border)",
+                  border: `1px solid ${c.borderStrong}`,
                 }}
               >
                 {project.name.charAt(0)}
@@ -194,7 +210,7 @@ export function ProjectCard({
               <h3
                 className="font-display text-[15px] font-semibold leading-tight"
                 style={{
-                  color: "var(--text-primary)",
+                  color: c.textPrimary,
                   letterSpacing: "-0.02em",
                 }}
               >
@@ -203,20 +219,26 @@ export function ProjectCard({
               <p
                 className="mt-0.5 text-[11px] leading-snug line-clamp-2"
                 style={{
-                  color: "var(--text-secondary)",
+                  color: c.textSecondary,
                   lineHeight: "1.5",
                 }}
               >
                 {project.tagline}
               </p>
             </div>
-            {score !== null && <HealthScore score={score} size="sm" />}
+            {score !== null && (
+              <HealthScore
+                score={score}
+                size="sm"
+                variant={isFeatured ? "light" : "default"}
+              />
+            )}
           </div>
 
           {/* ── Stats grid — 4 columns, compact ── */}
           <div
             className="grid h-[44px] shrink-0 grid-cols-4"
-            style={{ borderTop: "1px solid var(--border)" }}
+            style={{ borderTop: `1px solid ${c.border}` }}
           >
             {stats.map((stat, i) => (
               <div
@@ -224,12 +246,12 @@ export function ProjectCard({
                 className="px-2.5 py-1.5"
                 style={{
                   borderRight:
-                    i < 3 ? "1px solid var(--border)" : undefined,
+                    i < 3 ? `1px solid ${c.border}` : undefined,
                 }}
               >
                 <span
                   className="text-[7px] uppercase tracking-[0.15em] block mb-0.5"
-                  style={{ color: "var(--text-very-muted)" }}
+                  style={{ color: c.textVeryMuted }}
                 >
                   {stat.label}
                 </span>
@@ -238,8 +260,8 @@ export function ProjectCard({
                   style={{
                     color:
                       stat.value > 0
-                        ? "var(--text-primary)"
-                        : "var(--text-very-muted)",
+                        ? c.textPrimary
+                        : c.textVeryMuted,
                     fontVariantNumeric: "tabular-nums",
                   }}
                 >
@@ -256,15 +278,19 @@ export function ProjectCard({
           {/* ── Sparkline + trend + watchers (fixed footer) ── */}
           <div
             className="flex h-[30px] shrink-0 items-center justify-between px-3.5"
-            style={{ borderTop: "1px solid var(--border)" }}
+            style={{ borderTop: `1px solid ${c.border}` }}
           >
             <div className="flex items-center gap-2.5">
               {sparkData.length >= 2 ? (
                 <>
                   <span
-                    className={`flex items-center gap-0.5 font-mono text-[9px] font-semibold ${
-                      isHolderUp ? "text-success" : "text-danger"
-                    }`}
+                    className="flex items-center gap-0.5 font-mono text-[9px] font-semibold"
+                    style={{
+                      color: isFeatured
+                        ? isHolderUp ? "#86EFAC" : "#FCA5A5"
+                        : isHolderUp ? "#22C55E" : "#EF4444",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
                   >
                     {isHolderUp ? (
                       <TrendingUp className="h-2.5 w-2.5" />
@@ -276,7 +302,9 @@ export function ProjectCard({
                   </span>
                   <MiniSparkline
                     data={sparkData}
-                    color={sparkColor}
+                    color={isFeatured
+                      ? isHolderUp ? "#86EFAC" : "#FCA5A5"
+                      : sparkColor}
                     width={56}
                     height={16}
                   />
@@ -284,7 +312,7 @@ export function ProjectCard({
               ) : (
                 <span
                   className="font-mono text-[9px]"
-                  style={{ color: "var(--text-very-muted)" }}
+                  style={{ color: c.textVeryMuted }}
                 >
                   —
                 </span>
@@ -293,13 +321,13 @@ export function ProjectCard({
             <div className="flex items-center gap-2">
               <span
                 className="flex items-center gap-1 text-[9px]"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: c.textMuted }}
               >
                 <Eye className="h-2.5 w-2.5" /> {project.watchers.toLocaleString()}
               </span>
               <ArrowRight
                 className="card-arrow h-3 w-3 transition-all duration-300"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: c.textMuted }}
               />
             </div>
           </div>

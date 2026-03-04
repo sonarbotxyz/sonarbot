@@ -100,7 +100,7 @@ export function TickerBar({ projects }: TickerBarProps) {
 
   return (
     <div
-      className="ticker-bar relative overflow-hidden"
+      className="ticker-bar relative"
       style={{
         background: "var(--bg-secondary)",
         borderTop: "1px solid var(--border)",
@@ -108,12 +108,14 @@ export function TickerBar({ projects }: TickerBarProps) {
         height: "34px",
       }}
     >
-      <div className="ticker-track flex items-center h-full">
-        <div className="ticker-content flex items-center shrink-0">
-          {tickerContent}
-        </div>
-        <div className="ticker-content flex items-center shrink-0" aria-hidden="true">
-          {tickerContent}
+      <div className="mx-auto max-w-[1400px] px-5 md:px-20 overflow-hidden h-full">
+        <div className="ticker-track flex items-center h-full">
+          <div className="ticker-content flex items-center shrink-0">
+            {tickerContent}
+          </div>
+          <div className="ticker-content flex items-center shrink-0" aria-hidden="true">
+            {tickerContent}
+          </div>
         </div>
       </div>
     </div>
