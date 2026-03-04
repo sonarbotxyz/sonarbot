@@ -199,8 +199,7 @@ export function ProjectDetail({
         });
         if (res.ok) setWatching(false);
       } else {
-        // Watch — show modal first
-        setShowAlertModal(true);
+        // Watch — create watch first, THEN show modal
         const res = await fetch(`/api/projects/${projectId}/watch`, {
           method: "POST",
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -215,6 +214,8 @@ export function ProjectDetail({
             }
             setAlertPrefs(set);
           }
+          // Now show the modal to customize preferences
+          setShowAlertModal(true);
         }
       }
     } catch (e) {
@@ -384,6 +385,18 @@ export function ProjectDetail({
     setAlertPrefs((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
+      // Auto-save to API
+      if (accessToken && watching) {
+        const body: Record<string, boolean> = {};
+        for (const [uiKey, dbKey] of Object.entries(PREF_KEY_MAP_REVERSE)) {
+          body[dbKey] = next.has(uiKey);
+        }
+        fetch(`/api/projects/${projectId}/alerts`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }).catch((e) => console.error("Toggle save error:", e));
+      }
       return next;
     });
   }
