@@ -35,7 +35,7 @@ export function FeaturedCards({ projects }: FeaturedCardsProps) {
 
       {/* Cards grid */}
       <div
-        className="grid grid-cols-1 md:grid-cols-3"
+        className={`grid grid-cols-1 ${featured.length >= 3 ? "md:grid-cols-3" : featured.length === 2 ? "md:grid-cols-2" : "md:grid-cols-1"}`}
         style={{ background: "var(--border)", gap: "1px" }}
       >
         {featured.map((project, i) => (
