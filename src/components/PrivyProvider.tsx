@@ -6,7 +6,18 @@ import { AuthProvider } from "@/components/AuthContext";
 
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "";
 
-function PrivyWrapper({ children }: { children: ReactNode }) {
+export function PrivyProvider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // During SSR or before mount, render children without Privy (AuthProvider needs usePrivy)
+  if (!mounted || !PRIVY_APP_ID) {
+    return <>{children}</>;
+  }
+
   return (
     <BasePrivyProvider
       appId={PRIVY_APP_ID}
@@ -27,19 +38,4 @@ function PrivyWrapper({ children }: { children: ReactNode }) {
       <AuthProvider>{children}</AuthProvider>
     </BasePrivyProvider>
   );
-}
-
-export function PrivyProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Don't render Privy during SSR/static generation — it crashes without a valid app ID
-  if (!mounted || !PRIVY_APP_ID) {
-    return <>{children}</>;
-  }
-
-  return <PrivyWrapper>{children}</PrivyWrapper>;
 }

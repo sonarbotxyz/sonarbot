@@ -200,23 +200,29 @@ export function ProjectDetail({
         if (res.ok) setWatching(false);
       } else {
         // Watch — create watch first, THEN show modal
-        const res = await fetch(`/api/projects/${projectId}/watch`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setWatching(true);
-          if (data.preferences) {
-            const set = new Set<string>();
-            for (const [dbKey, uiKey] of Object.entries(PREF_KEY_MAP)) {
-              if (data.preferences[dbKey]) set.add(uiKey);
+        try {
+          const res = await fetch(`/api/projects/${projectId}/watch`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setWatching(true);
+            if (data.preferences) {
+              const set = new Set<string>();
+              for (const [dbKey, uiKey] of Object.entries(PREF_KEY_MAP)) {
+                if (data.preferences[dbKey]) set.add(uiKey);
+              }
+              setAlertPrefs(set);
             }
-            setAlertPrefs(set);
+          } else {
+            console.error("Watch failed:", res.status, await res.text());
           }
-          // Now show the modal to customize preferences
-          setShowAlertModal(true);
+        } catch (err) {
+          console.error("Watch fetch error:", err);
         }
+        // Always show modal so user can set preferences
+        setShowAlertModal(true);
       }
     } catch (e) {
       console.error("Watch error:", e);
