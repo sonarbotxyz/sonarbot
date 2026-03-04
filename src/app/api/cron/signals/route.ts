@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runXSignalPipeline } from "@/lib/pipeline/signals-x";
 import { runGitHubSignalPipeline } from "@/lib/pipeline/signals-github";
+import { notifyWatchers } from "@/lib/pipeline/notify";
+import { getSupabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -12,10 +14,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Record timestamp before pipelines run to find new signals after
+    const beforeRun = new Date().toISOString();
+
     const [xResult, githubResult] = await Promise.allSettled([
       runXSignalPipeline(),
       runGitHubSignalPipeline(),
     ]);
+
+    // Notify watchers of newly created signals
+    try {
+      const supabase = getSupabase();
+      const { data: newSignals } = await supabase
+        .from("signals")
+        .select("id, project_id, type, title, description")
+        .gte("created_at", beforeRun);
+
+      if (newSignals && newSignals.length > 0) {
+        await notifyWatchers(newSignals);
+      }
+    } catch (notifyError) {
+      console.error("Notification error:", notifyError);
+    }
 
     const summary = {
       success: true,
