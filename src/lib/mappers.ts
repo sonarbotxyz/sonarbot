@@ -1,4 +1,4 @@
-import type { Category, Project, Comment } from "./mock-data";
+import type { Category, Project, Comment } from "./types";
 
 /** Raw project row from Supabase (snake_case). */
 export interface SupabaseProject {

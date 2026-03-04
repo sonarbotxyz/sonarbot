@@ -18,7 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
-import type { Category } from "@/lib/mock-data";
+import type { Category } from "@/lib/types";
 
 const categories: {
   value: Category;

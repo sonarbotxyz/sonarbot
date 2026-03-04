@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import type { Project } from "@/lib/mock-data";
+import type { Project } from "@/lib/types";
 
 function formatCompact(value: number): string {
   if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;

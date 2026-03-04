@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Project } from "@/lib/mock-data";
+import type { Project } from "@/lib/types";
 import { ProjectCard } from "@/components/ProjectCard";
 
 interface FeaturedCardsProps {

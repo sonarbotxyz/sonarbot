@@ -1,13 +1,13 @@
 import { getSupabase } from "@/lib/supabase";
 import { mapProject } from "@/lib/mappers";
-import { projects as mockProjects } from "@/lib/mock-data";
 import { HomeContent } from "@/components/HomeContent";
 import type { SupabaseProject } from "@/lib/mappers";
+import type { Project } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  let projects = mockProjects;
+  let projects: Project[] = [];
 
   try {
     const supabase = getSupabase();
@@ -19,14 +19,11 @@ export default async function HomePage() {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (!error && data && data.length > 0) {
-      const realProjects = (data as SupabaseProject[]).map(mapProject);
-      const realIds = new Set(realProjects.map((p) => p.id));
-      const remainingMock = mockProjects.filter((p) => !realIds.has(p.id));
-      projects = [...realProjects, ...remainingMock];
+    if (!error && data) {
+      projects = (data as SupabaseProject[]).map(mapProject);
     }
   } catch {
-    // Fall back to mock data silently
+    // Supabase unavailable — show empty state
   }
 
   return <HomeContent projects={projects} />;

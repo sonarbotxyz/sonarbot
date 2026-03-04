@@ -6,7 +6,7 @@ import { CategoryPills } from "@/components/CategoryPills";
 import { ProjectCard } from "@/components/ProjectCard";
 import { TickerBar } from "@/components/TickerBar";
 import { FeaturedCards } from "@/components/FeaturedCards";
-import type { Project, Category } from "@/lib/mock-data";
+import type { Project, Category } from "@/lib/types";
 
 interface HomeContentProps {
   projects: Project[];

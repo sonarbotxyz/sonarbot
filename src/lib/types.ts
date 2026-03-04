@@ -1,7 +1,84 @@
 /**
- * API response types (snake_case from Supabase) and frontend mapping utilities.
- * These types mirror the real database schema.
+ * Domain types and API response types for Sonarbot.
  */
+
+/* ─── Domain types (frontend) ─── */
+
+export type Category = "DeFi" | "Social" | "NFT" | "Infra" | "Gaming" | "Tools";
+
+export interface Project {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  category: Category;
+  subcategory: string;
+  upvotes: number;
+  watchers: number;
+  isHot: boolean;
+  isNew: boolean;
+  launchDate?: string;
+  website?: string;
+  twitter?: string;
+  logoUrl?: string;
+  twitterHandle?: string;
+  milestones: Milestone[];
+  comments: Comment[];
+  healthScore?: number | null;
+  latestSnapshot?: {
+    holders: number;
+    marketcap: number;
+    volume_24h: number;
+    liquidity: number;
+  } | null;
+  recentSnapshots?: Array<{
+    timestamp: string;
+    holders: number;
+    marketcap: number;
+    volume_24h: number;
+    liquidity: number;
+  }>;
+}
+
+export interface Milestone {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  achieved: boolean;
+  type: "metrics" | "launch" | "partnership" | "token" | "update";
+}
+
+export interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  date: string;
+  upvotes: number;
+}
+
+export interface Alert {
+  id: string;
+  projectId: string;
+  projectName: string;
+  category: Category;
+  title: string;
+  description: string;
+  date: string;
+  type: "metrics" | "launch" | "partnership" | "token" | "update";
+  read: boolean;
+}
+
+export const CATEGORY_COLORS: Record<Category, { from: string; to: string; glow: string }> = {
+  DeFi: { from: "#0052FF", to: "#3B82F6", glow: "shadow-glow-blue" },
+  Social: { from: "#8B5CF6", to: "#A78BFA", glow: "shadow-glow-purple" },
+  NFT: { from: "#EC4899", to: "#F472B6", glow: "shadow-glow-pink" },
+  Infra: { from: "#00D897", to: "#34D399", glow: "shadow-glow-green" },
+  Gaming: { from: "#F59E0B", to: "#FBBF24", glow: "shadow-glow-orange" },
+  Tools: { from: "#6B7280", to: "#9CA3AF", glow: "shadow-glow-gray" },
+};
+
+export const CATEGORIES: Category[] = ["DeFi", "Social", "NFT", "Infra", "Gaming", "Tools"];
 
 /* ─── Raw API types (Supabase snake_case) ─── */
 

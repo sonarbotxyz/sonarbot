@@ -35,8 +35,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
-import type { Project, Comment, Milestone } from "@/lib/mock-data";
-import { projects as allProjects } from "@/lib/mock-data";
+import type { Project, Comment, Milestone } from "@/lib/types";
 import type {
   ApiHealthData,
   ApiSnapshot,
@@ -98,8 +97,8 @@ function getProductScreenshots(project: Project): string[] {
   return shots;
 }
 
-function getPromotedProject(currentId: string): Project | null {
-  return allProjects.find((p) => p.id !== currentId) ?? null;
+function getPromotedProject(_currentId: string): Project | null {
+  return null;
 }
 
 function formatCompact(value: number): string {

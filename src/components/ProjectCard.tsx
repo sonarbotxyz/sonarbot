@@ -12,8 +12,8 @@ import {
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
-import type { Project } from "@/lib/mock-data";
-import { CATEGORY_COLORS } from "@/lib/mock-data";
+import type { Project } from "@/lib/types";
+import { CATEGORY_COLORS } from "@/lib/types";
 import { HealthScore } from "@/components/HealthScore";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 

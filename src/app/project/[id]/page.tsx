@@ -1,9 +1,8 @@
 import { getSupabase } from "@/lib/supabase";
 import { mapProject, mapComment } from "@/lib/mappers";
-import { projects as mockProjects, upcomingProjects } from "@/lib/mock-data";
 import { ProjectDetail } from "@/components/ProjectDetail";
 import type { SupabaseProject, SupabaseComment } from "@/lib/mappers";
-import type { Project, Comment } from "@/lib/mock-data";
+import type { Project, Comment } from "@/lib/types";
 import type {
   ApiHealthData,
   ApiSnapshot,
@@ -94,17 +93,7 @@ export default async function ProjectDetailPage({
       socialData = (socialResult.data?.[0] as ApiSocialData) ?? null;
     }
   } catch {
-    // Fall back to mock data
-  }
-
-  // Fallback to mock data if Supabase didn't find the project
-  if (!project) {
-    const allMock = [...mockProjects, ...upcomingProjects];
-    const mock = allMock.find((p) => p.id === id);
-    if (mock) {
-      project = mock;
-      comments = mock.comments;
-    }
+    // Supabase unavailable
   }
 
   return (
