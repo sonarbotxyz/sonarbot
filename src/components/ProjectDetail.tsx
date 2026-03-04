@@ -951,14 +951,11 @@ function SocialRow({ icon: Icon, label, value, change }: { icon: React.ElementTy
 function PromotedProjectCard({ project }: { project: Project }) {
   return (
     <div className="relative">
-      {/* Promoted label */}
-      <div
-        className="flex items-center gap-1.5 px-3.5 py-1.5"
-        style={{ background: "#1652F0" }}
-      >
+      {/* Promoted badge — positioned top-right of the card header */}
+      <div className="absolute top-2 right-3 z-10">
         <span
-          className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase"
-          style={{ color: "#FFFFFF", background: "rgba(255,255,255,0.12)" }}
+          className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] uppercase rounded"
+          style={{ color: "#FFFFFF", background: "rgba(255,255,255,0.18)" }}
         >
           <Sparkles className="h-2.5 w-2.5" /> Promoted
         </span>
