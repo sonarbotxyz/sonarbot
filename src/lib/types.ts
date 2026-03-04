@@ -22,6 +22,7 @@ export interface Project {
   twitter?: string;
   logoUrl?: string;
   twitterHandle?: string;
+  isBoosted?: boolean;
   milestones: Milestone[];
   comments: Comment[];
   healthScore?: number | null;

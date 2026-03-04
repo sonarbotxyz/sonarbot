@@ -12,22 +12,6 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
 
   return (
     <section className="pt-20 pb-12 md:pt-28 md:pb-16 text-center">
-      {/* Section label */}
-      <div className="flex items-center justify-center gap-2.5 mb-6">
-        <span
-          className="font-bold text-[10px]"
-          style={{ color: "var(--accent)" }}
-        >
-          &gt;
-        </span>
-        <span
-          className="text-[10px] uppercase tracking-[0.2em]"
-          style={{ color: "var(--text-muted)" }}
-        >
-          Discover Base
-        </span>
-      </div>
-
       {/* Heading */}
       <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight leading-tight">
         <span style={{ color: "var(--text-primary)" }}>

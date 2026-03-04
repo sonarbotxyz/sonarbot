@@ -10,14 +10,7 @@ interface FeaturedCardsProps {
 
 export function FeaturedCards({ projects }: FeaturedCardsProps) {
   const featured = useMemo(() => {
-    return [...projects]
-      .sort((a, b) => {
-        const scoreA = a.healthScore ?? 0;
-        const scoreB = b.healthScore ?? 0;
-        if (scoreB !== scoreA) return scoreB - scoreA;
-        return b.watchers - a.watchers;
-      })
-      .slice(0, 3);
+    return projects.filter((p) => p.isBoosted);
   }, [projects]);
 
   if (featured.length === 0) return null;

@@ -95,6 +95,7 @@ export function mapProject(row: SupabaseProject): Project {
     twitter: row.twitter_handle,
     logoUrl: row.logo_url || undefined,
     twitterHandle: row.twitter_handle || undefined,
+    isBoosted: row.is_boosted ?? false,
     milestones: [],
     comments: [],
     healthScore: row.health_score ?? null,
