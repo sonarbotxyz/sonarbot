@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const token = await getAccessToken();
+      console.log("[Auth] Token:", token ? `${token.slice(0, 20)}...` : "null");
       setAccessToken(token);
 
       if (token) {
