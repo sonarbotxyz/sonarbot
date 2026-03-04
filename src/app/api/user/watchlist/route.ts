@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const [projectsResult, prefsResult, signalsResult] = await Promise.all([
       supabase
         .from("projects")
-        .select("id, name, slug, tagline, category, subcategory, upvotes, watchers, twitter_handle, logo_url")
+        .select("id, name, tagline, category, upvotes, watchers, twitter_handle, logo_url")
         .in("id", projectIds),
       supabase
         .from("alert_preferences")
