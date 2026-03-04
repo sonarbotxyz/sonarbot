@@ -34,17 +34,18 @@ export function FeaturedCards({ projects }: FeaturedCardsProps) {
       </div>
 
       {/* Cards grid */}
-      <div
-        className="grid grid-cols-1 md:grid-cols-3"
-        style={{ background: "var(--border)", gap: "1px" }}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
         {featured.map((project, i) => (
-          <ProjectCard
+          <div
             key={project.id}
-            project={project}
-            index={i}
-            variant="featured"
-          />
+            style={{ borderRight: i < featured.length - 1 ? "1px solid var(--border)" : "none" }}
+          >
+            <ProjectCard
+              project={project}
+              index={i}
+              variant="featured"
+            />
+          </div>
         ))}
       </div>
     </section>
