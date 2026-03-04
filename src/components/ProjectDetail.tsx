@@ -1023,7 +1023,7 @@ function AlertModal({ projectName, onClose, initialSelected, onSave }: { project
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-md p-5 sm:inset-x-auto sm:w-full"
+        className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md p-5"
         style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-strong)" }}
       >
         <div className="flex items-center justify-between">
