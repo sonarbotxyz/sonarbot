@@ -1,20 +1,15 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import { PrivyProvider as BasePrivyProvider } from "@privy-io/react-auth";
 import { AuthProvider } from "@/components/AuthContext";
 
-export function PrivyProvider({ children }: { children: ReactNode }) {
-  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "";
 
-  if (!appId) {
-    // Fallback: render without auth if no app ID
-    return <>{children}</>;
-  }
-
+function PrivyWrapper({ children }: { children: ReactNode }) {
   return (
     <BasePrivyProvider
-      appId={appId}
+      appId={PRIVY_APP_ID}
       config={{
         appearance: {
           theme: "dark",
@@ -32,4 +27,19 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
       <AuthProvider>{children}</AuthProvider>
     </BasePrivyProvider>
   );
+}
+
+export function PrivyProvider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render Privy during SSR/static generation — it crashes without a valid app ID
+  if (!mounted || !PRIVY_APP_ID) {
+    return <>{children}</>;
+  }
+
+  return <PrivyWrapper>{children}</PrivyWrapper>;
 }
