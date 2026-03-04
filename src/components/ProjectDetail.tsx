@@ -35,7 +35,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
-import type { Project, Comment, Milestone } from "@/lib/types";
+import type { Project, Comment, Milestone, Category } from "@/lib/types";
 import type {
   ApiHealthData,
   ApiSnapshot,
@@ -300,8 +300,22 @@ export function ProjectDetail({
         const res = await fetch("/api/projects?boosted=true&limit=1");
         if (res.ok) {
           const data = await res.json();
-          const promo = (data.projects || []).find((p: Project) => p.id !== project?.id);
-          setPromotedProject(promo || null);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const raw = (data.projects || []).find((p: any) => p.id !== project?.id);
+          if (raw) {
+            // Map snake_case API response to camelCase Project type
+            const mapped = {
+              ...raw,
+              logoUrl: raw.logo_url || "",
+              twitterHandle: raw.twitter_handle || "",
+              isBoosted: !!raw.is_boosted,
+              healthScore: raw.health_score || 0,
+              healthBreakdown: raw.health_breakdown || undefined,
+              latestSnapshot: raw.latest_snapshot || undefined,
+              recentSnapshots: raw.recent_snapshots || [],
+            } as Project;
+            setPromotedProject(mapped);
+          }
         }
       } catch { /* ignore */ }
     }
