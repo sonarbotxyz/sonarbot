@@ -97,7 +97,7 @@ export function AreaChartComponent({
           dataKey="timestamp"
           axisLine={false}
           tickLine={false}
-          tick={{ fill: "#555570", fontSize: 11, fontFamily: "var(--font-mono)" }}
+          tick={{ fill: "var(--text-secondary, #8B8B9E)", fontSize: 11, fontFamily: "var(--font-mono)" }}
           tickFormatter={formatShortDate}
           interval="preserveStartEnd"
           minTickGap={50}
@@ -105,7 +105,7 @@ export function AreaChartComponent({
         <YAxis
           axisLine={false}
           tickLine={false}
-          tick={{ fill: "#555570", fontSize: 11, fontFamily: "var(--font-mono)" }}
+          tick={{ fill: "var(--text-secondary, #8B8B9E)", fontSize: 11, fontFamily: "var(--font-mono)" }}
           tickFormatter={formatCompact}
           width={50}
         />
