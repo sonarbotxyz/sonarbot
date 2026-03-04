@@ -19,7 +19,7 @@ export function HomeContent({ projects }: HomeContentProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredProjects = useMemo(() => {
-    let filtered = projects;
+    let filtered = projects.filter((p) => !p.isBoosted);
 
     if (selectedCategory !== "All") {
       filtered = filtered.filter((p) => p.category === selectedCategory);
