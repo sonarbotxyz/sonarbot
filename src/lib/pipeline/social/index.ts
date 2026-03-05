@@ -6,7 +6,7 @@
  */
 
 import { getSupabase } from "@/lib/supabase";
-import { fetchXData } from "./x-api";
+import { fetchXData, fetchXDataByUsername } from "./x-api";
 import { fetchGitHubActivity } from "./github-api";
 
 // ---------------------------------------------------------------------------
@@ -24,6 +24,7 @@ import { fetchGitHubActivity } from "./github-api";
 export async function takeSocialSnapshot(
   projectId: string,
   xUserId?: string,
+  twitterHandle?: string,
   githubRepo?: string
 ): Promise<void> {
 
@@ -33,14 +34,22 @@ export async function takeSocialSnapshot(
   let githubLastPush: Date | null = null;
   let githubStars: number | null = null;
 
-  // Fetch X data if configured
+  // Fetch X data — prefer user ID, fall back to username lookup
   if (xUserId) {
     try {
       const xData = await fetchXData(xUserId);
       xFollowers = xData.followers;
       xEngagementRate = xData.engagementRate;
     } catch (error) {
-      console.error(`X API failed for project ${projectId}:`, error);
+      console.error(`X API (by ID) failed for project ${projectId}:`, error);
+    }
+  } else if (twitterHandle) {
+    try {
+      const xData = await fetchXDataByUsername(twitterHandle);
+      xFollowers = xData.followers;
+      xEngagementRate = xData.engagementRate;
+    } catch (error) {
+      console.error(`X API (by handle) failed for project ${projectId}:`, error);
     }
   }
 
@@ -96,9 +105,9 @@ export async function runSocialPipeline(): Promise<{
 
   const { data: projects, error } = await supabase
     .from("projects")
-    .select("id, x_user_id, github_repo")
+    .select("id, x_user_id, twitter_handle, github_repo")
     .eq("is_approved", true)
-    .or("x_user_id.not.is.null,github_repo.not.is.null");
+    .or("x_user_id.not.is.null,twitter_handle.not.is.null,github_repo.not.is.null");
 
   if (error) {
     console.error("Failed to fetch projects for social pipeline:", error);
@@ -118,6 +127,7 @@ export async function runSocialPipeline(): Promise<{
       await takeSocialSnapshot(
         project.id,
         project.x_user_id ?? undefined,
+        project.twitter_handle ?? undefined,
         project.github_repo ?? undefined
       );
       processed++;

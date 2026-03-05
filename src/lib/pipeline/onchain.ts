@@ -113,16 +113,26 @@ export async function takeSnapshot(
   projectId: string,
   contractAddress: string
 ): Promise<void> {
-  // DexScreener + Basescan for holder count
+  const supabase = getSupabase();
+
+  // Get previous holder count as fallback
+  const { data: prevSnap } = await supabase
+    .from("snapshots")
+    .select("holders")
+    .eq("project_id", projectId)
+    .gt("holders", 0)
+    .order("timestamp", { ascending: false })
+    .limit(1)
+    .single();
+
+  // DexScreener + holder count (with fallback to previous value)
   const [marketcap, volume24h, liquidity, holders] =
     await Promise.all([
       fetchMarketcap(contractAddress),
       fetchVolume24h(contractAddress),
       fetchLiquidity(contractAddress),
-      fetchHolderCount(contractAddress),
+      fetchHolderCount(contractAddress, prevSnap?.holders ?? 0),
     ]);
-
-  const supabase = getSupabase();
 
   const { error } = await supabase.from("snapshots").insert({
     project_id: projectId,

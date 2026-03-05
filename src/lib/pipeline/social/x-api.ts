@@ -193,3 +193,58 @@ export async function fetchXData(
 
   return { followers, engagementRate };
 }
+
+/**
+ * Fetch combined X data using a username (handle) instead of user ID.
+ * Resolves username → ID, then fetches data.
+ */
+export async function fetchXDataByUsername(
+  username: string
+): Promise<{ followers: number; engagementRate: number }> {
+  // Resolve username to user ID + public metrics
+  const userResponse = await xApiFetch<{
+    data: { id: string; public_metrics: XPublicMetrics };
+  }>(`/users/by/username/${username}?user.fields=public_metrics`);
+
+  const userId = userResponse.data.id;
+  const followers = userResponse.data.public_metrics.followers_count;
+
+  if (followers <= 0) {
+    return { followers, engagementRate: 0 };
+  }
+
+  // Fetch recent tweets for engagement
+  const response = await xApiFetch<{
+    data?: Array<{ public_metrics: XTweetMetrics }>;
+  }>(
+    `/users/${userId}/tweets?max_results=50&tweet.fields=public_metrics`
+  );
+
+  const tweets = response.data;
+  if (!tweets || tweets.length === 0) {
+    return { followers, engagementRate: 0 };
+  }
+
+  let totalEngagement = 0;
+  let totalImpressions = 0;
+  let hasImpressions = false;
+
+  for (const tweet of tweets) {
+    const m = tweet.public_metrics;
+    totalEngagement += m.like_count + m.retweet_count + m.reply_count + m.quote_count;
+    if (m.impression_count && m.impression_count > 0) {
+      totalImpressions += m.impression_count;
+      hasImpressions = true;
+    }
+  }
+
+  let engagementRate: number;
+  if (hasImpressions && totalImpressions > 0) {
+    engagementRate = Math.round(((totalEngagement / totalImpressions) * 100) * 100) / 100;
+  } else {
+    const avgEngagement = totalEngagement / tweets.length;
+    engagementRate = Math.round(((avgEngagement / followers) * 100) * 100) / 100;
+  }
+
+  return { followers, engagementRate };
+}
