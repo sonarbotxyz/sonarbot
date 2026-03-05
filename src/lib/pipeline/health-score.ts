@@ -17,7 +17,15 @@ import { getSupabase } from "@/lib/supabase";
 
 /** Holder growth sub-score (0-100). >10% 7d growth = 100, 0% = 50. */
 function calcHolderSub(currentHolders: number, holdersWeekAgo: number): number {
-  if (holdersWeekAgo <= 0) return 50; // No baseline data
+  if (holdersWeekAgo <= 0) {
+    // No baseline — score on absolute holder count
+    if (currentHolders <= 0) return 0;
+    if (currentHolders < 100) return 20;
+    if (currentHolders < 500) return 40;
+    if (currentHolders < 2000) return 60;
+    if (currentHolders < 10000) return 80;
+    return 100;
+  }
   const growthPct =
     ((currentHolders - holdersWeekAgo) / holdersWeekAgo) * 100;
   if (growthPct >= 10) return 100;
@@ -38,7 +46,15 @@ function calcLiquiditySub(
   currentLiquidity: number,
   previousLiquidity: number
 ): number {
-  if (previousLiquidity <= 0) return 50; // No baseline
+  if (previousLiquidity <= 0) {
+    // No baseline — score on absolute liquidity
+    if (currentLiquidity <= 0) return 0;
+    if (currentLiquidity < 10000) return 20;
+    if (currentLiquidity < 50000) return 40;
+    if (currentLiquidity < 250000) return 60;
+    if (currentLiquidity < 1000000) return 80;
+    return 100;
+  }
   const changePct =
     ((currentLiquidity - previousLiquidity) / previousLiquidity) * 100;
   if (changePct >= 0) return 100; // Stable or growing
@@ -47,12 +63,14 @@ function calcLiquiditySub(
   return Math.round(((changePct + 20) / 20) * 100);
 }
 
-/** Social sub-score (0-100) based on X follower count. Log-scaled thresholds. */
-function calcSocialSub(xFollowers: number): number {
+/** Social sub-score (0-100) based on X followers + engagement rate. */
+function calcSocialSub(xFollowers: number, engagementRate: number): number {
   if (xFollowers <= 0) return 0;
-  // Log scale: 100 → 33, 1000 → 50, 10000 → 67, 100000 → 83
-  const score = Math.round((Math.log10(xFollowers) / 6) * 100);
-  return Math.min(Math.max(score, 0), 100);
+  // Follower score (0-70): log scale
+  const followerScore = Math.min(Math.round((Math.log10(xFollowers) / 6) * 70), 70);
+  // Engagement bonus (0-30): 1% = 10, 3% = 20, 5%+ = 30
+  const engagementBonus = Math.min(Math.round(engagementRate * 10), 30);
+  return Math.min(followerScore + engagementBonus, 100);
 }
 
 /** Volume trend sub-score (0-100). Compares current vs previous snapshot. */
@@ -60,7 +78,15 @@ function calcVolumeSub(
   currentVolume: number,
   previousVolume: number
 ): number {
-  if (previousVolume <= 0) return 50; // No baseline
+  if (previousVolume <= 0) {
+    // No baseline — score on absolute current volume
+    if (currentVolume <= 0) return 0;
+    if (currentVolume < 1000) return 20;
+    if (currentVolume < 10000) return 40;
+    if (currentVolume < 100000) return 60;
+    if (currentVolume < 1000000) return 80;
+    return 100;
+  }
   const changePct =
     ((currentVolume - previousVolume) / previousVolume) * 100;
   if (changePct >= 50) return 100; // 50%+ growth is great
@@ -99,7 +125,7 @@ export async function calculateHealthScore(
   // Fetch latest social snapshot
   const { data: socialData } = await supabase
     .from("social_snapshots")
-    .select("x_followers, github_commits_7d")
+    .select("x_followers, x_engagement_rate, github_commits_7d")
     .eq("project_id", projectId)
     .order("timestamp", { ascending: false })
     .limit(1);
@@ -130,7 +156,7 @@ export async function calculateHealthScore(
     ? calcDevSub(social.github_commits_7d ?? 0)
     : 0;
   const socialSub = social
-    ? calcSocialSub(social.x_followers ?? 0)
+    ? calcSocialSub(social.x_followers ?? 0, social.x_engagement_rate ?? 0)
     : 0;
 
   // Weighted composite score

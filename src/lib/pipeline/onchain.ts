@@ -5,6 +5,7 @@
  */
 
 import { getSupabase } from "@/lib/supabase";
+import { fetchHolderCount } from "./basescan";
 
 // ---------------------------------------------------------------------------
 // DexScreener data (marketcap, volume, liquidity in one call)
@@ -112,30 +113,20 @@ export async function takeSnapshot(
   projectId: string,
   contractAddress: string
 ): Promise<void> {
-  // DexScreener only — fast, single API call (data is cached per contract)
-  const [marketcap, volume24h, liquidity] =
+  // DexScreener + Basescan for holder count
+  const [marketcap, volume24h, liquidity, holders] =
     await Promise.all([
       fetchMarketcap(contractAddress),
       fetchVolume24h(contractAddress),
       fetchLiquidity(contractAddress),
+      fetchHolderCount(contractAddress),
     ]);
 
   const supabase = getSupabase();
 
-  // Use previous snapshot value for holders (updated separately)
-  const { data: prevSnap } = await supabase
-    .from("snapshots")
-    .select("holders")
-    .eq("project_id", projectId)
-    .order("timestamp", { ascending: false })
-    .limit(1)
-    .single();
-
-  const finalHolders = prevSnap?.holders || 0;
-
   const { error } = await supabase.from("snapshots").insert({
     project_id: projectId,
-    holders: finalHolders,
+    holders,
     marketcap,
     volume_24h: volume24h,
     liquidity,

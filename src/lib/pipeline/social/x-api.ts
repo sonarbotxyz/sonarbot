@@ -27,6 +27,7 @@ interface XTweetMetrics {
   retweet_count: number;
   reply_count: number;
   quote_count: number;
+  impression_count?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -106,7 +107,7 @@ export async function fetchXEngagementRate(
   const response = await xApiFetch<{
     data?: Array<{ public_metrics: XTweetMetrics }>;
   }>(
-    `/users/${xUserId}/tweets?max_results=10&tweet.fields=public_metrics`
+    `/users/${xUserId}/tweets?max_results=50&tweet.fields=public_metrics`
   );
 
   const tweets = response.data;
@@ -114,17 +115,30 @@ export async function fetchXEngagementRate(
     return 0;
   }
 
-  // Calculate average engagement per tweet
+  // Calculate engagement including quote_count
   let totalEngagement = 0;
+  let totalImpressions = 0;
+  let hasImpressions = false;
+
   for (const tweet of tweets) {
     const m = tweet.public_metrics;
-    totalEngagement += m.like_count + m.retweet_count + m.reply_count;
+    totalEngagement += m.like_count + m.retweet_count + m.reply_count + m.quote_count;
+    if (m.impression_count && m.impression_count > 0) {
+      totalImpressions += m.impression_count;
+      hasImpressions = true;
+    }
   }
 
-  const avgEngagement = totalEngagement / tweets.length;
-  const engagementRate = (avgEngagement / profile.followers) * 100;
+  // Prefer impression-based engagement if available
+  let engagementRate: number;
+  if (hasImpressions && totalImpressions > 0) {
+    engagementRate = (totalEngagement / totalImpressions) * 100;
+  } else {
+    const avgEngagement = totalEngagement / tweets.length;
+    engagementRate = (avgEngagement / profile.followers) * 100;
+  }
 
-  return Math.round(engagementRate * 100) / 100; // 2 decimal places
+  return Math.round(engagementRate * 100) / 100;
 }
 
 /**
@@ -138,7 +152,7 @@ export async function fetchXData(
   const response = await xApiFetch<{
     data?: Array<{ public_metrics: XTweetMetrics }>;
   }>(
-    `/users/${xUserId}/tweets?max_results=10&tweet.fields=public_metrics`
+    `/users/${xUserId}/tweets?max_results=50&tweet.fields=public_metrics`
   );
 
   const profile = await xApiFetch<{
@@ -157,14 +171,25 @@ export async function fetchXData(
   }
 
   let totalEngagement = 0;
+  let totalImpressions = 0;
+  let hasImpressions = false;
+
   for (const tweet of tweets) {
     const m = tweet.public_metrics;
-    totalEngagement += m.like_count + m.retweet_count + m.reply_count;
+    totalEngagement += m.like_count + m.retweet_count + m.reply_count + m.quote_count;
+    if (m.impression_count && m.impression_count > 0) {
+      totalImpressions += m.impression_count;
+      hasImpressions = true;
+    }
   }
 
-  const avgEngagement = totalEngagement / tweets.length;
-  const engagementRate =
-    Math.round(((avgEngagement / followers) * 100) * 100) / 100;
+  let engagementRate: number;
+  if (hasImpressions && totalImpressions > 0) {
+    engagementRate = Math.round(((totalEngagement / totalImpressions) * 100) * 100) / 100;
+  } else {
+    const avgEngagement = totalEngagement / tweets.length;
+    engagementRate = Math.round(((avgEngagement / followers) * 100) * 100) / 100;
+  }
 
   return { followers, engagementRate };
 }
