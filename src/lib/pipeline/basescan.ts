@@ -1,10 +1,10 @@
 /**
- * Fetch token holder count from Basescan API.
- * Uses the tokenholdercount endpoint (free, needs API key).
+ * Fetch token holder count via Etherscan V2 API (unified multichain).
+ * Uses chainid=8453 for Base. Single API key works across all chains.
  * Falls back to 0 if unavailable.
  */
 export async function fetchHolderCount(contractAddress: string): Promise<number> {
-  const apiKey = process.env.BASESCAN_API_KEY;
+  const apiKey = process.env.ETHERSCAN_API_KEY;
   if (!apiKey) return 0;
 
   const controller = new AbortController();
@@ -12,7 +12,7 @@ export async function fetchHolderCount(contractAddress: string): Promise<number>
 
   try {
     const res = await fetch(
-      `https://api.basescan.org/api?module=token&action=tokenholdercount&contractaddress=${contractAddress}&apikey=${apiKey}`,
+      `https://api.etherscan.io/v2/api?chainid=8453&module=token&action=tokenholdercount&contractaddress=${contractAddress}&apikey=${apiKey}`,
       { signal: controller.signal }
     );
     clearTimeout(timeout);
