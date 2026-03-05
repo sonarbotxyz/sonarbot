@@ -218,14 +218,18 @@ export async function takeSnapshot(
     `Taking on-chain snapshot for project ${projectId} (${contractAddress})`
   );
 
-  const [holders, marketcap, volume24h, liquidity, activeUsers] =
+  // Run DexScreener (fast) in parallel, skip Basescan scrape (slow) — holders use previous value
+  const [marketcap, volume24h, liquidity, activeUsers] =
     await Promise.all([
-      fetchHolderCount(contractAddress),
       fetchMarketcap(contractAddress),
       fetchVolume24h(contractAddress),
       fetchLiquidity(contractAddress),
       fetchActiveUsers(contractAddress),
     ]);
+  
+  // Holders: use previous snapshot value (Basescan scrape is too slow for 30-min cron)
+  // Holder count updates via dedicated /api/cron/holders endpoint (runs daily)
+  const holders = 0;
 
   // tx_count approximated from active users (transfers counted above)
   const txCount = Math.floor(activeUsers * 2.5);
