@@ -218,18 +218,18 @@ export async function takeSnapshot(
     `Taking on-chain snapshot for project ${projectId} (${contractAddress})`
   );
 
-  // Run DexScreener (fast) in parallel, skip Basescan scrape (slow) — holders use previous value
-  const [marketcap, volume24h, liquidity, activeUsers] =
+  // DexScreener only — fast, single API call (data is cached per contract)
+  const [marketcap, volume24h, liquidity] =
     await Promise.all([
       fetchMarketcap(contractAddress),
       fetchVolume24h(contractAddress),
       fetchLiquidity(contractAddress),
-      fetchActiveUsers(contractAddress),
     ]);
   
-  // Holders: use previous snapshot value (Basescan scrape is too slow for 30-min cron)
-  // Holder count updates via dedicated /api/cron/holders endpoint (runs daily)
+  // Skip slow calls: Basescan holder scrape + Alchemy log scan
+  // These run via dedicated daily cron instead
   const holders = 0;
+  const activeUsers = 0;
 
   // tx_count approximated from active users (transfers counted above)
   const txCount = Math.floor(activeUsers * 2.5);
