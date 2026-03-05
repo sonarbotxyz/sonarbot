@@ -345,7 +345,10 @@ function NotificationSettings() {
   const [loadingTelegram, setLoadingTelegram] = useState(true);
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      setLoadingTelegram(false);
+      return;
+    }
     fetch("/api/user/telegram", {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
@@ -363,6 +366,7 @@ function NotificationSettings() {
   }, [accessToken]);
 
   const handleSave = async () => {
+    console.log("[Telegram] Save clicked, token:", accessToken ? "exists" : "null", "username:", telegramUsername);
     if (!accessToken || !telegramUsername.trim()) return;
     setSaving(true);
     try {
