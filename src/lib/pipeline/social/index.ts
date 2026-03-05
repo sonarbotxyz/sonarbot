@@ -31,6 +31,7 @@ export async function takeSocialSnapshot(
   let xEngagementRate: number | null = null;
   let githubCommits7d: number | null = null;
   let githubLastPush: Date | null = null;
+  let githubStars: number | null = null;
 
   // Fetch X data if configured
   if (xUserId) {
@@ -49,6 +50,7 @@ export async function takeSocialSnapshot(
       const ghData = await fetchGitHubActivity(githubRepo);
       githubCommits7d = ghData.commits7d;
       githubLastPush = ghData.lastPush;
+      githubStars = ghData.stars;
     } catch (error) {
       console.error(`GitHub API failed for project ${projectId}:`, error);
     }
@@ -62,6 +64,7 @@ export async function takeSocialSnapshot(
     x_engagement_rate: xEngagementRate,
     github_commits_7d: githubCommits7d,
     github_last_push: githubLastPush?.toISOString() ?? null,
+    github_stars: githubStars,
   });
 
   if (error) {
