@@ -312,9 +312,6 @@ export async function runGitHubSignalPipeline(): Promise<{
   for (const project of projects as ProjectForGitHub[]) {
     const r = await processProject(project);
     results.push(r);
-    console.log(
-      `[GitHub Signals] ${project.name}: ${r.signalsCreated} signals (${r.releasesChecked} releases, ${r.commitsChecked} commits)`
-    );
   }
 
   return {

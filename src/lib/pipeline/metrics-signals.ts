@@ -181,7 +181,6 @@ export async function detectMetricsSignals(): Promise<{ signals: number }> {
 
         if (inserted) {
           totalSignals++;
-          console.log(`[Metrics] Signal: ${signal.title} for ${project.name}`);
           await notifyEnriched(
             inserted,
             project.name,

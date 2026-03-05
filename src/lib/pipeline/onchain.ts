@@ -1,77 +1,10 @@
 /**
  * On-chain data pipeline for Base ecosystem projects.
  *
- * Uses Alchemy RPC for Base chain data. Functions that require complex
- * subgraph/indexer integrations are stubbed with TODO markers and return
- * realistic mock data for development.
+ * Uses DexScreener API for all market data (free, no key needed).
  */
 
 import { getSupabase } from "@/lib/supabase";
-
-const BASE_RPC_URL = `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`;
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-async function alchemyRpc<T>(method: string, params: unknown[]): Promise<T> {
-  const res = await fetch(BASE_RPC_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Alchemy RPC error: ${res.status} ${res.statusText}`);
-  }
-
-  const json = await res.json();
-  if (json.error) {
-    throw new Error(`Alchemy RPC error: ${json.error.message}`);
-  }
-  return json.result as T;
-}
-
-// ---------------------------------------------------------------------------
-// Data fetchers
-// ---------------------------------------------------------------------------
-
-/**
- * Fetch ERC-20 holder count from Basescan page scrape.
- * Falls back to previous snapshot value if scrape fails.
- */
-export async function fetchHolderCount(
-  contractAddress: string
-): Promise<number> {
-  try {
-    // Scrape Basescan token page for holder count
-    const res = await fetch(`https://basescan.org/token/${contractAddress}`, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; Sonarbot/1.0)",
-      },
-    });
-
-    if (!res.ok) throw new Error(`Basescan HTTP ${res.status}`);
-
-    const html = await res.text();
-
-    // Basescan format: "Holders: 227,895 | As at ..."
-    const holderMatch = html.match(/Holders:\s*([\d,]+)/i)
-      || html.match(/(\d[\d,]+)\s*holders/i)
-      || html.match(/(?:>|")\s*([\d,]+)\s*(?:holders|addresses)/i);
-
-    if (holderMatch) {
-      const count = parseInt(holderMatch[1].replace(/,/g, ""), 10);
-      if (count > 0 && count < 100_000_000) return count;
-    }
-
-    console.error(`[Holders] Could not parse holder count from Basescan for ${contractAddress}`);
-    return 0; // Will be ignored if 0, previous value kept
-  } catch (error) {
-    console.error(`fetchHolderCount failed for ${contractAddress}:`, error);
-    return 0;
-  }
-}
 
 // ---------------------------------------------------------------------------
 // DexScreener data (marketcap, volume, liquidity in one call)
@@ -96,9 +29,15 @@ export async function fetchDexScreenerData(
   if (cached) return cached;
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     const res = await fetch(
-      `https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`
+      `https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`,
+      { signal: controller.signal }
     );
+    clearTimeout(timeout);
+
     if (!res.ok) throw new Error(`DexScreener HTTP ${res.status}`);
 
     const json = await res.json();
@@ -161,63 +100,18 @@ export async function fetchLiquidity(
   return Math.round(data.liquidity);
 }
 
-/**
- * Fetch daily active users (unique addresses interacting with the contract).
- * Uses eth_getLogs to count unique from-addresses in the last ~24h of blocks.
- */
-export async function fetchActiveUsers(
-  contractAddress: string
-): Promise<number> {
-  try {
-    const currentBlock = await alchemyRpc<string>("eth_blockNumber", []);
-    // ~43200 blocks per day on Base (2s block time)
-    const fromBlock = `0x${(parseInt(currentBlock, 16) - 43200).toString(16)}`;
-
-    const logs = await alchemyRpc<Array<{ topics: string[] }>>(
-      "eth_getLogs",
-      [
-        {
-          address: contractAddress,
-          topics: [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-          ],
-          fromBlock,
-          toBlock: "latest",
-        },
-      ]
-    );
-
-    // Count unique senders (topic[1] = from address)
-    const uniqueUsers = new Set(
-      logs.map((log) => log.topics[1]).filter(Boolean)
-    );
-    return uniqueUsers.size;
-  } catch (error) {
-    console.error(
-      `fetchActiveUsers failed for ${contractAddress}:`,
-      error
-    );
-    // TODO: Replace with real indexer data
-    return Math.floor(Math.random() * 2000) + 100;
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Snapshot orchestrator
 // ---------------------------------------------------------------------------
 
 /**
  * Take a full on-chain snapshot for a project.
- * Runs all data fetchers in parallel and inserts into the snapshots table.
+ * Runs DexScreener fetch (cached per contract) and inserts into the snapshots table.
  */
 export async function takeSnapshot(
   projectId: string,
   contractAddress: string
 ): Promise<void> {
-  console.log(
-    `Taking on-chain snapshot for project ${projectId} (${contractAddress})`
-  );
-
   // DexScreener only — fast, single API call (data is cached per contract)
   const [marketcap, volume24h, liquidity] =
     await Promise.all([
@@ -225,29 +119,19 @@ export async function takeSnapshot(
       fetchVolume24h(contractAddress),
       fetchLiquidity(contractAddress),
     ]);
-  
-  // Skip slow calls: Basescan holder scrape + Alchemy log scan
-  // These run via dedicated daily cron instead
-  const holders = 0;
-  const activeUsers = 0;
-
-  // tx_count approximated from active users (transfers counted above)
-  const txCount = Math.floor(activeUsers * 2.5);
 
   const supabase = getSupabase();
 
-  // If holder scrape returned 0, use previous snapshot value
-  let finalHolders = holders;
-  if (finalHolders === 0) {
-    const { data: prevSnap } = await supabase
-      .from("snapshots")
-      .select("holders")
-      .eq("project_id", projectId)
-      .order("timestamp", { ascending: false })
-      .limit(1)
-      .single();
-    finalHolders = prevSnap?.holders || 0;
-  }
+  // Use previous snapshot value for holders (updated separately)
+  const { data: prevSnap } = await supabase
+    .from("snapshots")
+    .select("holders")
+    .eq("project_id", projectId)
+    .order("timestamp", { ascending: false })
+    .limit(1)
+    .single();
+
+  const finalHolders = prevSnap?.holders || 0;
 
   const { error } = await supabase.from("snapshots").insert({
     project_id: projectId,
@@ -255,18 +139,14 @@ export async function takeSnapshot(
     marketcap,
     volume_24h: volume24h,
     liquidity,
-    active_users: activeUsers,
-    tx_count: txCount,
+    active_users: 0,
+    tx_count: 0,
   });
 
   if (error) {
     console.error(`Snapshot insert failed for ${projectId}:`, error);
     throw error;
   }
-
-  console.log(
-    `Snapshot saved: holders=${holders} mcap=${marketcap} vol=${volume24h} liq=${liquidity} active=${activeUsers}`
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -291,14 +171,10 @@ export async function runOnchainPipeline(): Promise<{
   }
 
   if (!projects || projects.length === 0) {
-    console.log("No projects with contract addresses found.");
     return { processed: 0, errors: 0 };
   }
 
   clearDexCache();
-  console.log(
-    `Running on-chain pipeline for ${projects.length} projects...`
-  );
 
   let processed = 0;
   let errors = 0;
@@ -313,8 +189,5 @@ export async function runOnchainPipeline(): Promise<{
     }
   }
 
-  console.log(
-    `Pipeline complete: ${processed} processed, ${errors} errors`
-  );
   return { processed, errors };
 }

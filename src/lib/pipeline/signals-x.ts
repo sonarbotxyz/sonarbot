@@ -201,9 +201,6 @@ export async function runXSignalPipeline(): Promise<{
   for (const project of projects as ProjectForX[]) {
     const r = await processProject(project);
     results.push(r);
-    console.log(
-      `[X Signals] ${project.name}: ${r.signalsCreated} signals from ${r.tweetsChecked} tweets`
-    );
   }
 
   return {

@@ -78,7 +78,7 @@ export async function classifyContent(
 
     if (res.status === 429) {
       // Rate limited — wait 15s and retry once
-      console.log("[Classifier] Gemini rate limited, waiting 15s...");
+      console.error("[Classifier] Gemini rate limited, retrying in 15s...");
       await new Promise((r) => setTimeout(r, 15000));
       const retry = await fetch(`${GEMINI_URL}?key=${getGeminiKey()}`, {
         method: "POST",

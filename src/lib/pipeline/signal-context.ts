@@ -231,7 +231,7 @@ async function generateAnalysis(prompt: string, retries = 2): Promise<string | n
       if (res.status === 429) {
         // Rate limited — wait and retry
         const waitMs = (attempt + 1) * 15000; // 15s, 30s
-        console.log(`[SignalContext] Gemini rate limited, waiting ${waitMs / 1000}s...`);
+        console.error(`[SignalContext] Gemini rate limited, retrying in ${waitMs / 1000}s...`);
         await new Promise((r) => setTimeout(r, waitMs));
         continue;
       }

@@ -26,7 +26,6 @@ export async function takeSocialSnapshot(
   xUserId?: string,
   githubRepo?: string
 ): Promise<void> {
-  console.log(`Taking social snapshot for project ${projectId}`);
 
   let xFollowers: number | null = null;
   let xEngagementRate: number | null = null;
@@ -39,9 +38,6 @@ export async function takeSocialSnapshot(
       const xData = await fetchXData(xUserId);
       xFollowers = xData.followers;
       xEngagementRate = xData.engagementRate;
-      console.log(
-        `X data for ${projectId}: ${xFollowers} followers, ${xEngagementRate}% engagement`
-      );
     } catch (error) {
       console.error(`X API failed for project ${projectId}:`, error);
     }
@@ -53,9 +49,6 @@ export async function takeSocialSnapshot(
       const ghData = await fetchGitHubActivity(githubRepo);
       githubCommits7d = ghData.commits7d;
       githubLastPush = ghData.lastPush;
-      console.log(
-        `GitHub data for ${projectId}: ${githubCommits7d} commits/7d, last push ${githubLastPush?.toISOString() ?? "never"}`
-      );
     } catch (error) {
       console.error(`GitHub API failed for project ${projectId}:`, error);
     }
@@ -79,7 +72,6 @@ export async function takeSocialSnapshot(
     throw error;
   }
 
-  console.log(`Social snapshot saved for project ${projectId}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -111,13 +103,9 @@ export async function runSocialPipeline(): Promise<{
   }
 
   if (!projects || projects.length === 0) {
-    console.log("No projects with social accounts found.");
     return { processed: 0, errors: 0 };
   }
 
-  console.log(
-    `Running social pipeline for ${projects.length} projects...`
-  );
 
   let processed = 0;
   let errors = 0;
@@ -141,8 +129,5 @@ export async function runSocialPipeline(): Promise<{
     }
   }
 
-  console.log(
-    `Social pipeline complete: ${processed} processed, ${errors} errors`
-  );
   return { processed, errors };
 }

@@ -23,10 +23,13 @@ async function fetchXMetrics(handle: string): Promise<XMetrics | null> {
 
   try {
     // Get user ID and follower count
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const userRes = await fetch(
       `${X_API_BASE}/users/by/username/${handle}?user.fields=public_metrics`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }
     );
+    clearTimeout(timeout);
     if (!userRes.ok) {
       console.error(`[Social] X user lookup failed for @${handle}: ${userRes.status}`);
       return null;
@@ -171,7 +174,6 @@ export async function runSocialPipeline(): Promise<{ processed: number; errors: 
       const xFollowers = xMetrics?.followers ?? null;
       const ghCommits = ghMetrics?.commits30d ?? null;
 
-      console.log(`[Social] ${project.name}: X followers=${xFollowers}, GH commits=${ghCommits}, stars=${ghMetrics?.stars || 0}`);
 
       const { error } = await supabase
         .from("social_snapshots")
@@ -188,7 +190,6 @@ export async function runSocialPipeline(): Promise<{ processed: number; errors: 
         console.error(`[Social] Upsert failed for ${project.name}:`, error);
         errors++;
       } else {
-        console.log(`[Social] Updated ${project.name}: X followers=${xMetrics?.followers || 0}, GH commits=${ghMetrics?.commits30d || 0}, stars=${ghMetrics?.stars || 0}`);
         processed++;
       }
     } catch (err) {

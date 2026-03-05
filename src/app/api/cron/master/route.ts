@@ -27,11 +27,14 @@ async function fetchProjectTweets(handle: string): Promise<Tweet[]> {
   if (!token || !handle) return [];
 
   try {
-    const query = encodeURIComponent(`from:${handle} -is:reply -is:retweet`);
+    const query = encodeURIComponent(`from:${handle}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(
       `${X_API_BASE}/tweets/search/recent?query=${query}&max_results=10&tweet.fields=created_at,referenced_tweets`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }
     );
+    clearTimeout(timeout);
     if (!res.ok) return [];
     const data = await res.json();
     return data.data ?? [];
@@ -66,7 +69,10 @@ async function fetchGitHubSignals(githubUrl: string): Promise<GitHubSignalData[]
 
   try {
     // Check releases (last 48h)
-    const relRes = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=3`, { headers });
+    const relController = new AbortController();
+    const relTimeout = setTimeout(() => relController.abort(), 10000);
+    const relRes = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=3`, { headers, signal: relController.signal });
+    clearTimeout(relTimeout);
     if (relRes.ok) {
       const releases = await relRes.json();
       const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
@@ -83,10 +89,13 @@ async function fetchGitHubSignals(githubUrl: string): Promise<GitHubSignalData[]
 
     // Check recent commits (last 2h for 30-min interval)
     const since = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const commitController = new AbortController();
+    const commitTimeout = setTimeout(() => commitController.abort(), 10000);
     const commitsRes = await fetch(
       `https://api.github.com/repos/${repo}/commits?per_page=5&since=${since}`,
-      { headers }
+      { headers, signal: commitController.signal }
     );
+    clearTimeout(commitTimeout);
     if (commitsRes.ok) {
       const commits = await commitsRes.json();
       if (Array.isArray(commits) && commits.length >= 3) {
@@ -129,15 +138,12 @@ export async function GET(request: NextRequest) {
 
   try {
     // ── Step 1: Fetch fresh on-chain data ──
-    console.log("[Master] Step 1: On-chain data fetch...");
     results.onchain = await runOnchainPipeline();
 
     // ── Step 2: Detect metric milestones from fresh snapshots ──
-    console.log("[Master] Step 2: Metrics milestone detection...");
     results.metrics = await detectMetricsSignals();
 
     // ── Step 3: Update social metrics (X followers, GitHub stars/commits) ──
-    console.log("[Master] Step 3: Social metrics...");
     results.social = await runSocialPipeline();
 
     // ── Step 4: Fetch all projects for X + GitHub signal checks ──
@@ -155,7 +161,6 @@ export async function GET(request: NextRequest) {
     }
 
     // ── Step 4: X Tweet Pipeline ──
-    console.log("[Master] Step 3: X tweet pipeline...");
     for (const project of projects) {
       if (!project.twitter_handle) continue;
 
@@ -196,7 +201,6 @@ export async function GET(request: NextRequest) {
 
         if (inserted) {
           results.x.signals++;
-          console.log(`[Master] X signal: ${classification.title} for ${project.name}`);
 
           // Enrich and notify
           try {
@@ -215,7 +219,6 @@ export async function GET(request: NextRequest) {
     }
 
     // ── Step 5: GitHub Pipeline ──
-    console.log("[Master] Step 4: GitHub pipeline...");
     for (const project of projects) {
       if (!project.github_url) continue;
 
@@ -255,7 +258,6 @@ export async function GET(request: NextRequest) {
 
         if (inserted) {
           results.github.signals++;
-          console.log(`[Master] GitHub signal: ${ghSignal.title} for ${project.name}`);
 
           try {
             await notifyEnriched(
@@ -273,7 +275,6 @@ export async function GET(request: NextRequest) {
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`[Master] Pipeline complete in ${duration}s:`, results);
 
     return NextResponse.json({
       success: true,

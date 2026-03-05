@@ -47,12 +47,12 @@ function calcLiquiditySub(
   return Math.round(((changePct + 20) / 20) * 100);
 }
 
-/** Social engagement sub-score (0-100). Baseline engagement rate ~2%. */
-function calcSocialSub(engagementRate: number): number {
-  const baseline = 2.0; // 2% is average engagement
-  if (engagementRate >= baseline * 2) return 100; // 4%+ is excellent
-  if (engagementRate <= 0) return 0;
-  return Math.round(Math.min((engagementRate / (baseline * 2)) * 100, 100));
+/** Social sub-score (0-100) based on X follower count. Log-scaled thresholds. */
+function calcSocialSub(xFollowers: number): number {
+  if (xFollowers <= 0) return 0;
+  // Log scale: 100 → 33, 1000 → 50, 10000 → 67, 100000 → 83
+  const score = Math.round((Math.log10(xFollowers) / 6) * 100);
+  return Math.min(Math.max(score, 0), 100);
 }
 
 /** Volume trend sub-score (0-100). Compares current vs previous snapshot. */
@@ -99,7 +99,7 @@ export async function calculateHealthScore(
   // Fetch latest social snapshot
   const { data: socialData } = await supabase
     .from("social_snapshots")
-    .select("x_engagement_rate, github_commits_7d")
+    .select("x_followers, github_commits_7d")
     .eq("project_id", projectId)
     .order("timestamp", { ascending: false })
     .limit(1);
@@ -125,7 +125,7 @@ export async function calculateHealthScore(
     ? calcDevSub(social.github_commits_7d ?? 0)
     : 50;
   const socialSub = social
-    ? calcSocialSub(social.x_engagement_rate ?? 0)
+    ? calcSocialSub(social.x_followers ?? 0)
     : 50;
 
   // Weighted composite score
@@ -153,9 +153,6 @@ export async function calculateHealthScore(
     throw error;
   }
 
-  console.log(
-    `Health score for ${projectId}: ${score} (h=${holderSub} d=${devSub} l=${liquiditySub} s=${socialSub} v=${volumeSub})`
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -179,13 +176,9 @@ export async function runHealthScorePipeline(): Promise<{
   }
 
   if (!projects || projects.length === 0) {
-    console.log("No projects found for health score calculation.");
-    return { processed: 0, errors: 0 };
+      return { processed: 0, errors: 0 };
   }
 
-  console.log(
-    `Calculating health scores for ${projects.length} projects...`
-  );
 
   let processed = 0;
   let errors = 0;
@@ -200,8 +193,5 @@ export async function runHealthScorePipeline(): Promise<{
     }
   }
 
-  console.log(
-    `Health scores complete: ${processed} processed, ${errors} errors`
-  );
   return { processed, errors };
 }
