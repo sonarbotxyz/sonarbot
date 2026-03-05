@@ -181,22 +181,17 @@ export async function runSocialPipeline(): Promise<{ processed: number; errors: 
         fetchGitHubMetrics(project.github_url || ""),
       ]);
 
-      // Upsert social metrics
+      // Insert new social snapshot
       const { error } = await supabase
-        .from("social_metrics")
-        .upsert(
-          {
-            project_id: project.id,
-            x_followers: xMetrics?.followers || 0,
-            x_engagement_rate: 0, // TODO: calculate from tweet impressions
-            github_commits_30d: ghMetrics?.commits30d || 0,
-            github_stars: ghMetrics?.stars || 0,
-            farcaster_followers: 0, // TODO: add Farcaster API
-            farcaster_engagement: 0,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "project_id" }
-        );
+        .from("social_snapshots")
+        .insert({
+          project_id: project.id,
+          x_followers: xMetrics?.followers || null,
+          x_engagement_rate: null, // TODO: calculate from tweet impressions
+          github_commits_7d: ghMetrics?.commits30d || null, // Using 30d data in 7d column for now
+          github_last_push: new Date().toISOString(),
+          farcaster_followers: null, // TODO: add Farcaster API
+        });
 
       if (error) {
         console.error(`[Social] Upsert failed for ${project.name}:`, error);
