@@ -37,48 +37,46 @@ async function alchemyRpc<T>(method: string, params: unknown[]): Promise<T> {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch ERC-20 holder count for a contract on Base.
- * Uses Alchemy's getTokenMetadata if available, otherwise falls back to
- * a transfer log scan estimate.
+ * Fetch ERC-20 holder count from Basescan page scrape.
+ * Falls back to previous snapshot value if scrape fails.
  */
 export async function fetchHolderCount(
   contractAddress: string
 ): Promise<number> {
   try {
-    // Alchemy Token API — getTokenMetadata doesn't return holder count directly.
-    // For accurate holder count, we'd need an indexer (e.g. Dune, Covalent).
-    // TODO: Integrate Covalent or Dune API for accurate holder counts.
+    // Scrape Basescan token page for holder count
+    const res = await fetch(`https://basescan.org/token/${contractAddress}`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; Sonarbot/1.0)",
+      },
+    });
 
-    // Approximation: count unique Transfer event recipients in recent blocks
-    const currentBlock = await alchemyRpc<string>("eth_blockNumber", []);
-    const fromBlock = `0x${(parseInt(currentBlock, 16) - 50000).toString(16)}`;
+    if (!res.ok) throw new Error(`Basescan HTTP ${res.status}`);
 
-    const logs = await alchemyRpc<Array<{ topics: string[] }>>(
-      "eth_getLogs",
-      [
-        {
-          address: contractAddress,
-          topics: [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-          ],
-          fromBlock,
-          toBlock: "latest",
-        },
-      ]
-    );
+    const html = await res.text();
 
-    // Count unique recipients (topic[2] = to address)
-    const uniqueHolders = new Set(
-      logs.map((log) => log.topics[2]).filter(Boolean)
-    );
-    return uniqueHolders.size;
+    // Look for holder count in various formats Basescan uses
+    // Format: "123,456 holders" or "holders":"123456"
+    const holderMatch = html.match(/(?:>|")\s*([\d,]+)\s*(?:holders|addresses)/i)
+      || html.match(/holder[s]?[^>]*>[\s\S]*?([\d,]+)/i);
+
+    if (holderMatch) {
+      const count = parseInt(holderMatch[1].replace(/,/g, ""), 10);
+      if (count > 0 && count < 100_000_000) return count;
+    }
+
+    // Fallback: try to get from the token summary
+    const summaryMatch = html.match(/(\d[\d,]*)\s*holder/i);
+    if (summaryMatch) {
+      const count = parseInt(summaryMatch[1].replace(/,/g, ""), 10);
+      if (count > 0 && count < 100_000_000) return count;
+    }
+
+    console.error(`[Holders] Could not parse holder count from Basescan for ${contractAddress}`);
+    return 0; // Will be ignored if 0, previous value kept
   } catch (error) {
-    console.error(
-      `fetchHolderCount failed for ${contractAddress}:`,
-      error
-    );
-    // TODO: Replace with real indexer data
-    return Math.floor(Math.random() * 5000) + 500;
+    console.error(`fetchHolderCount failed for ${contractAddress}:`, error);
+    return 0;
   }
 }
 
@@ -240,9 +238,23 @@ export async function takeSnapshot(
   const txCount = Math.floor(activeUsers * 2.5);
 
   const supabase = getSupabase();
+
+  // If holder scrape returned 0, use previous snapshot value
+  let finalHolders = holders;
+  if (finalHolders === 0) {
+    const { data: prevSnap } = await supabase
+      .from("snapshots")
+      .select("holders")
+      .eq("project_id", projectId)
+      .order("timestamp", { ascending: false })
+      .limit(1)
+      .single();
+    finalHolders = prevSnap?.holders || 0;
+  }
+
   const { error } = await supabase.from("snapshots").insert({
     project_id: projectId,
-    holders,
+    holders: finalHolders,
     marketcap,
     volume_24h: volume24h,
     liquidity,

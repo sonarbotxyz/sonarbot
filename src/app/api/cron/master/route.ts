@@ -4,6 +4,7 @@ import { runOnchainPipeline } from "@/lib/pipeline/onchain";
 import { detectMetricsSignals } from "@/lib/pipeline/metrics-signals";
 import { classifyContent } from "@/lib/pipeline/signal-classifier";
 import { notifyEnriched } from "@/lib/pipeline/notify";
+import { runSocialPipeline } from "@/lib/pipeline/social";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -120,6 +121,7 @@ export async function GET(request: NextRequest) {
   const results = {
     onchain: { processed: 0, errors: 0 },
     metrics: { signals: 0 },
+    social: { processed: 0, errors: 0 },
     x: { tweetsChecked: 0, signals: 0 },
     github: { signals: 0 },
     notifications: { sent: 0 },
@@ -134,7 +136,11 @@ export async function GET(request: NextRequest) {
     console.log("[Master] Step 2: Metrics milestone detection...");
     results.metrics = await detectMetricsSignals();
 
-    // ── Step 3: Fetch all projects for X + GitHub checks ──
+    // ── Step 3: Update social metrics (X followers, GitHub stars/commits) ──
+    console.log("[Master] Step 3: Social metrics...");
+    results.social = await runSocialPipeline();
+
+    // ── Step 4: Fetch all projects for X + GitHub signal checks ──
     const { data: projects } = await supabase
       .from("projects")
       .select("id, name, twitter_handle, github_url, contract_address")
