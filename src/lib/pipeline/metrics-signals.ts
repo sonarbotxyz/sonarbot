@@ -4,7 +4,7 @@
  */
 
 import { getSupabase } from "@/lib/supabase";
-import { notifyWatchers } from "@/lib/pipeline/notify";
+import { notifyEnriched } from "@/lib/pipeline/notify";
 
 // Thresholds that trigger signals
 const HOLDER_MILESTONES = [1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
@@ -40,7 +40,7 @@ export async function detectMetricsSignals(): Promise<{ signals: number }> {
   // Get all approved projects
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, name, contract_address")
+    .select("id, name, contract_address, twitter_handle, github_repo")
     .not("contract_address", "is", null)
     .eq("is_approved", true);
 
@@ -182,7 +182,12 @@ export async function detectMetricsSignals(): Promise<{ signals: number }> {
         if (inserted) {
           totalSignals++;
           console.log(`[Metrics] Signal: ${signal.title} for ${project.name}`);
-          await notifyWatchers([inserted]);
+          await notifyEnriched(
+            inserted,
+            project.name,
+            project.twitter_handle || "",
+            project.github_repo || ""
+          );
         }
       }
     } catch (err) {

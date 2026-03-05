@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runXSignalPipeline } from "@/lib/pipeline/signals-x";
 import { runGitHubSignalPipeline } from "@/lib/pipeline/signals-github";
-import { notifyWatchers } from "@/lib/pipeline/notify";
+import { notifyEnriched } from "@/lib/pipeline/notify";
 import { getSupabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       runGitHubSignalPipeline(),
     ]);
 
-    // Notify watchers of newly created signals
+    // Notify watchers of newly created signals with enriched context
     try {
       const supabase = getSupabase();
       const { data: newSignals } = await supabase
@@ -31,7 +31,25 @@ export async function GET(request: NextRequest) {
         .gte("created_at", beforeRun);
 
       if (newSignals && newSignals.length > 0) {
-        await notifyWatchers(newSignals);
+        for (const signal of newSignals) {
+          try {
+            // Fetch project details for enrichment
+            const { data: project } = await supabase
+              .from("projects")
+              .select("name, twitter_handle, github_repo")
+              .eq("id", signal.project_id)
+              .single();
+
+            await notifyEnriched(
+              signal,
+              project?.name || "Unknown",
+              project?.twitter_handle || "",
+              project?.github_repo || ""
+            );
+          } catch (signalErr) {
+            console.error(`Enriched notification failed for signal ${signal.id}:`, signalErr);
+          }
+        }
       }
     } catch (notifyError) {
       console.error("Notification error:", notifyError);
