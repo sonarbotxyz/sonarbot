@@ -55,20 +55,13 @@ export async function fetchHolderCount(
 
     const html = await res.text();
 
-    // Look for holder count in various formats Basescan uses
-    // Format: "123,456 holders" or "holders":"123456"
-    const holderMatch = html.match(/(?:>|")\s*([\d,]+)\s*(?:holders|addresses)/i)
-      || html.match(/holder[s]?[^>]*>[\s\S]*?([\d,]+)/i);
+    // Basescan format: "Holders: 227,895 | As at ..."
+    const holderMatch = html.match(/Holders:\s*([\d,]+)/i)
+      || html.match(/(\d[\d,]+)\s*holders/i)
+      || html.match(/(?:>|")\s*([\d,]+)\s*(?:holders|addresses)/i);
 
     if (holderMatch) {
       const count = parseInt(holderMatch[1].replace(/,/g, ""), 10);
-      if (count > 0 && count < 100_000_000) return count;
-    }
-
-    // Fallback: try to get from the token summary
-    const summaryMatch = html.match(/(\d[\d,]*)\s*holder/i);
-    if (summaryMatch) {
-      const count = parseInt(summaryMatch[1].replace(/,/g, ""), 10);
       if (count > 0 && count < 100_000_000) return count;
     }
 
