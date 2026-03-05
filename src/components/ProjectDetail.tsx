@@ -55,6 +55,7 @@ import { HealthScore } from "@/components/HealthScore";
 import { HealthBreakdown } from "@/components/HealthBreakdown";
 import { WhaleTable } from "@/components/WhaleTable";
 import { ProjectCard } from "@/components/ProjectCard";
+import { TelegramPairingModal } from "@/components/TelegramPairingModal";
 
 const milestoneTypeIcons: Record<string, React.ElementType> = {
   metrics: BarChart3,
@@ -147,6 +148,8 @@ export function ProjectDetail({
   const [chartMetric, setChartMetric] = useState<ChartMetric>("holders");
   const [promotedProject, setPromotedProject] = useState<Project | null>(null);
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>(30);
+  const [telegramLinked, setTelegramLinked] = useState(false);
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
   const galleryRef = useRef<HTMLDivElement>(null);
 
   // Map DB column names to frontend keys
@@ -185,6 +188,17 @@ export function ProjectDetail({
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, accessToken, projectId]);
+
+  // Check telegram link status
+  useEffect(() => {
+    if (!user || !accessToken) return;
+    fetch("/api/user/telegram", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setTelegramLinked(!!(data.linked && data.activated)))
+      .catch(() => {});
+  }, [user, accessToken]);
 
   const handleWatch = useCallback(async () => {
     if (!user) { login(); return; }
@@ -867,6 +881,33 @@ export function ProjectDetail({
                   </div>
                 </div>
 
+                {/* Telegram prompt */}
+                {watching && !telegramLinked && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!user) { login(); return; }
+                      setShowTelegramModal(true);
+                    }}
+                    className="w-full p-3 flex items-center gap-2.5 text-left transition-colors"
+                    style={{
+                      background: "var(--accent-glow)",
+                      border: "1px solid var(--accent-dim)",
+                    }}
+                  >
+                    <Bell className="h-4 w-4 flex-shrink-0" style={{ color: "var(--accent)" }} />
+                    <span className="text-xs" style={{ color: "var(--text-body)" }}>
+                      Connect Telegram to receive alerts
+                    </span>
+                  </button>
+                )}
+                {watching && telegramLinked && (
+                  <div className="p-3 flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5" style={{ color: "#22c55e" }} />
+                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>Telegram connected</span>
+                  </div>
+                )}
+
                 {/* Company Info */}
                 <div className="p-4" style={{ background: "var(--bg-secondary)" }}>
                   <h3 className="text-[10px] uppercase tracking-[0.15em] font-medium" style={{ color: "var(--text-muted)" }}>Company Info</h3>
@@ -914,6 +955,24 @@ export function ProjectDetail({
       <AnimatePresence>
         {showAlertModal && <AlertModal projectName={project.name} onClose={() => setShowAlertModal(false)} initialSelected={alertPrefs} onSave={handleSaveAlertPrefs} />}
       </AnimatePresence>
+
+      {/* Telegram pairing modal */}
+      {accessToken && (
+        <TelegramPairingModal
+          isOpen={showTelegramModal}
+          onClose={() => {
+            setShowTelegramModal(false);
+            // Re-check telegram status
+            fetch("/api/user/telegram", {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+              .then((r) => r.json())
+              .then((data) => setTelegramLinked(!!(data.linked && data.activated)))
+              .catch(() => {});
+          }}
+          accessToken={accessToken}
+        />
+      )}
     </>
   );
 }

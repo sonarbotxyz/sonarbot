@@ -2,6 +2,54 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 
+export async function POST(request: NextRequest) {
+  const auth = await authenticateRequest(request);
+  if (!auth) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const supabase = getSupabase();
+  const { data: user } = await supabase
+    .from("users")
+    .select("id")
+    .eq("privy_id", auth.userId)
+    .single();
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  // Delete any existing codes for this user
+  await supabase
+    .from("telegram_link_codes")
+    .delete()
+    .eq("user_id", user.id);
+
+  // Generate a random 6-digit code
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+  const { error } = await supabase.from("telegram_link_codes").insert({
+    user_id: user.id,
+    code,
+    expires_at: expiresAt,
+  });
+
+  if (error) {
+    console.error("Failed to create telegram link code:", error);
+    return NextResponse.json(
+      { error: "Failed to generate code" },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({
+    code,
+    expires_in: 600,
+    bot_url: "https://t.me/sonarwatcher_bot",
+  });
+}
+
 export async function GET(request: NextRequest) {
   const auth = await authenticateRequest(request);
   if (!auth) {

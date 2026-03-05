@@ -20,6 +20,7 @@ import {
   Send,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
+import { TelegramPairingModal } from "@/components/TelegramPairingModal";
 
 const signalTypeIcons: Record<string, React.ElementType> = {
   metrics_milestones: BarChart3,
@@ -337,14 +338,14 @@ function WatchingGrid({ watchlist }: { watchlist: WatchlistProject[] }) {
 
 function NotificationSettings() {
   const { accessToken } = useAuth();
-  const [telegramUsername, setTelegramUsername] = useState("");
-  const [savedUsername, setSavedUsername] = useState("");
   const [isLinked, setIsLinked] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [username, setUsername] = useState("");
   const [loadingTelegram, setLoadingTelegram] = useState(true);
+  const [removing, setRemoving] = useState(false);
+  const [showPairingModal, setShowPairingModal] = useState(false);
 
-  useEffect(() => {
+  const loadStatus = () => {
     if (!accessToken) {
       setLoadingTelegram(false);
       return;
@@ -354,60 +355,40 @@ function NotificationSettings() {
     })
       .then((r) => r.json())
       .then((data) => {
-        if (data.linked) {
-          setIsLinked(true);
-          setSavedUsername(data.username);
-          setTelegramUsername(data.username);
-          setIsActivated(!!data.activated);
-        }
+        setIsLinked(!!data.linked);
+        setUsername(data.username || "");
+        setIsActivated(!!data.activated);
       })
       .catch((e) => console.error("Failed to load telegram status:", e))
       .finally(() => setLoadingTelegram(false));
-  }, [accessToken]);
-
-  const handleSave = async () => {
-    console.log("[Telegram] Save clicked, token:", accessToken ? "exists" : "null", "username:", telegramUsername);
-    if (!accessToken || !telegramUsername.trim()) return;
-    setSaving(true);
-    try {
-      const res = await fetch("/api/user/telegram", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username: telegramUsername }),
-      });
-      const data = await res.json();
-      if (data.linked) {
-        setIsLinked(true);
-        setSavedUsername(data.username);
-        setIsActivated(false);
-      }
-    } catch (e) {
-      console.error("Failed to save telegram:", e);
-    } finally {
-      setSaving(false);
-    }
   };
+
+  useEffect(() => {
+    loadStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
 
   const handleRemove = async () => {
     if (!accessToken) return;
-    setSaving(true);
+    setRemoving(true);
     try {
       await fetch("/api/user/telegram", {
         method: "DELETE",
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       setIsLinked(false);
-      setSavedUsername("");
-      setTelegramUsername("");
+      setUsername("");
       setIsActivated(false);
     } catch (e) {
       console.error("Failed to remove telegram:", e);
     } finally {
-      setSaving(false);
+      setRemoving(false);
     }
+  };
+
+  const handleModalClose = () => {
+    setShowPairingModal(false);
+    loadStatus();
   };
 
   return (
@@ -429,17 +410,6 @@ function NotificationSettings() {
             <div className="flex items-center gap-2 mb-3">
               <Send className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
               <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Telegram</span>
-              {isLinked && (
-                <span className="flex items-center gap-1 text-[10px] uppercase tracking-[0.1em] px-2 py-0.5"
-                  style={{
-                    color: isActivated ? "#22c55e" : "var(--accent)",
-                    border: `1px solid ${isActivated ? "rgba(34,197,94,0.3)" : "var(--accent-dim)"}`,
-                  }}
-                >
-                  <Check className="h-3 w-3" />
-                  {isActivated ? "Active" : "Connected"}
-                </span>
-              )}
             </div>
 
             {loadingTelegram ? (
@@ -447,66 +417,61 @@ function NotificationSettings() {
                 <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--text-muted)" }} />
                 <span className="text-xs" style={{ color: "var(--text-muted)" }}>Loading...</span>
               </div>
-            ) : (
-              <>
+            ) : isLinked && isActivated ? (
+              <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={telegramUsername}
-                    onChange={(e) => setTelegramUsername(e.target.value)}
-                    placeholder="@username"
-                    className="flex-1 h-9 px-3 text-sm font-mono outline-none"
-                    style={{
-                      background: "var(--bg-tertiary)",
-                      color: "var(--text-primary)",
-                      border: "1px solid var(--border-strong)",
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saving || !telegramUsername.trim() || telegramUsername === savedUsername}
-                    className="h-9 px-4 text-xs uppercase tracking-[0.1em] font-medium text-white transition-opacity disabled:opacity-40"
-                    style={{ background: "var(--accent)" }}
-                  >
-                    {saving ? "Saving..." : "Save"}
-                  </button>
+                  <Check className="h-4 w-4" style={{ color: "#22c55e" }} />
+                  <span className="text-sm" style={{ color: "var(--text-primary)" }}>
+                    Connected as <span className="font-semibold">@{username}</span>
+                  </span>
                 </div>
-
-                {isLinked && (
-                  <div className="mt-2 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={handleRemove}
-                      className="flex items-center gap-1 text-[11px] transition-colors hover:opacity-80"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      <X className="h-3 w-3" />
-                      Remove
-                    </button>
-                  </div>
-                )}
-
-                {isLinked && !isActivated && (
-                  <div className="mt-3 p-3 text-xs" style={{ background: "var(--accent-glow)", border: "1px solid var(--accent-dim)", color: "var(--text-body)" }}>
-                    To receive notifications, send <span className="font-bold" style={{ color: "var(--text-primary)" }}>/start</span> to{" "}
-                    <a
-                      href="https://t.me/sonarwatcher_bot"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-bold underline"
-                      style={{ color: "var(--accent)" }}
-                    >
-                      @sonarwatcher_bot
-                    </a>{" "}
-                    on Telegram.
-                  </div>
-                )}
-              </>
+                <button
+                  type="button"
+                  onClick={handleRemove}
+                  disabled={removing}
+                  className="flex items-center gap-1 text-[11px] transition-colors hover:opacity-80"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  <X className="h-3 w-3" />
+                  {removing ? "Disconnecting..." : "Disconnect"}
+                </button>
+              </div>
+            ) : isLinked && !isActivated ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--accent)" }} />
+                  <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Pending activation</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPairingModal(true)}
+                  className="h-8 px-4 text-xs uppercase tracking-[0.08em] font-medium text-white"
+                  style={{ background: "var(--accent)" }}
+                >
+                  Reconnect
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowPairingModal(true)}
+                className="h-9 px-5 text-xs uppercase tracking-[0.08em] font-medium text-white transition-opacity hover:opacity-90"
+                style={{ background: "var(--accent)" }}
+              >
+                Connect Telegram
+              </button>
             )}
           </div>
         </div>
       </div>
+
+      {accessToken && (
+        <TelegramPairingModal
+          isOpen={showPairingModal}
+          onClose={handleModalClose}
+          accessToken={accessToken}
+        />
+      )}
     </motion.div>
   );
 }
