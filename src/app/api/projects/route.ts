@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { authenticateRequest } from "@/lib/auth";
 import { sanitizeText, clampInt } from "@/lib/validate";
+import { rateLimit } from "@/lib/rate-limit";
 
 const VALID_CATEGORIES = [
   "defi",
@@ -202,6 +203,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
+      );
+    }
+
+    if (!rateLimit(`submit:${auth.handle}`, 3, 60_000)) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 }
       );
     }
 

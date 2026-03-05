@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { authenticateRequest } from "@/lib/auth";
 import { isValidUUID, sanitizeText } from "@/lib/validate";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(
   _request: NextRequest,
@@ -46,6 +47,13 @@ export async function POST(
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
+      );
+    }
+
+    if (!rateLimit(`comment:${auth.handle}`, 5, 60_000)) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 }
       );
     }
 

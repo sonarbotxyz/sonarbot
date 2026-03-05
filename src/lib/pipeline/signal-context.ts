@@ -53,12 +53,16 @@ async function fetchRecentTweets(twitterHandle: string): Promise<string[]> {
   if (!token || !twitterHandle) return [];
 
   try {
-    const query = encodeURIComponent(`from:${twitterHandle} -is:reply -is:retweet`);
+    const query = encodeURIComponent(`from:${twitterHandle}`);
     const url = `${X_API_BASE}/tweets/search/recent?query=${query}&max_results=10&tweet.fields=referenced_tweets`;
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
 
     if (!res.ok) return [];
 
@@ -127,16 +131,22 @@ async function fetchGithubSummary(githubRepo: string): Promise<string | null> {
 
   try {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const commitsController = new AbortController();
+    const commitsTimeout = setTimeout(() => commitsController.abort(), 10000);
+    const releasesController = new AbortController();
+    const releasesTimeout = setTimeout(() => releasesController.abort(), 10000);
     const [commitsRes, releasesRes] = await Promise.all([
       fetch(
         `https://api.github.com/repos/${githubRepo}/commits?per_page=100&since=${since}`,
-        { headers }
+        { headers, signal: commitsController.signal }
       ),
       fetch(
         `https://api.github.com/repos/${githubRepo}/releases?per_page=1`,
-        { headers }
+        { headers, signal: releasesController.signal }
       ),
     ]);
+    clearTimeout(commitsTimeout);
+    clearTimeout(releasesTimeout);
 
     const parts: string[] = [];
 
@@ -220,13 +230,17 @@ async function generateAnalysis(prompt: string, retries = 2): Promise<string | n
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
       const res = await fetch(`${GEMINI_URL}?key=${key}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (res.status === 429) {
         // Rate limited — wait and retry

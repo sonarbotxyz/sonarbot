@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { authenticateRequest } from "@/lib/auth";
 import { isValidUUID } from "@/lib/validate";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(
   request: NextRequest,
@@ -13,6 +14,13 @@ export async function POST(
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
+      );
+    }
+
+    if (!rateLimit(`upvote:${auth.handle}`, 10, 60_000)) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 }
       );
     }
 
@@ -30,7 +38,7 @@ export async function POST(
     // Check project exists
     const { data: project, error: projectError } = await supabase
       .from("projects")
-      .select("id, upvotes")
+      .select("id")
       .eq("id", projectId)
       .single();
 
@@ -49,6 +57,8 @@ export async function POST(
       .eq("twitter_handle", handle)
       .single();
 
+    let action: "added" | "removed";
+
     if (existingUpvote) {
       // Remove upvote (toggle)
       await supabase
@@ -56,45 +66,42 @@ export async function POST(
         .delete()
         .eq("project_id", projectId)
         .eq("twitter_handle", handle);
+      action = "removed";
+    } else {
+      // Add upvote
+      const { error: upvoteError } = await supabase
+        .from("project_upvotes")
+        .insert({
+          project_id: projectId,
+          twitter_handle: handle,
+          is_agent: isAgent,
+        });
 
-      await supabase
-        .from("projects")
-        .update({ upvotes: Math.max(0, project.upvotes - 1) })
-        .eq("id", projectId);
-
-      return NextResponse.json({
-        success: true,
-        action: "removed",
-        upvotes: project.upvotes - 1,
-      });
+      if (upvoteError) {
+        console.error("Upvote error:", upvoteError);
+        return NextResponse.json(
+          { error: "Failed to upvote" },
+          { status: 500 }
+        );
+      }
+      action = "added";
     }
 
-    // Add upvote
-    const { error: upvoteError } = await supabase
+    // Re-count upvotes to avoid race conditions
+    const { count } = await supabase
       .from("project_upvotes")
-      .insert({
-        project_id: projectId,
-        twitter_handle: handle,
-        is_agent: isAgent,
-      });
-
-    if (upvoteError) {
-      console.error("Upvote error:", upvoteError);
-      return NextResponse.json(
-        { error: "Failed to upvote" },
-        { status: 500 }
-      );
-    }
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", projectId);
 
     await supabase
       .from("projects")
-      .update({ upvotes: project.upvotes + 1 })
+      .update({ upvotes: count ?? 0 })
       .eq("id", projectId);
 
     return NextResponse.json({
       success: true,
-      action: "added",
-      upvotes: project.upvotes + 1,
+      action,
+      upvotes: count ?? 0,
     });
   } catch (error) {
     console.error("Error processing upvote:", error);

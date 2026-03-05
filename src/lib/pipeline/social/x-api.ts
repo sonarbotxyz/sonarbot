@@ -44,11 +44,15 @@ function getXBearerToken(): string {
 }
 
 async function xApiFetch<T>(path: string): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
   const res = await fetch(`${X_API_BASE}${path}`, {
     headers: {
       Authorization: `Bearer ${getXBearerToken()}`,
     },
+    signal: controller.signal,
   });
+  clearTimeout(timeout);
 
   if (!res.ok) {
     const body = await res.text();

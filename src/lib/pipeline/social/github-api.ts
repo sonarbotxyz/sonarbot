@@ -13,6 +13,7 @@
 interface GitHubActivity {
   commits7d: number;
   lastPush: Date | null;
+  stars: number;
 }
 
 interface GitHubCommit {
@@ -26,6 +27,7 @@ interface GitHubCommit {
 
 interface GitHubRepo {
   pushed_at: string | null;
+  stargazers_count: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -48,9 +50,13 @@ function getGitHubHeaders(): Record<string, string> {
 }
 
 async function githubFetch<T>(path: string): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
   const res = await fetch(`${GITHUB_API_BASE}${path}`, {
     headers: getGitHubHeaders(),
+    signal: controller.signal,
   });
+  clearTimeout(timeout);
 
   if (!res.ok) {
     const body = await res.text();
@@ -88,5 +94,6 @@ export async function fetchGitHubActivity(
   return {
     commits7d: commits.length,
     lastPush: repoInfo.pushed_at ? new Date(repoInfo.pushed_at) : null,
+    stars: repoInfo.stargazers_count ?? 0,
   };
 }

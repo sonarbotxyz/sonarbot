@@ -301,21 +301,8 @@ export function ProjectDetail({
     };
   }, [snapshots90d]);
 
-  if (!project) {
-    return (
-      <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-center px-5 md:px-20 py-32 text-center">
-        <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Project not found</p>
-        <Link href="/" className="mt-4 flex items-center gap-2 text-sm transition-colors" style={{ color: "var(--accent)" }}>
-          <ArrowLeft className="h-4 w-4" /> Back to discover
-        </Link>
-      </div>
-    );
-  }
-
-  const avatar = getAvatar(project);
-  const screenshots = getProductScreenshots(project);
-
   useEffect(() => {
+    if (!project) return;
     async function fetchPromoted() {
       try {
         const res = await fetch("/api/projects?boosted=true&limit=1");
@@ -340,8 +327,22 @@ export function ProjectDetail({
         }
       } catch { /* ignore */ }
     }
-    if (project) fetchPromoted();
+    fetchPromoted();
   }, [project]);
+
+  if (!project) {
+    return (
+      <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-center px-5 md:px-20 py-32 text-center">
+        <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Project not found</p>
+        <Link href="/" className="mt-4 flex items-center gap-2 text-sm transition-colors" style={{ color: "var(--accent)" }}>
+          <ArrowLeft className="h-4 w-4" /> Back to discover
+        </Link>
+      </div>
+    );
+  }
+
+  const avatar = getAvatar(project);
+  const screenshots = getProductScreenshots(project);
   const description = project.description || project.tagline;
   const isLongDesc = description.length > 200;
   const activeChartTab = CHART_TABS.find((t) => t.key === chartMetric)!;

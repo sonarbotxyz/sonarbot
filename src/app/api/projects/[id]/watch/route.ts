@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { authenticateRequest } from "@/lib/auth";
 import { isValidUUID } from "@/lib/validate";
+import { rateLimit } from "@/lib/rate-limit";
 
 /** Upsert user by privy_id, return their UUID. */
 async function ensureUser(privyId: string, handle: string, avatar?: string) {
@@ -32,6 +33,10 @@ export async function POST(
     const auth = await authenticateRequest(request);
     if (!auth) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    if (!rateLimit(`watch:${auth.handle}`, 10, 60_000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
     const { id: projectId } = await params;
@@ -98,6 +103,10 @@ export async function DELETE(
     const auth = await authenticateRequest(request);
     if (!auth) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    if (!rateLimit(`watch:${auth.handle}`, 10, 60_000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
     const { id: projectId } = await params;

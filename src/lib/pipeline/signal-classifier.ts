@@ -68,25 +68,33 @@ export async function classifyContent(
   content: string
 ): Promise<ClassificationResult | null> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(`${GEMINI_URL}?key=${getGeminiKey()}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: buildPrompt(projectName, content) }] }],
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
 
     if (res.status === 429) {
       // Rate limited — wait 15s and retry once
       console.error("[Classifier] Gemini rate limited, retrying in 15s...");
       await new Promise((r) => setTimeout(r, 15000));
+      const retryController = new AbortController();
+      const retryTimeout = setTimeout(() => retryController.abort(), 10000);
       const retry = await fetch(`${GEMINI_URL}?key=${getGeminiKey()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: buildPrompt(projectName, content) }] }],
         }),
+        signal: retryController.signal,
       });
+      clearTimeout(retryTimeout);
       if (!retry.ok) {
         console.error(`Gemini retry failed: ${retry.status}`);
         return null;

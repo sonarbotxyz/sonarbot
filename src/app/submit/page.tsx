@@ -134,6 +134,7 @@ export default function SubmitPage() {
           description: formData.get("description"),
           website_url: formData.get("website"),
           twitter_handle: formData.get("twitter"),
+          contract_address: formData.get("contract"),
           category: selectedCategory
             ? CATEGORY_TO_API[selectedCategory as Category]
             : "other",

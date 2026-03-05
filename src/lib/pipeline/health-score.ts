@@ -109,24 +109,29 @@ export async function calculateHealthScore(
   const oldSnap = weekAgoSnapshots?.[0];
   const social = socialData?.[0];
 
-  const currentHolders = currentSnap?.holders ?? 0;
+  // Skip projects with no snapshot data at all — no real data to score
+  if (!currentSnap) {
+    return;
+  }
+
+  const currentHolders = currentSnap.holders ?? 0;
   const holdersWeekAgo = oldSnap?.holders ?? 0;
-  const currentLiquidity = currentSnap?.liquidity ?? 0;
+  const currentLiquidity = currentSnap.liquidity ?? 0;
   const previousLiquidity = oldSnap?.liquidity ?? 0;
-  const currentVolume = currentSnap?.volume_24h ?? 0;
+  const currentVolume = currentSnap.volume_24h ?? 0;
   const previousVolume = oldSnap?.volume_24h ?? 0;
   // Calculate sub-scores
   const holderSub = calcHolderSub(currentHolders, holdersWeekAgo);
   const liquiditySub = calcLiquiditySub(currentLiquidity, previousLiquidity);
   const volumeSub = calcVolumeSub(currentVolume, previousVolume);
 
-  // Social-derived sub-scores: default to 50 (neutral) if no social data exists
+  // Use 0 instead of 50 for missing social sub-scores
   const devSub = social
     ? calcDevSub(social.github_commits_7d ?? 0)
-    : 50;
+    : 0;
   const socialSub = social
     ? calcSocialSub(social.x_followers ?? 0)
-    : 50;
+    : 0;
 
   // Weighted composite score
   const score = Math.round(
