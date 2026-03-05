@@ -76,6 +76,37 @@ export async function classifyContent(
       }),
     });
 
+    if (res.status === 429) {
+      // Rate limited — wait 15s and retry once
+      console.log("[Classifier] Gemini rate limited, waiting 15s...");
+      await new Promise((r) => setTimeout(r, 15000));
+      const retry = await fetch(`${GEMINI_URL}?key=${getGeminiKey()}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: buildPrompt(projectName, content) }] }],
+        }),
+      });
+      if (!retry.ok) {
+        console.error(`Gemini retry failed: ${retry.status}`);
+        return null;
+      }
+      const retryData = await retry.json();
+      const retryText: string = retryData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      const retryMatch = retryText.match(/\{[\s\S]*\}/);
+      if (!retryMatch) return null;
+      const retryParsed = JSON.parse(retryMatch[0]);
+      if (!VALID_TYPES.has(retryParsed.type)) retryParsed.type = "all_updates";
+      if (!VALID_CONFIDENCE.has(retryParsed.confidence)) retryParsed.confidence = "medium";
+      if (typeof retryParsed.title !== "string" || !retryParsed.title) return null;
+      return {
+        type: retryParsed.type,
+        title: retryParsed.title.slice(0, 100),
+        description: typeof retryParsed.description === "string" ? retryParsed.description : "",
+        confidence: retryParsed.confidence,
+      };
+    }
+
     if (!res.ok) {
       console.error(`Gemini API error ${res.status}: ${await res.text()}`);
       return null;
@@ -118,16 +149,23 @@ export async function classifyContent(
   }
 }
 
+/** Delay helper to respect Gemini rate limits (15 req/min) */
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
- * Classify multiple items in sequence (respects rate limits).
+ * Classify multiple items in sequence with throttling.
+ * 4-second delay between calls = max 15 req/min (Gemini free tier limit).
  */
 export async function classifyBatch(
   projectName: string,
   items: string[]
 ): Promise<(ClassificationResult | null)[]> {
   const results: (ClassificationResult | null)[] = [];
-  for (const item of items) {
-    results.push(await classifyContent(projectName, item));
+  for (let i = 0; i < items.length; i++) {
+    if (i > 0) await delay(4000); // 4s between calls
+    results.push(await classifyContent(projectName, items[i]));
   }
   return results;
 }

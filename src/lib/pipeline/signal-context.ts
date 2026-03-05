@@ -214,31 +214,46 @@ ${githubBlock}
 Write a 2-3 sentence analysis explaining what's happening and why. Be specific with numbers. If you can identify a likely catalyst, mention it. Be concise and direct — no fluff.`;
 }
 
-async function generateAnalysis(prompt: string): Promise<string | null> {
+async function generateAnalysis(prompt: string, retries = 2): Promise<string | null> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
 
-  try {
-    const res = await fetch(`${GEMINI_URL}?key=${key}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    });
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(`${GEMINI_URL}?key=${key}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      });
 
-    if (!res.ok) {
-      console.error(`[SignalContext] Gemini error ${res.status}`);
+      if (res.status === 429) {
+        // Rate limited — wait and retry
+        const waitMs = (attempt + 1) * 15000; // 15s, 30s
+        console.log(`[SignalContext] Gemini rate limited, waiting ${waitMs / 1000}s...`);
+        await new Promise((r) => setTimeout(r, waitMs));
+        continue;
+      }
+
+      if (!res.ok) {
+        console.error(`[SignalContext] Gemini error ${res.status}`);
+        return null;
+      }
+
+      const data = await res.json();
+      const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      return text.trim() || null;
+    } catch (err) {
+      console.error("[SignalContext] Gemini analysis failed:", err);
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 5000));
+        continue;
+      }
       return null;
     }
-
-    const data = await res.json();
-    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    return text.trim() || null;
-  } catch (err) {
-    console.error("[SignalContext] Gemini analysis failed:", err);
-    return null;
   }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -257,6 +272,9 @@ export async function enrichSignal(
     fetchOnchainDelta(signal.project_id),
     fetchGithubSummary(githubRepo),
   ]);
+
+  // Small delay to respect Gemini rate limits (15 req/min free tier)
+  await new Promise((r) => setTimeout(r, 4000));
 
   // Generate AI analysis
   const prompt = buildAnalysisPrompt(
