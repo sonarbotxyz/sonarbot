@@ -35,23 +35,9 @@ async function fetchXMetrics(handle: string): Promise<XMetrics | null> {
     const metrics = userData.data?.public_metrics;
     if (!metrics) return null;
 
-    // Count tweets in last 30 days
-    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const query = encodeURIComponent(`from:${handle}`);
-    const tweetRes = await fetch(
-      `${X_API_BASE}/tweets/counts/recent?query=${query}&start_time=${since}&granularity=day`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    let tweets30d = 0;
-    if (tweetRes.ok) {
-      const tweetData = await tweetRes.json();
-      tweets30d = tweetData.meta?.total_tweet_count || 0;
-    }
-
     return {
       followers: metrics.followers_count || 0,
-      tweets30d,
+      tweets30d: 0, // Skip tweet count to avoid rate limits
     };
   } catch (err) {
     console.error(`[Social] X fetch failed for @${handle}:`, err);
@@ -182,15 +168,20 @@ export async function runSocialPipeline(): Promise<{ processed: number; errors: 
       ]);
 
       // Insert new social snapshot
+      const xFollowers = xMetrics?.followers ?? null;
+      const ghCommits = ghMetrics?.commits30d ?? null;
+
+      console.log(`[Social] ${project.name}: X followers=${xFollowers}, GH commits=${ghCommits}, stars=${ghMetrics?.stars || 0}`);
+
       const { error } = await supabase
         .from("social_snapshots")
         .insert({
           project_id: project.id,
-          x_followers: xMetrics?.followers || null,
-          x_engagement_rate: null, // TODO: calculate from tweet impressions
-          github_commits_7d: ghMetrics?.commits30d || null, // Using 30d data in 7d column for now
-          github_last_push: new Date().toISOString(),
-          farcaster_followers: null, // TODO: add Farcaster API
+          x_followers: xFollowers,
+          x_engagement_rate: null,
+          github_commits_7d: ghCommits,
+          github_last_push: ghCommits ? new Date().toISOString() : null,
+          farcaster_followers: null,
         });
 
       if (error) {
