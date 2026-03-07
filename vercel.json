@@ -1,7 +1,7 @@
 {
   "crons": [
-    { "path": "/api/cron/master", "schedule": "0 3 * * *" },
-    { "path": "/api/cron/social", "schedule": "0 9 * * *" },
-    { "path": "/api/cron/health-score", "schedule": "0 15 * * *" }
+    { "path": "/api/cron/master", "schedule": "*/30 * * * *" },
+    { "path": "/api/cron/social", "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/health-score", "schedule": "0 */12 * * *" }
   ]
 }
