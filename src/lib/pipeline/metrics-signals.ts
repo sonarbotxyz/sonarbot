@@ -31,7 +31,14 @@ interface Snapshot {
   marketcap: number;
   volume_24h: number;
   liquidity: number;
+  price_usd: number;
+  price_change_24h: number;
   timestamp?: string;
+}
+
+function pctChange(prev: number, current: number): number {
+  if (prev === 0) return 0;
+  return ((current - prev) / prev) * 100;
 }
 
 export async function detectMetricsSignals(): Promise<{ signals: number }> {
@@ -53,7 +60,7 @@ export async function detectMetricsSignals(): Promise<{ signals: number }> {
       // Get 2 most recent snapshots
       const { data: snapshots } = await supabase
         .from("snapshots")
-        .select("holders, marketcap, volume_24h, liquidity, timestamp")
+        .select("holders, marketcap, volume_24h, liquidity, price_usd, price_change_24h, timestamp")
         .eq("project_id", project.id)
         .order("timestamp", { ascending: false })
         .limit(2);
@@ -144,6 +151,105 @@ export async function detectMetricsSignals(): Promise<{ signals: number }> {
             metric_previous: previous.marketcap,
           });
         }
+      }
+
+      // --- Percentage-based signals ---
+
+      // Price movement (mcap-based)
+      const mcapPct = pctChange(previous.marketcap, current.marketcap);
+      if (mcapPct >= 100) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Mega pump: price up ${Math.round(mcapPct)}%`,
+          description: `${project.name} market cap surged ${Math.round(mcapPct)}% from $${formatNumber(previous.marketcap)} to $${formatNumber(current.marketcap)}.`,
+          metric_name: "mega_pump",
+          metric_value: current.marketcap,
+          metric_previous: previous.marketcap,
+        });
+      } else if (mcapPct >= 25) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Price up ${Math.round(mcapPct)}%`,
+          description: `${project.name} market cap increased ${Math.round(mcapPct)}% from $${formatNumber(previous.marketcap)} to $${formatNumber(current.marketcap)}.`,
+          metric_name: "price_pump",
+          metric_value: current.marketcap,
+          metric_previous: previous.marketcap,
+        });
+      } else if (mcapPct <= -50) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Mega dump: price down ${Math.round(Math.abs(mcapPct))}%`,
+          description: `${project.name} market cap dropped ${Math.round(Math.abs(mcapPct))}% from $${formatNumber(previous.marketcap)} to $${formatNumber(current.marketcap)}.`,
+          metric_name: "mega_dump",
+          metric_value: current.marketcap,
+          metric_previous: previous.marketcap,
+        });
+      } else if (mcapPct <= -25) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Price down ${Math.round(Math.abs(mcapPct))}%`,
+          description: `${project.name} market cap decreased ${Math.round(Math.abs(mcapPct))}% from $${formatNumber(previous.marketcap)} to $${formatNumber(current.marketcap)}.`,
+          metric_name: "price_dump",
+          metric_value: current.marketcap,
+          metric_previous: previous.marketcap,
+        });
+      }
+
+      // Volume % change (2x surge)
+      const volPct = pctChange(previous.volume_24h, current.volume_24h);
+      if (volPct >= 100) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Volume up ${Math.round(volPct)}%`,
+          description: `${project.name} 24h volume increased ${Math.round(volPct)}% from $${formatNumber(previous.volume_24h)} to $${formatNumber(current.volume_24h)}.`,
+          metric_name: "volume_surge",
+          metric_value: current.volume_24h,
+          metric_previous: previous.volume_24h,
+        });
+      }
+
+      // Holder growth/decline
+      const holderPct = pctChange(previous.holders, current.holders);
+      if (holderPct >= 10) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Holders up ${Math.round(holderPct)}%`,
+          description: `${project.name} holders grew ${Math.round(holderPct)}% from ${formatNumber(previous.holders)} to ${formatNumber(current.holders)}.`,
+          metric_name: "holder_growth",
+          metric_value: current.holders,
+          metric_previous: previous.holders,
+        });
+      } else if (holderPct <= -10) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Holders down ${Math.round(Math.abs(holderPct))}%`,
+          description: `${project.name} holders declined ${Math.round(Math.abs(holderPct))}% from ${formatNumber(previous.holders)} to ${formatNumber(current.holders)}.`,
+          metric_name: "holder_decline",
+          metric_value: current.holders,
+          metric_previous: previous.holders,
+        });
+      }
+
+      // Liquidity signals
+      const liqPct = pctChange(previous.liquidity, current.liquidity);
+      if (liqPct >= 50) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Liquidity up ${Math.round(liqPct)}%`,
+          description: `${project.name} liquidity increased ${Math.round(liqPct)}% from $${formatNumber(previous.liquidity)} to $${formatNumber(current.liquidity)}.`,
+          metric_name: "liquidity_added",
+          metric_value: current.liquidity,
+          metric_previous: previous.liquidity,
+        });
+      } else if (liqPct <= -30) {
+        signals.push({
+          type: "metrics_milestones",
+          title: `Liquidity down ${Math.round(Math.abs(liqPct))}%`,
+          description: `${project.name} liquidity dropped ${Math.round(Math.abs(liqPct))}% from $${formatNumber(previous.liquidity)} to $${formatNumber(current.liquidity)}. Potential rug warning.`,
+          metric_name: "liquidity_pulled",
+          metric_value: current.liquidity,
+          metric_previous: previous.liquidity,
+        });
       }
 
       // Insert signals and notify

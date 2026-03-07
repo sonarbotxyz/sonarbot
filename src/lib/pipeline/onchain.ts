@@ -15,6 +15,8 @@ interface DexScreenerData {
   marketcap: number;
   volume24h: number;
   liquidity: number;
+  priceUsd: number;
+  priceChange24h: number;
 }
 
 let _dexCache: Map<string, DexScreenerData> = new Map();
@@ -56,13 +58,15 @@ export async function fetchDexScreenerData(
       marketcap: pair?.marketCap || pair?.fdv || 0,
       volume24h: pair?.volume?.h24 || 0,
       liquidity: pair?.liquidity?.usd || 0,
+      priceUsd: parseFloat(pair?.priceUsd || "0") || 0,
+      priceChange24h: pair?.priceChange?.h24 || 0,
     };
 
     _dexCache.set(contractAddress.toLowerCase(), result);
     return result;
   } catch (error) {
     console.error(`DexScreener failed for ${contractAddress}:`, error);
-    return { marketcap: 0, volume24h: 0, liquidity: 0 };
+    return { marketcap: 0, volume24h: 0, liquidity: 0, priceUsd: 0, priceChange24h: 0 };
   }
 }
 
@@ -101,6 +105,26 @@ export async function fetchLiquidity(
   return Math.round(data.liquidity);
 }
 
+/**
+ * Fetch current price in USD via DexScreener.
+ */
+export async function fetchPriceUsd(
+  contractAddress: string
+): Promise<number> {
+  const data = await fetchDexScreenerData(contractAddress);
+  return data.priceUsd;
+}
+
+/**
+ * Fetch 24h price change percentage via DexScreener.
+ */
+export async function fetchPriceChange24h(
+  contractAddress: string
+): Promise<number> {
+  const data = await fetchDexScreenerData(contractAddress);
+  return data.priceChange24h;
+}
+
 // ---------------------------------------------------------------------------
 // Snapshot orchestrator
 // ---------------------------------------------------------------------------
@@ -126,11 +150,13 @@ export async function takeSnapshot(
     .single();
 
   // DexScreener + holder count (with fallback to previous value)
-  const [marketcap, volume24h, liquidity, holders] =
+  const [marketcap, volume24h, liquidity, priceUsd, priceChange24h, holders] =
     await Promise.all([
       fetchMarketcap(contractAddress),
       fetchVolume24h(contractAddress),
       fetchLiquidity(contractAddress),
+      fetchPriceUsd(contractAddress),
+      fetchPriceChange24h(contractAddress),
       fetchHolderCount(contractAddress, prevSnap?.holders ?? 0),
     ]);
 
@@ -140,6 +166,8 @@ export async function takeSnapshot(
     marketcap,
     volume_24h: volume24h,
     liquidity,
+    price_usd: priceUsd,
+    price_change_24h: priceChange24h,
     active_users: 0,
     tx_count: 0,
   });
