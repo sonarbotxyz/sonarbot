@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -18,6 +18,8 @@ import {
   Check,
   X,
   Send,
+  Search,
+  Sliders,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 import { TelegramPairingModal } from "@/components/TelegramPairingModal";
@@ -58,6 +60,11 @@ interface Signal {
   project_category?: string;
 }
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0 },
+};
+
 export default function MySignalPage() {
   const { user, accessToken, login } = useAuth();
   const [activeTab, setActiveTab] = useState<"alerts" | "watching" | "settings">("alerts");
@@ -65,6 +72,23 @@ export default function MySignalPage() {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
   const [signalsTotal, setSignalsTotal] = useState(0);
+
+  // Telegram status (for banner)
+  const [telegramLinked, setTelegramLinked] = useState<boolean | null>(null);
+  const [telegramDismissed, setTelegramDismissed] = useState(false);
+  const [showPairingModalTop, setShowPairingModalTop] = useState(false);
+
+  const loadTelegramStatus = useCallback(() => {
+    if (!accessToken) return;
+    fetch("/api/user/telegram", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        setTelegramLinked(!!data.linked && !!data.activated);
+      })
+      .catch(() => setTelegramLinked(false));
+  }, [accessToken]);
 
   useEffect(() => {
     if (!user || !accessToken) {
@@ -85,7 +109,9 @@ export default function MySignalPage() {
       })
       .catch((e) => console.error("Failed to load my signal:", e))
       .finally(() => setLoading(false));
-  }, [user, accessToken]);
+
+    loadTelegramStatus();
+  }, [user, accessToken, loadTelegramStatus]);
 
   if (!user) {
     return (
@@ -145,6 +171,51 @@ export default function MySignalPage() {
         </p>
       </motion.div>
 
+      {/* Telegram connection banner */}
+      {telegramLinked === false && !telegramDismissed && (
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="mt-6 relative"
+          style={{
+            background: "var(--bg-secondary)",
+            border: "1px solid var(--border)",
+            borderLeftWidth: "2px",
+            borderLeftColor: "var(--accent)",
+          }}
+        >
+          <div className="flex items-start gap-4 p-4">
+            <Send className="h-5 w-5 mt-0.5 shrink-0" style={{ color: "var(--accent)" }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                Connect Telegram to receive real-time alerts
+              </p>
+              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)", fontFamily: "var(--font-jetbrains-mono)" }}>
+                Without Telegram, your signals have nowhere to go.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowPairingModalTop(true)}
+                className="mt-3 h-8 px-5 text-xs uppercase tracking-[0.08em] font-medium text-white transition-opacity hover:opacity-90"
+                style={{ background: "var(--accent)" }}
+              >
+                Connect Now
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTelegramDismissed(true)}
+              className="shrink-0 p-1 transition-opacity hover:opacity-70"
+              style={{ color: "var(--text-muted)" }}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Tabs */}
       <div className="mt-8 flex gap-6" style={{ borderBottom: "1px solid var(--border)" }}>
         {[
@@ -186,17 +257,110 @@ export default function MySignalPage() {
         {activeTab === "watching" && <WatchingGrid watchlist={watchlist} />}
         {activeTab === "settings" && <NotificationSettings />}
       </div>
+
+      {/* Top-level pairing modal (from banner) */}
+      {accessToken && (
+        <TelegramPairingModal
+          isOpen={showPairingModalTop}
+          onClose={() => {
+            setShowPairingModalTop(false);
+            loadTelegramStatus();
+          }}
+          accessToken={accessToken}
+        />
+      )}
     </div>
   );
 }
 
+/* ─── Signal Preview Block (shared between empty states) ─── */
+
+function SignalPreviewBlock() {
+  return (
+    <div
+      className="max-w-lg w-full"
+      style={{
+        background: "var(--bg-secondary)",
+        border: "1px solid var(--border)",
+        borderLeftWidth: "2px",
+        borderLeftColor: "var(--accent)",
+        fontFamily: "var(--font-jetbrains-mono)",
+      }}
+    >
+      <div className="p-4">
+        <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+          [12:34]&nbsp;
+          <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>BANKRBOT</span>
+          &nbsp;&mdash;&nbsp;
+          <span style={{ color: "var(--accent)" }}>Price up 47%</span>
+        </div>
+        <div className="mt-1 text-[11px] pl-[52px]" style={{ color: "var(--text-secondary)" }}>
+          Market cap surged from $2.1M to $3.1M
+        </div>
+        <div className="mt-0.5 text-[11px] pl-[52px]" style={{ color: "var(--text-secondary)" }}>
+          Correlated: 3 tweets in last hour, GitHub release v2.1
+        </div>
+        <div className="mt-0.5 text-[11px] pl-[52px]" style={{ color: "var(--text-muted)" }}>
+          &rarr; 12 watchers notified
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Alerts Feed ─── */
+
 function AlertsFeed({ signals }: { signals: Signal[] }) {
   if (signals.length === 0) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-        <div className="flex flex-col items-center py-16 gap-3">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeUp}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="flex flex-col items-center py-16 gap-6">
           <Bell className="h-6 w-6" style={{ color: "var(--text-very-muted)" }} />
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>No signals yet. Watch projects to receive alerts.</p>
+
+          <div className="text-center">
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+              Your signal feed is empty
+            </p>
+            <p
+              className="mt-2 text-xs max-w-sm mx-auto"
+              style={{
+                color: "var(--text-muted)",
+                fontFamily: "var(--font-jetbrains-mono)",
+                lineHeight: "1.7",
+              }}
+            >
+              Signals appear when your watched projects hit milestones &mdash;
+              price moves, volume spikes, new releases, holder growth.
+            </p>
+          </div>
+
+          {/* Example signal */}
+          <div className="mt-2">
+            <div
+              className="text-[10px] uppercase tracking-[0.15em] font-medium mb-3 text-center"
+              style={{
+                color: "var(--text-very-muted)",
+                fontFamily: "var(--font-jetbrains-mono)",
+              }}
+            >
+              Example signal
+            </div>
+            <SignalPreviewBlock />
+          </div>
+
+          <Link
+            href="/"
+            className="mt-4 inline-flex items-center gap-2 h-9 px-5 text-xs uppercase tracking-[0.08em] font-medium text-white no-underline transition-opacity hover:opacity-90"
+            style={{ background: "var(--accent)" }}
+          >
+            Watch your first project
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
       </motion.div>
     );
@@ -262,13 +426,96 @@ function AlertsFeed({ signals }: { signals: Signal[] }) {
   );
 }
 
+/* ─── Watching Grid ─── */
+
 function WatchingGrid({ watchlist }: { watchlist: WatchlistProject[] }) {
   if (watchlist.length === 0) {
+    const steps = [
+      { num: "01", icon: Search, label: "Browse projects", desc: "Explore the Base ecosystem on the homepage", href: "/" },
+      { num: "02", icon: Eye, label: "Hit Watch on any project", desc: "Add projects to your personal watchlist" },
+      { num: "03", icon: Sliders, label: "Configure your alert types", desc: "Choose which signals matter to you" },
+    ];
+
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-        <div className="flex flex-col items-center py-16 gap-3">
-          <Eye className="h-6 w-6" style={{ color: "var(--text-very-muted)" }} />
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>No projects watched yet. Browse projects and hit Watch.</p>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeUp}
+        transition={{ duration: 0.4 }}
+      >
+        <div
+          className="max-w-lg mx-auto"
+          style={{
+            border: "1px solid var(--border)",
+            background: "var(--bg-secondary)",
+          }}
+        >
+          <div className="p-6">
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+              Start watching projects to build your signal feed
+            </p>
+            <p
+              className="mt-2 text-xs"
+              style={{
+                color: "var(--text-muted)",
+                fontFamily: "var(--font-jetbrains-mono)",
+              }}
+            >
+              Three steps to set up your radar:
+            </p>
+
+            <div className="mt-6 space-y-0" style={{ borderTop: "1px solid var(--border)" }}>
+              {steps.map((step, i) => {
+                const content = (
+                  <div
+                    key={step.num}
+                    className="flex items-start gap-4 py-4 group"
+                    style={{ borderBottom: "1px solid var(--border)" }}
+                  >
+                    <span
+                      className="text-[11px] font-medium mt-0.5 shrink-0"
+                      style={{
+                        color: "var(--accent)",
+                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {step.num}
+                    </span>
+                    <step.icon
+                      className="h-4 w-4 mt-0.5 shrink-0"
+                      style={{ color: "var(--text-muted)" }}
+                    />
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                        {step.label}
+                      </p>
+                      <p className="mt-0.5 text-[11px]" style={{ color: "var(--text-muted)" }}>
+                        {step.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+
+                return step.href ? (
+                  <Link key={step.num} href={step.href} className="block no-underline">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={step.num}>{content}</div>
+                );
+              })}
+            </div>
+
+            <Link
+              href="/"
+              className="mt-6 inline-flex items-center gap-2 h-9 px-5 text-xs uppercase tracking-[0.08em] font-medium text-white no-underline transition-opacity hover:opacity-90"
+              style={{ background: "var(--accent)" }}
+            >
+              Explore Projects
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
       </motion.div>
     );
@@ -336,6 +583,8 @@ function WatchingGrid({ watchlist }: { watchlist: WatchlistProject[] }) {
   );
 }
 
+/* ─── Notification Settings ─── */
+
 function NotificationSettings() {
   const { accessToken } = useAuth();
   const [isLinked, setIsLinked] = useState(false);
@@ -345,7 +594,7 @@ function NotificationSettings() {
   const [removing, setRemoving] = useState(false);
   const [showPairingModal, setShowPairingModal] = useState(false);
 
-  const loadStatus = () => {
+  const loadStatus = useCallback(() => {
     if (!accessToken) {
       setLoadingTelegram(false);
       return;
@@ -361,12 +610,11 @@ function NotificationSettings() {
       })
       .catch((e) => console.error("Failed to load telegram status:", e))
       .finally(() => setLoadingTelegram(false));
-  };
+  }, [accessToken]);
 
   useEffect(() => {
     loadStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken]);
+  }, [loadStatus]);
 
   const handleRemove = async () => {
     if (!accessToken) return;

@@ -43,7 +43,7 @@ export function HomeContent({ projects }: HomeContentProps) {
     <>
       <TickerBar projects={projects} />
       <div className="mx-auto max-w-[1400px] px-5 md:px-20">
-        <HeroSection onSearch={setSearchQuery} />
+        <HeroSection onSearch={setSearchQuery} projectCount={projects.length} />
 
       <div className="h-rule mb-8" data-label="Filter" />
 
