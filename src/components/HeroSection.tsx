@@ -23,7 +23,7 @@ const EXAMPLE_SIGNALS = [
     time: "12:34",
     project: "BANKRBOT",
     signal: "Price up 47%",
-    detail: "Market cap $2.1M → $3.1M. 3 tweets in last hour.",
+    detail: "Market cap $2.1M → $3.1M. AI correlated with 3 tweets in last hour.",
     icon: TrendingUp,
     accent: true,
   },
@@ -31,7 +31,7 @@ const EXAMPLE_SIGNALS = [
     time: "12:18",
     project: "EDEL FINANCE",
     signal: "Volume surge +220%",
-    detail: "24h volume $56K → $179K. GitHub release v2.1 detected.",
+    detail: "24h volume $56K → $179K. AI linked to GitHub release v2.1.",
     icon: Activity,
     accent: true,
   },
@@ -39,7 +39,7 @@ const EXAMPLE_SIGNALS = [
     time: "11:47",
     project: "DEBTRELIEFBOT",
     signal: "Holders up 12%",
-    detail: "23.3K → 26.1K holders. New partnership announced on X.",
+    detail: "23.3K → 26.1K holders. AI detected partnership announcement on X.",
     icon: Users,
     accent: false,
   },
@@ -115,9 +115,10 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
               fontFamily: "var(--font-jetbrains-mono)",
             }}
           >
-            Sonarbot monitors every project on Base &mdash; price pumps, volume
-            spikes, dev activity, holder growth. Watch the ones you care about and
-            get Telegram alerts in real time.
+            AI-powered analytics monitoring every project on Base &mdash; detecting
+            price pumps, volume spikes, dev activity, and holder growth. Our agents
+            correlate on-chain data with social signals to surface what matters.
+            Watch projects you care about and get Telegram alerts in real time.
           </motion.p>
 
           {/* Search */}
@@ -211,7 +212,7 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
               className="inline-block h-1.5 w-1.5 animate-pulse"
               style={{ background: "var(--accent)", borderRadius: "50%" }}
             />
-            Live signal feed
+            AI-powered signal feed
           </div>
           <div
             style={{
@@ -284,7 +285,7 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
               fontFamily: "var(--font-jetbrains-mono)",
             }}
           >
-            Signals update every 30 minutes &rarr;
+            AI analytics running every 30 minutes &rarr;
           </div>
         </motion.div>
       </div>
