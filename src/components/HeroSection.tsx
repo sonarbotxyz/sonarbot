@@ -214,12 +214,7 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
             />
             AI-powered signal feed
           </div>
-          <div
-            style={{
-              border: "1px solid var(--border)",
-              background: "var(--bg-secondary)",
-            }}
-          >
+          <div className="flex flex-col gap-3">
             {EXAMPLE_SIGNALS.map((signal, i) => {
               const Icon = signal.icon;
               return (
@@ -229,46 +224,80 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
                   initial="hidden"
                   animate="visible"
                   variants={fadeUp}
-                  className="p-3.5 flex gap-3"
                   style={{
-                    borderBottom: i < EXAMPLE_SIGNALS.length - 1 ? "1px solid var(--border)" : "none",
+                    border: "1px solid var(--border)",
+                    background: "var(--bg-secondary)",
                     borderLeft: signal.isWarning
                       ? "2px solid #ef4444"
                       : signal.accent
                         ? "2px solid var(--accent)"
-                        : "2px solid transparent",
+                        : "2px solid var(--border)",
                   }}
                 >
-                  <Icon
-                    className="h-3.5 w-3.5 mt-0.5 shrink-0"
-                    style={{
-                      color: signal.isWarning ? "#ef4444" : signal.accent ? "var(--accent)" : "var(--text-muted)",
-                    }}
-                  />
-                  <div className="min-w-0 flex-1">
+                  {/* Sender header */}
+                  <div
+                    className="px-3.5 pt-3 pb-1.5 flex items-center gap-2"
+                  >
+                    <div
+                      className="h-5 w-5 flex items-center justify-center shrink-0"
+                      style={{
+                        background: signal.isWarning ? "rgba(239,68,68,0.15)" : "var(--accent-dim)",
+                        border: `1px solid ${signal.isWarning ? "rgba(239,68,68,0.3)" : "var(--accent-dim)"}`,
+                      }}
+                    >
+                      <Radio className="h-2.5 w-2.5" style={{ color: signal.isWarning ? "#ef4444" : "var(--accent)" }} />
+                    </div>
+                    <span
+                      className="text-[11px] font-semibold"
+                      style={{
+                        color: "var(--accent)",
+                        fontFamily: "var(--font-jetbrains-mono)",
+                      }}
+                    >
+                      @sonarbot
+                    </span>
+                    <span
+                      className="text-[10px]"
+                      style={{
+                        color: "var(--text-very-muted)",
+                        fontFamily: "var(--font-jetbrains-mono)",
+                      }}
+                    >
+                      {signal.time}
+                    </span>
+                  </div>
+
+                  {/* Signal content */}
+                  <div className="px-3.5 pb-3 pl-[46px]">
                     <div
                       className="text-[11px] flex items-center gap-1.5"
                       style={{ fontFamily: "var(--font-jetbrains-mono)" }}
                     >
-                      <span style={{ color: "var(--text-very-muted)" }}>{signal.time}</span>
+                      <Icon
+                        className="h-3 w-3 shrink-0"
+                        style={{
+                          color: signal.isWarning ? "#ef4444" : signal.accent ? "var(--accent)" : "var(--text-muted)",
+                        }}
+                      />
                       <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
                         {signal.project}
                       </span>
+                      <span style={{ color: "var(--text-very-muted)" }}>&mdash;</span>
+                      <span
+                        style={{
+                          color: signal.isWarning ? "#ef4444" : signal.accent ? "var(--accent)" : "var(--text-body)",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {signal.signal}
+                      </span>
                     </div>
                     <div
-                      className="text-xs mt-0.5 font-medium"
-                      style={{
-                        color: signal.isWarning ? "#ef4444" : signal.accent ? "var(--accent)" : "var(--text-body)",
-                        fontFamily: "var(--font-jetbrains-mono)",
-                      }}
-                    >
-                      {signal.signal}
-                    </div>
-                    <div
-                      className="text-[10.5px] mt-0.5"
+                      className="text-[10.5px] mt-1"
                       style={{
                         color: "var(--text-muted)",
                         fontFamily: "var(--font-jetbrains-mono)",
+                        lineHeight: "1.5",
                       }}
                     >
                       {signal.detail}
