@@ -58,7 +58,7 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
   const [query, setQuery] = useState("");
 
   return (
-    <section className="pt-20 pb-16 md:pt-28 md:pb-20">
+    <section className="pt-12 pb-16 md:pt-16 md:pb-20">
       <div className="flex flex-col lg:flex-row lg:items-start lg:gap-16">
         {/* Left: headline + search */}
         <div className="flex-1 min-w-0">
