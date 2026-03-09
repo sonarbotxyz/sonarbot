@@ -62,38 +62,13 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
       <div className="flex flex-col lg:flex-row lg:items-start lg:gap-16">
         {/* Left: headline + search */}
         <div className="flex-1 min-w-0">
-          {/* Label */}
-          <motion.div
+          {/* Headline */}
+          <motion.h1
             custom={0}
             initial="hidden"
             animate="visible"
             variants={fadeUp}
-            className="flex items-center gap-2"
-          >
-            <span
-              className="font-bold text-[11px]"
-              style={{ color: "var(--accent)" }}
-            >
-              &gt;
-            </span>
-            <span
-              className="text-[10px] uppercase tracking-[0.2em] font-medium"
-              style={{
-                color: "var(--accent)",
-                fontFamily: "var(--font-jetbrains-mono)",
-              }}
-            >
-              Real-time Base intelligence
-            </span>
-          </motion.div>
-
-          {/* Headline */}
-          <motion.h1
-            custom={1}
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            className="mt-6 font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight"
+            className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight"
           >
             <span style={{ color: "var(--text-primary)" }}>Every signal.</span>
             <br />
@@ -104,7 +79,7 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
 
           {/* Subtitle */}
           <motion.p
-            custom={2}
+            custom={1}
             initial="hidden"
             animate="visible"
             variants={fadeUp}
@@ -123,7 +98,7 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
 
           {/* Search */}
           <motion.div
-            custom={3}
+            custom={2}
             initial="hidden"
             animate="visible"
             variants={fadeUp}
@@ -154,7 +129,7 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
 
           {/* Stats */}
           <motion.div
-            custom={4}
+            custom={3}
             initial="hidden"
             animate="visible"
             variants={fadeUp}
