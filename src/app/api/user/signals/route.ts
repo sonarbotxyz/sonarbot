@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     // Enrich with project names
     const { data: projects } = await supabase
       .from("projects")
-      .select("id, name, slug, category")
+      .select("id, name, category")
       .in("id", projectIds);
 
     const projectMap = new Map((projects ?? []).map((p) => [p.id, p]));
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       return {
         ...s,
         project_name: proj?.name ?? "Unknown",
-        project_slug: proj?.slug ?? s.project_id,
+        project_slug: s.project_id,
         project_category: proj?.category ?? "Unknown",
       };
     });
