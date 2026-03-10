@@ -3,6 +3,7 @@ import { getSupabase } from "@/lib/supabase";
 import { authenticateRequest } from "@/lib/auth";
 import { isValidUUID } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
+import { canWatch } from "@/lib/subscription";
 
 /** Upsert user by privy_id, return their UUID. */
 async function ensureUser(privyId: string, handle: string, avatar?: string) {
@@ -59,6 +60,18 @@ export async function POST(
 
     // Upsert user
     const userId = await ensureUser(auth.userId, auth.handle, auth.avatar);
+
+    // Check subscription watch limit
+    const allowed = await canWatch(userId);
+    if (!allowed) {
+      return NextResponse.json(
+        {
+          error: "Watch limit reached. Upgrade to Pro for unlimited watches.",
+          upgrade: true,
+        },
+        { status: 403 }
+      );
+    }
 
     // Create watch (ignore conflict = already watching)
     const { error: watchError } = await supabase

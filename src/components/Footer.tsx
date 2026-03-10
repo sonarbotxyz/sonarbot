@@ -7,6 +7,7 @@ const footerColumns = [
       { label: 'Discover', href: '/' },
       { label: 'Upcoming', href: '/upcoming' },
       { label: 'My Signal', href: '/my-signal' },
+      { label: 'Pricing', href: '/pricing' },
       { label: 'Submit Project', href: '/submit' },
     ],
   },

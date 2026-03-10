@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: 'Explore', href: '/' },
   { label: 'Upcoming', href: '/upcoming' },
   { label: 'Submit', href: '/submit' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'My Signal', href: '/my-signal' },
 ]
 
