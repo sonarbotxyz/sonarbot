@@ -19,9 +19,33 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sonarbot.vercel.app"),
   title: "Sonarbot — Discover What's Building on Base",
   description:
     "A personalized intelligence feed for the Base ecosystem. Discover projects, watch what matters, get notified when milestones happen.",
+  keywords: [
+    "Base",
+    "crypto",
+    "blockchain",
+    "DeFi",
+    "NFT",
+    "project discovery",
+    "Base ecosystem",
+    "Sonarbot",
+  ],
+  openGraph: {
+    title: "Sonarbot — Discover What's Building on Base",
+    description:
+      "A personalized intelligence feed for the Base ecosystem. Discover projects, watch what matters, get notified when milestones happen.",
+    siteName: "Sonarbot",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sonarbot — Discover What's Building on Base",
+    description:
+      "A personalized intelligence feed for the Base ecosystem. Discover projects, watch what matters, get notified when milestones happen.",
+  },
 };
 
 // Static inline script to prevent flash of wrong theme on page load.

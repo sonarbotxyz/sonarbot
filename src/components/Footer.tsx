@@ -14,7 +14,7 @@ const footerColumns = [
     title: 'Sonarbot',
     links: [
       { label: 'Twitter / X', href: 'https://x.com/0xsonarbot', external: true },
-      { label: 'Telegram Bot', href: '#', external: true },
+      { label: 'Telegram Bot', href: 'https://t.me/sonarwatcher_bot', external: true },
     ],
   },
   {

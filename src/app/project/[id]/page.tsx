@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { mapProject, mapComment } from "@/lib/mappers";
 import { ProjectDetail } from "@/components/ProjectDetail";
@@ -11,6 +13,48 @@ import type {
 } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  try {
+    const supabase = getSupabase();
+    const { data } = await supabase
+      .from("projects")
+      .select("name, tagline, category")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (data) {
+      const title = `${data.name} — Sonarbot`;
+      const description = data.tagline || `Explore ${data.name} on Sonarbot`;
+      return {
+        title,
+        description,
+        openGraph: {
+          title,
+          description,
+          type: "article",
+        },
+        twitter: {
+          card: "summary_large_image",
+          title,
+          description,
+        },
+      };
+    }
+  } catch {
+    // Supabase unavailable
+  }
+
+  return {
+    title: "Project — Sonarbot",
+  };
+}
 
 export default async function ProjectDetailPage({
   params,
@@ -94,6 +138,10 @@ export default async function ProjectDetailPage({
     }
   } catch {
     // Supabase unavailable
+  }
+
+  if (!project) {
+    notFound();
   }
 
   return (
