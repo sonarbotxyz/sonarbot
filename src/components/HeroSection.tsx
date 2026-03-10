@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Activity, Radio, TrendingUp, TrendingDown, Users, Droplets } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface HeroSectionProps {
   onSearch: (query: string) => void;
@@ -54,8 +54,66 @@ const EXAMPLE_SIGNALS = [
   },
 ];
 
+interface VisibleCard {
+  uid: number;
+  signalIndex: number;
+  isNew: boolean;
+}
+
+const DISPLAY_COUNT = 4;
+const CYCLE_INTERVAL = 3500;
+const INITIAL_STAGGER = 400;
+
 export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
   const [query, setQuery] = useState("");
+  const [visibleCards, setVisibleCards] = useState<VisibleCard[]>([]);
+  const [initialLoaded, setInitialLoaded] = useState(false);
+  const uidRef = useRef(0);
+  const nextSignalRef = useRef(DISPLAY_COUNT);
+
+  // Initial staggered load
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    for (let i = 0; i < DISPLAY_COUNT; i++) {
+      timers.push(
+        setTimeout(() => {
+          const uid = uidRef.current++;
+          setVisibleCards((prev) => [...prev, { uid, signalIndex: i, isNew: true }]);
+          // Clear isNew flag after animation
+          setTimeout(() => {
+            setVisibleCards((prev) =>
+              prev.map((c) => (c.uid === uid ? { ...c, isNew: false } : c))
+            );
+          }, 600);
+        }, i * INITIAL_STAGGER)
+      );
+    }
+    timers.push(
+      setTimeout(() => setInitialLoaded(true), DISPLAY_COUNT * INITIAL_STAGGER + 200)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  // Cycling loop after initial load
+  useEffect(() => {
+    if (!initialLoaded) return;
+    const interval = setInterval(() => {
+      const nextIndex = nextSignalRef.current % EXAMPLE_SIGNALS.length;
+      nextSignalRef.current++;
+      const uid = uidRef.current++;
+      setVisibleCards((prev) => {
+        const next = [...prev.slice(1), { uid, signalIndex: nextIndex, isNew: true }];
+        return next;
+      });
+      // Clear isNew flag after animation
+      setTimeout(() => {
+        setVisibleCards((prev) =>
+          prev.map((c) => (c.uid === uid ? { ...c, isNew: false } : c))
+        );
+      }, 600);
+    }, CYCLE_INTERVAL);
+    return () => clearInterval(interval);
+  }, [initialLoaded]);
 
   return (
     <section className="pt-12 pb-16 md:pt-16 md:pb-20">
@@ -189,98 +247,133 @@ export function HeroSection({ onSearch, projectCount }: HeroSectionProps) {
             />
             AI-powered signal feed
           </div>
-          <div className="flex flex-col gap-3">
-            {EXAMPLE_SIGNALS.map((signal, i) => {
-              const Icon = signal.icon;
-              return (
-                <motion.div
-                  key={i}
-                  custom={4 + i * 0.5}
-                  initial="hidden"
-                  animate="visible"
-                  variants={fadeUp}
-                  style={{
-                    border: "1px solid var(--border)",
-                    background: "var(--bg-secondary)",
-                    borderLeft: signal.isWarning
-                      ? "2px solid #ef4444"
-                      : signal.accent
-                        ? "2px solid var(--accent)"
-                        : "2px solid var(--border)",
-                  }}
-                >
-                  {/* Sender header */}
-                  <div
-                    className="px-3.5 pt-3 pb-1.5 flex items-center gap-2"
+          <div className="flex flex-col gap-3 relative">
+            <AnimatePresence initial={false} mode="popLayout">
+              {visibleCards.map((card) => {
+                const signal = EXAMPLE_SIGNALS[card.signalIndex];
+                const Icon = signal.icon;
+                return (
+                  <motion.div
+                    key={card.uid}
+                    layout
+                    initial={{ opacity: 0, x: 40, scale: 0.97 }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                      scale: 1,
+                      transition: {
+                        duration: 0.45,
+                        ease: [0.16, 1, 0.3, 1],
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      x: -20,
+                      scale: 0.97,
+                      transition: { duration: 0.3, ease: [0.4, 0, 1, 1] },
+                    }}
+                    className="relative overflow-hidden"
+                    style={{
+                      border: "1px solid var(--border)",
+                      background: "var(--bg-secondary)",
+                      borderLeft: signal.isWarning
+                        ? "2px solid #ef4444"
+                        : signal.accent
+                          ? "2px solid var(--accent)"
+                          : "2px solid var(--border)",
+                    }}
                   >
-                    <div
-                      className="h-5 w-5 flex items-center justify-center shrink-0"
-                      style={{
-                        background: signal.isWarning ? "rgba(239,68,68,0.15)" : "var(--accent-dim)",
-                        border: `1px solid ${signal.isWarning ? "rgba(239,68,68,0.3)" : "var(--accent-dim)"}`,
-                      }}
-                    >
-                      <Radio className="h-2.5 w-2.5" style={{ color: signal.isWarning ? "#ef4444" : "var(--accent)" }} />
-                    </div>
-                    <span
-                      className="text-[11px] font-semibold"
-                      style={{
-                        color: "var(--accent)",
-                        fontFamily: "var(--font-jetbrains-mono)",
-                      }}
-                    >
-                      @sonarbot
-                    </span>
-                    <span
-                      className="text-[10px]"
-                      style={{
-                        color: "var(--text-very-muted)",
-                        fontFamily: "var(--font-jetbrains-mono)",
-                      }}
-                    >
-                      {signal.time}
-                    </span>
-                  </div>
-
-                  {/* Signal content */}
-                  <div className="px-3.5 pb-3 pl-[46px]">
-                    <div
-                      className="text-[11px] flex items-center gap-1.5"
-                      style={{ fontFamily: "var(--font-jetbrains-mono)" }}
-                    >
-                      <Icon
-                        className="h-3 w-3 shrink-0"
+                    {/* Glow pulse on arrival */}
+                    {card.isNew && (
+                      <motion.div
+                        initial={{ opacity: 0.7 }}
+                        animate={{ opacity: 0 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
                         style={{
-                          color: signal.isWarning ? "#ef4444" : signal.accent ? "var(--accent)" : "var(--text-muted)",
+                          position: "absolute",
+                          inset: 0,
+                          borderLeft: signal.isWarning
+                            ? "2px solid #ef4444"
+                            : "2px solid var(--accent)",
+                          boxShadow: signal.isWarning
+                            ? "inset 3px 0 12px rgba(239,68,68,0.25)"
+                            : "inset 3px 0 12px var(--accent-glow)",
+                          pointerEvents: "none",
                         }}
                       />
-                      <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
-                        {signal.project}
-                      </span>
-                      <span style={{ color: "var(--text-very-muted)" }}>&mdash;</span>
-                      <span
+                    )}
+
+                    {/* Sender header */}
+                    <div className="px-3.5 pt-3 pb-1.5 flex items-center gap-2">
+                      <div
+                        className="h-5 w-5 flex items-center justify-center shrink-0"
                         style={{
-                          color: signal.isWarning ? "#ef4444" : signal.accent ? "var(--accent)" : "var(--text-body)",
-                          fontWeight: 500,
+                          background: signal.isWarning ? "rgba(239,68,68,0.15)" : "var(--accent-dim)",
+                          border: `1px solid ${signal.isWarning ? "rgba(239,68,68,0.3)" : "var(--accent-dim)"}`,
                         }}
                       >
-                        {signal.signal}
+                        <Radio className="h-2.5 w-2.5" style={{ color: signal.isWarning ? "#ef4444" : "var(--accent)" }} />
+                      </div>
+                      <span
+                        className="text-[11px] font-semibold"
+                        style={{
+                          color: "var(--accent)",
+                          fontFamily: "var(--font-jetbrains-mono)",
+                        }}
+                      >
+                        @sonarbot
+                      </span>
+                      <span
+                        className="text-[10px]"
+                        style={{
+                          color: "var(--text-very-muted)",
+                          fontFamily: "var(--font-jetbrains-mono)",
+                        }}
+                      >
+                        {signal.time}
                       </span>
                     </div>
-                    <div
-                      className="text-[10.5px] mt-1"
-                      style={{
-                        color: "var(--text-muted)",
-                        fontFamily: "var(--font-jetbrains-mono)",
-                        lineHeight: "1.5",
-                      }}
-                    >
-                      {signal.detail}
+
+                    {/* Signal content */}
+                    <div className="px-3.5 pb-3 pl-[46px]">
+                      <div
+                        className="text-[11px] flex items-center gap-1.5"
+                        style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                      >
+                        <Icon
+                          className="h-3 w-3 shrink-0"
+                          style={{
+                            color: signal.isWarning ? "#ef4444" : signal.accent ? "var(--accent)" : "var(--text-muted)",
+                          }}
+                        />
+                        <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                          {signal.project}
+                        </span>
+                        <span style={{ color: "var(--text-very-muted)" }}>&mdash;</span>
+                        <span
+                          style={{
+                            color: signal.isWarning ? "#ef4444" : signal.accent ? "var(--accent)" : "var(--text-body)",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {signal.signal}
+                        </span>
+                      </div>
+                      <div
+                        className="text-[10.5px] mt-1"
+                        style={{
+                          color: "var(--text-muted)",
+                          fontFamily: "var(--font-jetbrains-mono)",
+                          lineHeight: "1.5",
+                        }}
+                      >
+                        {signal.detail}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
           <div
             className="mt-2 text-[10px] text-right"
