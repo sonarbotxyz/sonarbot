@@ -276,8 +276,19 @@ export function ProjectDetail({
   const socialData = useMemo(() => (socialDataRaw ? mapApiSocial(socialDataRaw) : null), [socialDataRaw]);
 
   const chartData = useMemo(() => {
-    const sliced = snapshots90d.slice(-chartPeriod);
-    return sliced.map((s) => ({ timestamp: s.timestamp, value: s[chartMetric] }));
+    // Filter by actual date range, not data-point count
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - chartPeriod);
+    const cutoffISO = cutoff.toISOString();
+    const filtered = snapshots90d.filter((s) => s.timestamp >= cutoffISO);
+
+    // Deduplicate to one data point per day (keep latest per day)
+    const byDay = new Map<string, { timestamp: string; value: number }>();
+    for (const s of filtered) {
+      const day = s.timestamp.slice(0, 10); // YYYY-MM-DD
+      byDay.set(day, { timestamp: s.timestamp, value: s[chartMetric] });
+    }
+    return Array.from(byDay.values());
   }, [snapshots90d, chartMetric, chartPeriod]);
 
   const stats = useMemo(() => {
