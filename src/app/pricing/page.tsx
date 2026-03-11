@@ -153,8 +153,7 @@ export default function PricingPage() {
   const isProActive = subscription?.plan === 'pro' && subscription?.status === 'active'
 
   return (
-    <main className="min-h-screen pt-24 pb-20 px-5 md:px-20">
-      <div className="mx-auto max-w-[1400px]">
+    <div className="mx-auto max-w-[1400px] px-5 md:px-20 py-10">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -492,7 +491,6 @@ export default function PricingPage() {
             $SNR payments activate instantly for 30 days on Base chain.
           </p>
         </motion.div>
-      </div>
-    </main>
+    </div>
   )
 }
