@@ -2,9 +2,8 @@
 
 export const PRO_PRICE_USDC = "9.99";
 
-const PAYMENT_WALLET: `0x${string}` =
-  (process.env.NEXT_PUBLIC_PAYMENT_WALLET as `0x${string}`) ||
-  "0xE3aC289bC25404A2c66A02459aB99dcD746E52b2";
+// Hardcoded — USDC receiving wallet on Base
+const PAYMENT_WALLET = "0xE3aC289bC25404A2c66A02459aB99dcD746E52b2" as const;
 
 export async function payWithBase() {
   const { pay } = await import("@base-org/account");
