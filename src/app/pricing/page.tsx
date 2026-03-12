@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Check, X, Zap, CreditCard, Coins, ExternalLink, Copy, CheckCircle, Loader2 } from 'lucide-react'
+import { Check, X, Zap, Wallet, Coins, ExternalLink, Copy, CheckCircle, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/components/AuthContext'
+import { payWithBase } from '@/lib/base-pay'
 
 interface SubscriptionStatus {
   plan: string
@@ -69,47 +70,39 @@ export default function PricingPage() {
 
   useEffect(() => {
     if (success) setMessage({ type: 'success', text: 'Pro subscription activated. Welcome aboard.' })
-    if (canceled) setMessage({ type: 'error', text: 'Checkout canceled.' })
+    if (canceled) setMessage({ type: 'error', text: 'Payment canceled.' })
   }, [success, canceled])
 
-  const handleStripeCheckout = async () => {
+  const handleBasePayCheckout = async () => {
     if (!user) { login(); return }
     setLoading(true)
+    setMessage(null)
     try {
-      const token = localStorage.getItem('privy:token')
-      const res = await fetch('/api/payments/stripe/checkout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to start checkout' })
-        setLoading(false)
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'Something went wrong' })
-      setLoading(false)
-    }
-  }
+      // Trigger Base Pay popup — user confirms USDC payment
+      const payment = await payWithBase()
 
-  const handleManageSubscription = async () => {
-    setLoading(true)
-    try {
+      // Verify payment on our backend
       const token = localStorage.getItem('privy:token')
-      const res = await fetch('/api/payments/stripe/portal', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch('/api/payments/base-pay/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ paymentId: payment.id }),
       })
       const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
+
+      if (data.success) {
+        setMessage({ type: 'success', text: 'Pro subscription activated. Welcome aboard.' })
+        fetchSubscription()
       } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to open portal' })
-        setLoading(false)
+        setMessage({ type: 'error', text: data.error || 'Payment verification failed' })
       }
-    } catch {
-      setMessage({ type: 'error', text: 'Something went wrong' })
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Payment failed or was canceled'
+      setMessage({ type: 'error', text: errorMessage })
+    } finally {
       setLoading(false)
     }
   }
@@ -302,7 +295,7 @@ export default function PricingPage() {
                 className="text-sm font-mono ml-1"
                 style={{ color: 'var(--text-muted)' }}
               >
-                /mo
+                USDC/mo
               </span>
             </div>
             <p
@@ -335,27 +328,14 @@ export default function PricingPage() {
                   Active
                 </div>
 
-                {subscription?.payment_method === 'stripe' ? (
-                  <button
-                    onClick={handleManageSubscription}
-                    disabled={loading}
-                    className="w-full py-2.5 text-center text-xs uppercase tracking-[0.08em] font-mono transition-colors cursor-pointer flex items-center justify-center gap-2"
-                    style={{
-                      color: 'var(--text-secondary)',
-                      border: '1px solid var(--border)',
-                    }}
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    Manage subscription
-                  </button>
-                ) : subscription?.current_period_end ? (
+                {subscription?.current_period_end && (
                   <p
                     className="text-[11px] font-mono text-center"
                     style={{ color: 'var(--text-muted)' }}
                   >
                     Renews {new Date(subscription.current_period_end).toLocaleDateString()}
                   </p>
-                ) : null}
+                )}
               </div>
             ) : snrMode ? (
               <div className="space-y-4">
@@ -434,7 +414,7 @@ export default function PricingPage() {
             ) : (
               <div className="space-y-3">
                 <button
-                  onClick={handleStripeCheckout}
+                  onClick={handleBasePayCheckout}
                   disabled={loading}
                   className="w-full py-2.5 text-center text-xs uppercase tracking-[0.08em] font-mono transition-colors cursor-pointer flex items-center justify-center gap-2"
                   style={{
@@ -446,9 +426,9 @@ export default function PricingPage() {
                   {loading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <CreditCard className="w-3.5 h-3.5" />
+                    <Wallet className="w-3.5 h-3.5" />
                   )}
-                  {loading ? 'Loading...' : 'Subscribe with Card — $9.99/mo'}
+                  {loading ? 'Processing...' : 'Pay with USDC — $9.99/mo'}
                 </button>
 
                 <button
@@ -466,6 +446,13 @@ export default function PricingPage() {
                   <Coins className="w-3.5 h-3.5" />
                   Pay with $SNR — 25% off
                 </button>
+
+                <p
+                  className="text-[10px] font-mono text-center pt-1"
+                  style={{ color: 'var(--text-very-muted)' }}
+                >
+                  No fees · No chargebacks · Settles in seconds on Base
+                </p>
               </div>
             )}
           </motion.div>
@@ -488,7 +475,7 @@ export default function PricingPage() {
             className="text-[11px] font-mono"
             style={{ color: 'var(--text-very-muted)' }}
           >
-            $SNR payments activate instantly for 30 days on Base chain.
+            Payments settle instantly on Base chain. No credit card needed.
           </p>
         </motion.div>
     </div>

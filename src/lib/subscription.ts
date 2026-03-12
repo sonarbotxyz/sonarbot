@@ -26,7 +26,7 @@ export interface Subscription {
   user_id: string;
   plan: "free" | "pro";
   status: "active" | "canceled" | "past_due";
-  payment_method: "stripe" | "snr" | null;
+  payment_method: "base_pay" | "snr" | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   snr_wallet_address: string | null;
