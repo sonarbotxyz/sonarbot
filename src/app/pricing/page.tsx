@@ -46,6 +46,9 @@ export default function PricingPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [copied, setCopied] = useState(false)
 
+  const [snrAmount, setSnrAmount] = useState<string>('...')
+  const [snrPrice, setSnrPrice] = useState<number | null>(null)
+
   const success = searchParams.get('success')
   const canceled = searchParams.get('canceled')
 
@@ -68,6 +71,17 @@ export default function PricingPage() {
   useEffect(() => {
     fetchSubscription()
   }, [fetchSubscription])
+
+  // Fetch live SNR price
+  useEffect(() => {
+    fetch('/api/payments/snr/price')
+      .then(r => r.json())
+      .then(data => {
+        if (data.formatted) setSnrAmount(data.formatted)
+        if (data.priceUsd) setSnrPrice(data.priceUsd)
+      })
+      .catch(() => setSnrAmount('~20M'))
+  }, [])
 
   useEffect(() => {
     if (success) setMessage({ type: 'success', text: 'Pro subscription activated. Welcome aboard.' })
@@ -303,7 +317,7 @@ export default function PricingPage() {
               className="text-[11px] font-mono mb-8"
               style={{ color: 'var(--accent)' }}
             >
-              20M $SNR/mo (25% off)
+              {snrAmount} $SNR/mo (25% off)
             </p>
 
             <div className="space-y-3 mb-10">
@@ -348,7 +362,7 @@ export default function PricingPage() {
                   }}
                 >
                   <p style={{ color: 'var(--text-body)' }}>
-                    Send <span style={{ color: 'var(--accent)', fontWeight: 600 }}>20,000,000 $SNR</span> to:
+                    Send <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{snrAmount} $SNR</span>{snrPrice ? <span style={{ color: 'var(--text-muted)' }}> (≈${(7.49).toFixed(2)})</span> : null} to:
                   </p>
                   <div className="flex items-center gap-2">
                     <code

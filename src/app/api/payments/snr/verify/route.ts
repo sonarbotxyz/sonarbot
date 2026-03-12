@@ -3,6 +3,7 @@ import { createPublicClient, http, parseAbi, type Hex } from "viem";
 import { base } from "viem/chains";
 import { authenticateRequest } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
+import { getSNRAmount, toRawAmount } from "@/lib/snr-price";
 
 const ERC20_TRANSFER_ABI = parseAbi([
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -33,13 +34,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const snrContract = process.env.SNR_CONTRACT_ADDRESS as Hex;
-    const paymentWallet = process.env.PAYMENT_WALLET_ADDRESS?.toLowerCase();
-    const requiredAmount = BigInt(process.env.SNR_MONTHLY_AMOUNT || "0");
+    const snrContract = (process.env.SNR_CONTRACT_ADDRESS || "0xE1231f809124e4Aa556cD9d8c28CB33f02c75b07") as Hex;
+    const paymentWallet = (process.env.PAYMENT_WALLET_ADDRESS || "0xE3aC289bC25404A2c66A02459aB99dcD746E52b2").toLowerCase();
 
-    if (!snrContract || !paymentWallet || !requiredAmount) {
+    // Dynamic pricing — fetch live SNR price, apply 10% tolerance
+    let requiredAmount: bigint;
+    try {
+      const { amount } = await getSNRAmount();
+      const withTolerance = Math.floor(amount * 0.9); // 10% tolerance for price swings
+      requiredAmount = toRawAmount(withTolerance);
+    } catch {
       return NextResponse.json(
-        { error: "SNR payment not configured" },
+        { error: "Could not fetch SNR price. Try again." },
         { status: 503 }
       );
     }
