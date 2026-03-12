@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPaymentStatus } from "@base-org/account";
+import { getPaymentStatus } from "@base-org/account/node";
 import { authenticateRequest } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
 
