@@ -1,20 +1,17 @@
+"use client";
+
 import { pay, getPaymentStatus } from "@base-org/account";
-import { isAddress } from "viem";
 
 export const PRO_PRICE_USDC = "9.99";
 
-export function getPaymentWallet(): `0x${string}` {
-  const wallet = process.env.NEXT_PUBLIC_PAYMENT_WALLET;
-  if (!wallet || !isAddress(wallet)) {
-    throw new Error("Invalid or missing NEXT_PUBLIC_PAYMENT_WALLET");
-  }
-  return wallet;
-}
+const PAYMENT_WALLET: `0x${string}` =
+  (process.env.NEXT_PUBLIC_PAYMENT_WALLET as `0x${string}`) ||
+  "0xE3aC289bC25404A2c66A02459aB99dcD746E52b2";
 
 export async function payWithBase() {
   const payment = await pay({
     amount: PRO_PRICE_USDC,
-    to: getPaymentWallet(),
+    to: PAYMENT_WALLET,
     testnet: false,
   });
   return payment;
