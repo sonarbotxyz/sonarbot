@@ -16,7 +16,7 @@ interface SubscriptionStatus {
 }
 
 const FREE_FEATURES = [
-  { label: 'Watch up to 3 projects', included: true },
+  { label: 'Watch 1 project', included: true },
   { label: 'Basic metric signals', included: true },
   { label: 'Social signals', included: false },
   { label: 'Whale alerts', included: false },

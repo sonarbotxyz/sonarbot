@@ -56,6 +56,7 @@ import { HealthBreakdown } from "@/components/HealthBreakdown";
 import { WhaleTable } from "@/components/WhaleTable";
 import { ProjectCard } from "@/components/ProjectCard";
 import { TelegramPairingModal } from "@/components/TelegramPairingModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 const milestoneTypeIcons: Record<string, React.ElementType> = {
   metrics: BarChart3,
@@ -139,6 +140,7 @@ export function ProjectDetail({
   const [upvoteCount, setUpvoteCount] = useState(project?.upvotes ?? 0);
   const [upvoting, setUpvoting] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [comments, setComments] = useState(initialComments);
   const [commentText, setCommentText] = useState("");
   const [posting, setPosting] = useState(false);
@@ -229,14 +231,20 @@ export function ProjectDetail({
               }
               setAlertPrefs(set);
             }
+            // Show alert preferences modal
+            setShowAlertModal(true);
+          } else if (res.status === 403) {
+            const data = await res.json();
+            if (data.upgrade) {
+              setShowUpgradeModal(true);
+              return;
+            }
           } else {
             console.error("Watch failed:", res.status, await res.text());
           }
         } catch (err) {
           console.error("Watch fetch error:", err);
         }
-        // Always show modal so user can set preferences
-        setShowAlertModal(true);
       }
     } catch (e) {
       console.error("Watch error:", e);
@@ -967,6 +975,20 @@ export function ProjectDetail({
       <AnimatePresence>
         {showAlertModal && <AlertModal projectName={project.name} onClose={() => setShowAlertModal(false)} initialSelected={alertPrefs} onSave={handleSaveAlertPrefs} />}
       </AnimatePresence>
+
+      {/* Upgrade modal */}
+      {accessToken && (
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          onUpgraded={() => {
+            setShowUpgradeModal(false);
+            // Retry the watch after upgrade
+            handleWatch();
+          }}
+          accessToken={accessToken}
+        />
+      )}
 
       {/* Telegram pairing modal */}
       {accessToken && (

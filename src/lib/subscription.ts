@@ -2,7 +2,7 @@ import { getSupabase } from "./supabase";
 
 export const PLAN_LIMITS = {
   free: {
-    maxWatches: 3,
+    maxWatches: 1,
     signalTypes: ["metrics_milestones"],
     priorityNotifications: false,
     fullAnalytics: false,
