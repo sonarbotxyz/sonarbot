@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Check, X, Zap, Wallet, Coins, ExternalLink, Copy, CheckCircle, Loader2 } from 'lucide-react'
+import { Check, X, Zap, Coins, Copy, CheckCircle, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/components/AuthContext'
 import { payWithBase } from '@/lib/base-pay'
@@ -416,19 +417,27 @@ export default function PricingPage() {
                 <button
                   onClick={handleBasePayCheckout}
                   disabled={loading}
-                  className="w-full py-2.5 text-center text-xs uppercase tracking-[0.08em] font-mono transition-colors cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3 text-center text-xs font-mono transition-colors cursor-pointer flex items-center justify-center gap-2"
                   style={{
                     color: '#fff',
-                    background: 'var(--accent)',
+                    background: '#0000FF',
                     opacity: loading ? 0.7 : 1,
+                    borderRadius: '8px',
+                    height: '44px',
                   }}
                 >
                   {loading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Wallet className="w-3.5 h-3.5" />
+                    <Image
+                      src="/images/BasePayWhiteLogo.png"
+                      alt="Base Pay"
+                      width={80}
+                      height={20}
+                      style={{ height: '20px', width: 'auto' }}
+                    />
                   )}
-                  {loading ? 'Processing...' : 'Pay with USDC — $9.99/mo'}
+                  {loading && 'Processing...'}
                 </button>
 
                 <button
