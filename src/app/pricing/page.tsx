@@ -303,7 +303,7 @@ export default function PricingPage() {
               className="text-[11px] font-mono mb-8"
               style={{ color: 'var(--accent)' }}
             >
-              ~$7.49/mo with $SNR (25% off)
+              20M $SNR/mo (25% off)
             </p>
 
             <div className="space-y-3 mb-10">
@@ -348,7 +348,7 @@ export default function PricingPage() {
                   }}
                 >
                   <p style={{ color: 'var(--text-body)' }}>
-                    Send the required $SNR amount to:
+                    Send <span style={{ color: 'var(--accent)', fontWeight: 600 }}>20,000,000 $SNR</span> to:
                   </p>
                   <div className="flex items-center gap-2">
                     <code
