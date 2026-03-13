@@ -1,124 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
-import { runOnchainPipeline } from "@/lib/pipeline/onchain";
-import { detectMetricsSignals } from "@/lib/pipeline/metrics-signals";
-import { classifyContent } from "@/lib/pipeline/signal-classifier";
-import { notifyEnriched } from "@/lib/pipeline/notify";
-import { runSocialPipeline } from "@/lib/pipeline/social";
-import { runCashtagPipeline } from "@/lib/pipeline/social/cashtag-monitor";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+export const maxDuration = 60; // Dispatcher is lightweight — just fires sub-crons
 
 // ---------------------------------------------------------------------------
-// X Pipeline — fetch tweets, classify, insert signals
+// Master Cron — Dispatcher
+//
+// Fires all sub-cron endpoints as parallel fetch calls. Each sub-cron runs
+// in its own serverless function with its own 300s budget. Master just
+// collects results and reports.
 // ---------------------------------------------------------------------------
 
-const X_API_BASE = "https://api.twitter.com/2";
-
-interface Tweet {
-  id: string;
-  text: string;
-  created_at?: string;
-  referenced_tweets?: { type: string }[];
-}
-
-async function fetchProjectTweets(handle: string): Promise<Tweet[]> {
-  const token = process.env.X_BEARER_TOKEN;
-  if (!token || !handle) return [];
-
-  try {
-    const query = encodeURIComponent(`from:${handle}`);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-    const res = await fetch(
-      `${X_API_BASE}/tweets/search/recent?query=${query}&max_results=10&tweet.fields=created_at,referenced_tweets`,
-      { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }
-    );
-    clearTimeout(timeout);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-// ---------------------------------------------------------------------------
-// GitHub Pipeline — fetch releases + notable commits
-// ---------------------------------------------------------------------------
-
-interface GitHubSignalData {
-  title: string;
-  description: string;
-  source_url: string;
-}
-
-async function fetchGitHubSignals(githubUrl: string): Promise<GitHubSignalData[]> {
-  if (!githubUrl) return [];
-
-  // Extract owner/repo from URL
-  const match = githubUrl.match(/github\.com\/([^/]+\/[^/]+)/);
-  if (!match) return [];
-  const repo = match[1].replace(/\/$/, "");
-
-  const headers: Record<string, string> = { Accept: "application/vnd.github+json" };
-  const token = process.env.GITHUB_TOKEN;
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-
-  const signals: GitHubSignalData[] = [];
-
-  try {
-    // Check releases (last 48h)
-    const relController = new AbortController();
-    const relTimeout = setTimeout(() => relController.abort(), 10000);
-    const relRes = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=3`, { headers, signal: relController.signal });
-    clearTimeout(relTimeout);
-    if (relRes.ok) {
-      const releases = await relRes.json();
-      const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
-      for (const rel of releases) {
-        if (new Date(rel.published_at) > cutoff) {
-          signals.push({
-            title: `New release: ${rel.tag_name}`,
-            description: (rel.body || "").slice(0, 200),
-            source_url: rel.html_url,
-          });
-        }
-      }
-    }
-
-    // Check recent commits (last 2h for 30-min interval)
-    const since = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    const commitController = new AbortController();
-    const commitTimeout = setTimeout(() => commitController.abort(), 10000);
-    const commitsRes = await fetch(
-      `https://api.github.com/repos/${repo}/commits?per_page=5&since=${since}`,
-      { headers, signal: commitController.signal }
-    );
-    clearTimeout(commitTimeout);
-    if (commitsRes.ok) {
-      const commits = await commitsRes.json();
-      if (Array.isArray(commits) && commits.length >= 3) {
-        signals.push({
-          title: `Active development: ${commits.length} commits in the last 2 hours`,
-          description: commits.slice(0, 3).map((c: { commit: { message: string } }) => 
-            c.commit.message.split("\n")[0]
-          ).join("; "),
-          source_url: `https://github.com/${repo}/commits`,
-        });
-      }
-    }
-  } catch (err) {
-    console.error(`GitHub fetch failed for ${repo}:`, err);
-  }
-
-  return signals;
-}
-
-// ---------------------------------------------------------------------------
-// Master Pipeline
-// ---------------------------------------------------------------------------
+const SUB_CRONS = [
+  { name: "onchain", path: "/api/cron/onchain" },
+  { name: "social", path: "/api/cron/social" },
+  { name: "cashtag", path: "/api/cron/cashtag" },
+  { name: "signals", path: "/api/cron/signals" },
+] as const;
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -127,171 +25,56 @@ export async function GET(request: NextRequest) {
   }
 
   const startTime = Date.now();
-  const supabase = getSupabase();
-  const results = {
-    onchain: { processed: 0, errors: 0 },
-    metrics: { signals: 0 },
-    social: { processed: 0, errors: 0 },
-    cashtag: { processed: 0, errors: 0, spikes: 0 },
-    x: { tweetsChecked: 0, signals: 0 },
-    github: { signals: 0 },
-    notifications: { sent: 0 },
-  };
 
-  try {
-    // ── Step 1: Fetch fresh on-chain data ──
-    results.onchain = await runOnchainPipeline();
+  // Resolve base URL from the incoming request
+  const baseUrl = new URL(request.url).origin;
+  const secret = process.env.CRON_SECRET!;
 
-    // ── Step 2: Detect metric milestones from fresh snapshots ──
-    results.metrics = await detectMetricsSignals();
+  // Fire all sub-crons in parallel — each gets its own serverless invocation
+  const results = await Promise.allSettled(
+    SUB_CRONS.map(async (cron) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 290_000); // 290s safety
 
-    // ── Step 3: Update social metrics (X followers, GitHub stars/commits) ──
-    results.social = await runSocialPipeline();
+      try {
+        const res = await fetch(`${baseUrl}${cron.path}`, {
+          headers: { Authorization: `Bearer ${secret}` },
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
 
-    // ── Step 4: Cashtag mention monitoring ──
-    results.cashtag = await runCashtagPipeline();
-
-    // ── Step 5: Fetch all projects for X + GitHub signal checks ──
-    const { data: projects } = await supabase
-      .from("projects")
-      .select("id, name, twitter_handle, github_url, contract_address")
-      .eq("is_approved", true);
-
-    if (!projects?.length) {
-      return NextResponse.json({
-        success: true,
-        ...results,
-        duration: `${((Date.now() - startTime) / 1000).toFixed(1)}s`,
-      });
-    }
-
-    // ── Step 5a: X Tweet Pipeline ──
-    for (const project of projects) {
-      if (!project.twitter_handle) continue;
-
-      const tweets = await fetchProjectTweets(project.twitter_handle);
-      results.x.tweetsChecked += tweets.length;
-
-      for (const tweet of tweets) {
-        // Dedup: check if this tweet URL already generated a signal
-        const sourceUrl = `https://x.com/${project.twitter_handle}/status/${tweet.id}`;
-        const { data: existing } = await supabase
-          .from("signals")
-          .select("id")
-          .eq("source_url", sourceUrl)
-          .limit(1);
-
-        if (existing && existing.length > 0) continue;
-
-        // Classify with Gemini (with throttle)
-        await new Promise((r) => setTimeout(r, 4000));
-        const classification = await classifyContent(project.name, tweet.text);
-        if (!classification || classification.confidence === "low") continue;
-
-        // Insert signal
-        const { data: inserted } = await supabase
-          .from("signals")
-          .insert({
-            project_id: project.id,
-            type: classification.type,
-            title: classification.title,
-            description: classification.description,
-            source: "x",
-            source_url: sourceUrl,
-            confidence: classification.confidence,
-            is_published: true,
-          })
-          .select("id, project_id, type, title, description")
-          .single();
-
-        if (inserted) {
-          results.x.signals++;
-
-          // Enrich and notify
-          try {
-            await notifyEnriched(
-              inserted,
-              project.name,
-              project.twitter_handle || "",
-              project.github_url || ""
-            );
-            results.notifications.sent++;
-          } catch (err) {
-            console.error(`[Master] Notify failed:`, err);
-          }
-        }
+        const data = await res.json();
+        return { name: cron.name, status: res.status, data };
+      } catch (err) {
+        clearTimeout(timeout);
+        return {
+          name: cron.name,
+          status: 500,
+          error: err instanceof Error ? err.message : "Unknown error",
+        };
       }
+    })
+  );
+
+  // Collect summary
+  const summary: Record<string, unknown> = {};
+  for (let i = 0; i < SUB_CRONS.length; i++) {
+    const result = results[i];
+    const name = SUB_CRONS[i].name;
+    if (result.status === "fulfilled") {
+      summary[name] = result.value;
+    } else {
+      summary[name] = { error: result.reason?.message ?? "Failed" };
     }
-
-    // ── Step 5b: GitHub Pipeline ──
-    for (const project of projects) {
-      if (!project.github_url) continue;
-
-      const ghSignals = await fetchGitHubSignals(project.github_url);
-
-      for (const ghSignal of ghSignals) {
-        // Dedup
-        const { data: existing } = await supabase
-          .from("signals")
-          .select("id")
-          .eq("source_url", ghSignal.source_url)
-          .limit(1);
-
-        if (existing && existing.length > 0) continue;
-
-        // Classify
-        await new Promise((r) => setTimeout(r, 4000));
-        const classification = await classifyContent(
-          project.name,
-          `${ghSignal.title}: ${ghSignal.description}`
-        );
-
-        const { data: inserted } = await supabase
-          .from("signals")
-          .insert({
-            project_id: project.id,
-            type: classification?.type || "new_features_launches",
-            title: ghSignal.title,
-            description: classification?.description || ghSignal.description,
-            source: "github",
-            source_url: ghSignal.source_url,
-            confidence: classification?.confidence || "medium",
-            is_published: true,
-          })
-          .select("id, project_id, type, title, description")
-          .single();
-
-        if (inserted) {
-          results.github.signals++;
-
-          try {
-            await notifyEnriched(
-              inserted,
-              project.name,
-              project.twitter_handle || "",
-              project.github_url || ""
-            );
-            results.notifications.sent++;
-          } catch (err) {
-            console.error(`[Master] Notify failed:`, err);
-          }
-        }
-      }
-    }
-
-    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-
-    return NextResponse.json({
-      success: true,
-      ...results,
-      duration: `${duration}s`,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error("[Master] Pipeline error:", error);
-    return NextResponse.json(
-      { error: "Pipeline failed", duration: `${((Date.now() - startTime) / 1000).toFixed(1)}s` },
-      { status: 500 }
-    );
   }
+
+  const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+
+  return NextResponse.json({
+    success: true,
+    dispatcher: true,
+    ...summary,
+    duration: `${duration}s`,
+    timestamp: new Date().toISOString(),
+  });
 }
