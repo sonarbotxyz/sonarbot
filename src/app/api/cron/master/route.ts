@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60; // Dispatcher is lightweight — just fires sub-crons
+export const maxDuration = 30; // Dispatcher returns immediately
 
 // ---------------------------------------------------------------------------
-// Master Cron — Dispatcher
+// Master Cron — Fire-and-Forget Dispatcher
 //
-// Fires all sub-cron endpoints as parallel fetch calls. Each sub-cron runs
-// in its own serverless function with its own 300s budget. Master just
-// collects results and reports.
+// Uses Next.js `after()` to fire sub-cron endpoints in the background.
+// Returns instantly so the cron never times out. Each sub-cron runs
+// in its own serverless function with its own 300s budget.
 // ---------------------------------------------------------------------------
 
 const SUB_CRONS = [
   { name: "onchain", path: "/api/cron/onchain" },
-  { name: "social", path: "/api/cron/social" },
   { name: "cashtag", path: "/api/cron/cashtag" },
   { name: "signals", path: "/api/cron/signals" },
 ] as const;
@@ -24,57 +24,31 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const startTime = Date.now();
-
-  // Resolve base URL from the incoming request
   const baseUrl = new URL(request.url).origin;
   const secret = process.env.CRON_SECRET!;
 
-  // Fire all sub-crons in parallel — each gets its own serverless invocation
-  const results = await Promise.allSettled(
-    SUB_CRONS.map(async (cron) => {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 290_000); // 290s safety
-
+  // Fire all sub-crons in the background after response is sent
+  after(async () => {
+    const fires = SUB_CRONS.map(async (cron) => {
       try {
         const res = await fetch(`${baseUrl}${cron.path}`, {
           headers: { Authorization: `Bearer ${secret}` },
-          signal: controller.signal,
         });
-        clearTimeout(timeout);
-
         const data = await res.json();
-        return { name: cron.name, status: res.status, data };
+        console.log(`[Master] ${cron.name}: ${res.status}`, JSON.stringify(data).slice(0, 200));
       } catch (err) {
-        clearTimeout(timeout);
-        return {
-          name: cron.name,
-          status: 500,
-          error: err instanceof Error ? err.message : "Unknown error",
-        };
+        console.error(`[Master] ${cron.name} failed:`, err);
       }
-    })
-  );
+    });
 
-  // Collect summary
-  const summary: Record<string, unknown> = {};
-  for (let i = 0; i < SUB_CRONS.length; i++) {
-    const result = results[i];
-    const name = SUB_CRONS[i].name;
-    if (result.status === "fulfilled") {
-      summary[name] = result.value;
-    } else {
-      summary[name] = { error: result.reason?.message ?? "Failed" };
-    }
-  }
-
-  const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+    await Promise.allSettled(fires);
+    console.log("[Master] All sub-crons dispatched");
+  });
 
   return NextResponse.json({
     success: true,
     dispatcher: true,
-    ...summary,
-    duration: `${duration}s`,
+    fired: SUB_CRONS.map((c) => c.name),
     timestamp: new Date().toISOString(),
   });
 }
