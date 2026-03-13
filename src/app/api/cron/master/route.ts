@@ -5,6 +5,7 @@ import { detectMetricsSignals } from "@/lib/pipeline/metrics-signals";
 import { classifyContent } from "@/lib/pipeline/signal-classifier";
 import { notifyEnriched } from "@/lib/pipeline/notify";
 import { runSocialPipeline } from "@/lib/pipeline/social";
+import { runCashtagPipeline } from "@/lib/pipeline/social/cashtag-monitor";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -131,6 +132,7 @@ export async function GET(request: NextRequest) {
     onchain: { processed: 0, errors: 0 },
     metrics: { signals: 0 },
     social: { processed: 0, errors: 0 },
+    cashtag: { processed: 0, errors: 0, spikes: 0 },
     x: { tweetsChecked: 0, signals: 0 },
     github: { signals: 0 },
     notifications: { sent: 0 },
@@ -146,7 +148,10 @@ export async function GET(request: NextRequest) {
     // ── Step 3: Update social metrics (X followers, GitHub stars/commits) ──
     results.social = await runSocialPipeline();
 
-    // ── Step 4: Fetch all projects for X + GitHub signal checks ──
+    // ── Step 4: Cashtag mention monitoring ──
+    results.cashtag = await runCashtagPipeline();
+
+    // ── Step 5: Fetch all projects for X + GitHub signal checks ──
     const { data: projects } = await supabase
       .from("projects")
       .select("id, name, twitter_handle, github_url, contract_address")
@@ -160,7 +165,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // ── Step 4: X Tweet Pipeline ──
+    // ── Step 5a: X Tweet Pipeline ──
     for (const project of projects) {
       if (!project.twitter_handle) continue;
 
@@ -218,7 +223,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── Step 5: GitHub Pipeline ──
+    // ── Step 5b: GitHub Pipeline ──
     for (const project of projects) {
       if (!project.github_url) continue;
 
