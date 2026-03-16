@@ -135,6 +135,29 @@ export default async function ProjectDetailPage({
       snapshotsData = ((snapshotsResult.data as ApiSnapshot[]) ?? []).reverse();
       whaleWalletsData = (whalesResult.data as ApiWhaleWallet[]) ?? [];
       socialData = (socialResult.data?.[0] as ApiSocialData) ?? null;
+
+      // Enrich social data with cashtag mentions from cashtag_snapshots
+      if (socialData) {
+        try {
+          const { data: cashtagSnaps } = await supabase
+            .from("cashtag_snapshots")
+            .select("tweet_count")
+            .eq("project_id", id)
+            .order("snapshot_at", { ascending: false })
+            .limit(2);
+
+          if (cashtagSnaps && cashtagSnaps.length > 0) {
+            socialData.cashtag_mentions_24h = cashtagSnaps[0].tweet_count ?? 0;
+            if (cashtagSnaps.length >= 2 && cashtagSnaps[1].tweet_count > 0) {
+              socialData.cashtag_change = ((cashtagSnaps[0].tweet_count - cashtagSnaps[1].tweet_count) / cashtagSnaps[1].tweet_count) * 100;
+            } else {
+              socialData.cashtag_change = 0;
+            }
+          }
+        } catch {
+          // cashtag data optional
+        }
+      }
     }
   } catch {
     // Supabase unavailable

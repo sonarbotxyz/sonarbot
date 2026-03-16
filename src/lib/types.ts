@@ -118,6 +118,8 @@ export interface ApiSocialData {
   github_commits_7d: number;
   github_last_push: string;
   farcaster_followers: number;
+  cashtag_mentions_24h?: number;
+  cashtag_change?: number;
 }
 
 /* ─── Mapped frontend types (camelCase) ─── */
@@ -163,8 +165,8 @@ export interface SocialData {
   engagementRate: number;
   githubCommits30d: number;
   githubStars: number;
-  farcasterFollowers: number;
-  farcasterEngagement: number;
+  cashtagMentions24h: number;
+  cashtagChange: number;
 }
 
 /* ─── Mapping functions ─── */
@@ -217,8 +219,8 @@ export function mapApiSocial(raw: ApiSocialData): SocialData {
     engagementRate: raw.x_engagement_rate ?? 0,
     githubCommits30d: raw.github_commits_7d ?? 0,
     githubStars: 0,
-    farcasterFollowers: raw.farcaster_followers ?? 0,
-    farcasterEngagement: 0,
+    cashtagMentions24h: raw.cashtag_mentions_24h ?? 0,
+    cashtagChange: raw.cashtag_change ?? 0,
   };
 }
 

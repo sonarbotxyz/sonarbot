@@ -32,7 +32,7 @@ import {
   DollarSign,
   Droplets,
   GitBranch,
-  MessageCircle,
+
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 import type { Project, Comment, Milestone, Category } from "@/lib/types";
@@ -649,8 +649,8 @@ export function ProjectDetail({
                     <SocialRow icon={Activity} label="Engagement Rate" value={socialData ? `${socialData.engagementRate.toFixed(1)}%` : "—"} />
                     <SocialRow icon={GitBranch} label="GitHub Commits (30d)" value={socialData ? socialData.githubCommits30d.toString() : "—"} />
                     <SocialRow icon={Activity} label="GitHub Stars" value={socialData ? formatNumber(socialData.githubStars) : "—"} />
-                    <SocialRow icon={MessageCircle} label="Farcaster Followers" value={socialData ? formatNumber(socialData.farcasterFollowers) : "—"} />
-                    <SocialRow icon={Activity} label="Farcaster Engagement" value={socialData ? `${socialData.farcasterEngagement.toFixed(1)}%` : "—"} />
+                    <SocialRow icon={DollarSign} label="Cashtag Mentions (24h)" value={socialData ? formatNumber(socialData.cashtagMentions24h) : "—"} />
+                    <SocialRow icon={TrendingUp} label="Cashtag Trend" value={socialData ? `${socialData.cashtagChange >= 0 ? "+" : ""}${socialData.cashtagChange.toFixed(0)}%` : "—"} />
                   </div>
                 </div>
               </motion.div>
