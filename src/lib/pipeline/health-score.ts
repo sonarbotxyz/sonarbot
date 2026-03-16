@@ -2,11 +2,11 @@
  * Health Score Calculator
  *
  * Computes a composite health score (0-100) for a project based on:
- *   - holder_sub  (30%): 7-day holder growth
- *   - dev_sub     (25%): GitHub commit activity
+ *   - holder_sub    (30%): 7-day holder growth
+ *   - dev_sub        (5%): GitHub commit activity
  *   - liquidity_sub (20%): Liquidity stability
- *   - social_sub  (15%): X engagement rate
- *   - volume_sub  (10%): 24h volume trend
+ *   - social_sub   (35%): X engagement + cashtag mentions
+ *   - volume_sub   (10%): 24h volume trend
  */
 
 import { getSupabase } from "@/lib/supabase";
@@ -63,14 +63,20 @@ function calcLiquiditySub(
   return Math.round(((changePct + 20) / 20) * 100);
 }
 
-/** Social sub-score (0-100) based on X followers + engagement rate. */
-function calcSocialSub(xFollowers: number, engagementRate: number): number {
-  if (xFollowers <= 0) return 0;
-  // Follower score (0-70): log scale
-  const followerScore = Math.min(Math.round((Math.log10(xFollowers) / 6) * 70), 70);
-  // Engagement bonus (0-30): 1% = 10, 3% = 20, 5%+ = 30
-  const engagementBonus = Math.min(Math.round(engagementRate * 10), 30);
-  return Math.min(followerScore + engagementBonus, 100);
+/** Social sub-score (0-100) based on X followers + engagement rate + cashtag mentions. */
+function calcSocialSub(xFollowers: number, engagementRate: number, cashtagMentions: number): number {
+  if (xFollowers <= 0 && cashtagMentions <= 0) return 0;
+  // Follower score (0-40): log scale
+  const followerScore = xFollowers > 0
+    ? Math.min(Math.round((Math.log10(xFollowers) / 6) * 40), 40)
+    : 0;
+  // Engagement bonus (0-20): 1% = 7, 3% = 14, 5%+ = 20
+  const engagementBonus = Math.min(Math.round(engagementRate * 7), 20);
+  // Cashtag activity (0-40): log scale, 10 mentions = 15, 100 = 25, 1000+ = 40
+  const cashtagScore = cashtagMentions > 0
+    ? Math.min(Math.round((Math.log10(cashtagMentions) / 4) * 40), 40)
+    : 0;
+  return Math.min(followerScore + engagementBonus + cashtagScore, 100);
 }
 
 /** Volume trend sub-score (0-100). Compares current vs previous snapshot. */
@@ -130,6 +136,14 @@ export async function calculateHealthScore(
     .order("timestamp", { ascending: false })
     .limit(1);
 
+  // Fetch latest cashtag snapshot for social score
+  const { data: cashtagData } = await supabase
+    .from("cashtag_snapshots")
+    .select("tweet_count")
+    .eq("project_id", projectId)
+    .order("snapshot_at", { ascending: false })
+    .limit(1);
+
   // Extract values with safe defaults
   const currentSnap = snapshots?.[0];
   const oldSnap = weekAgoSnapshots?.[0];
@@ -155,17 +169,19 @@ export async function calculateHealthScore(
   const devSub = social
     ? calcDevSub(social.github_commits_7d ?? 0)
     : 0;
+  const cashtagMentions = cashtagData?.[0]?.tweet_count ?? 0;
   const socialSub = social
-    ? calcSocialSub(social.x_followers ?? 0, social.x_engagement_rate ?? 0)
-    : 0;
+    ? calcSocialSub(social.x_followers ?? 0, social.x_engagement_rate ?? 0, cashtagMentions)
+    : (cashtagMentions > 0 ? calcSocialSub(0, 0, cashtagMentions) : 0);
 
   // Weighted composite score
+  // Holders 30% | Social+Cashtag 35% | Liquidity 20% | Volume 10% | GitHub 5%
   const score = Math.round(
     holderSub * 0.3 +
-      devSub * 0.25 +
+      socialSub * 0.35 +
       liquiditySub * 0.2 +
-      socialSub * 0.15 +
-      volumeSub * 0.1
+      volumeSub * 0.1 +
+      devSub * 0.05
   );
 
   // Insert health score

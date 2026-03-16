@@ -118,9 +118,9 @@ export function generateMockHealthScore(projectId: string): HealthScore {
 
   const weights = {
     holders: 0.3,
-    devActivity: 0.25,
+    devActivity: 0.05,
     liquidity: 0.2,
-    social: 0.15,
+    social: 0.35,
     volume: 0.1,
   };
 

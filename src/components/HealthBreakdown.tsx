@@ -29,7 +29,7 @@ const LABELS: {
   { key: "holders", label: "Holders", icon: Users, weightKey: "holders" },
   {
     key: "devActivity",
-    label: "Dev Activity",
+    label: "GitHub Activity",
     icon: GitCommitHorizontal,
     weightKey: "devActivity",
   },
