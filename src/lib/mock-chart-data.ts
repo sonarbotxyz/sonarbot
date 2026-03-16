@@ -117,11 +117,11 @@ export function generateMockHealthScore(projectId: string): HealthScore {
   const volume = 20 + Math.floor(rand() * 75);
 
   const weights = {
-    holders: 0.3,
-    devActivity: 0.05,
-    liquidity: 0.2,
     social: 0.35,
-    volume: 0.1,
+    volume: 0.25,
+    holders: 0.2,
+    liquidity: 0.15,
+    devActivity: 0.05,
   };
 
   const overall = Math.round(

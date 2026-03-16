@@ -2,11 +2,11 @@
  * Health Score Calculator
  *
  * Computes a composite health score (0-100) for a project based on:
- *   - holder_sub    (30%): 7-day holder growth
- *   - dev_sub        (5%): GitHub commit activity
- *   - liquidity_sub (20%): Liquidity stability
  *   - social_sub   (35%): X engagement + cashtag mentions
- *   - volume_sub   (10%): 24h volume trend
+ *   - volume_sub   (25%): 24h volume trend
+ *   - holder_sub   (20%): 7-day holder growth
+ *   - liquidity_sub(15%): Liquidity stability
+ *   - dev_sub       (5%): GitHub commit activity
  */
 
 import { getSupabase } from "@/lib/supabase";
@@ -175,12 +175,12 @@ export async function calculateHealthScore(
     : (cashtagMentions > 0 ? calcSocialSub(0, 0, cashtagMentions) : 0);
 
   // Weighted composite score
-  // Holders 30% | Social+Cashtag 35% | Liquidity 20% | Volume 10% | GitHub 5%
+  // Social 35% | Volume 25% | Holders 20% | Liquidity 15% | GitHub 5%
   const score = Math.round(
-    holderSub * 0.3 +
-      socialSub * 0.35 +
-      liquiditySub * 0.2 +
-      volumeSub * 0.1 +
+    socialSub * 0.35 +
+      volumeSub * 0.25 +
+      holderSub * 0.2 +
+      liquiditySub * 0.15 +
       devSub * 0.05
   );
 

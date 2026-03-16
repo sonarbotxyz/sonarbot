@@ -26,21 +26,21 @@ const LABELS: {
   icon: React.ElementType;
   weightKey: keyof HealthScore["weights"];
 }[] = [
+  { key: "social", label: "Social", icon: MessageCircle, weightKey: "social" },
+  { key: "volume", label: "Volume", icon: BarChart3, weightKey: "volume" },
   { key: "holders", label: "Holders", icon: Users, weightKey: "holders" },
-  {
-    key: "devActivity",
-    label: "GitHub Activity",
-    icon: GitCommitHorizontal,
-    weightKey: "devActivity",
-  },
   {
     key: "liquidity",
     label: "Liquidity",
     icon: Droplets,
     weightKey: "liquidity",
   },
-  { key: "social", label: "Social", icon: MessageCircle, weightKey: "social" },
-  { key: "volume", label: "Volume", icon: BarChart3, weightKey: "volume" },
+  {
+    key: "devActivity",
+    label: "GitHub Activity",
+    icon: GitCommitHorizontal,
+    weightKey: "devActivity",
+  },
 ];
 
 export function HealthBreakdown({ health }: HealthBreakdownProps) {

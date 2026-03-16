@@ -192,11 +192,11 @@ export function mapApiHealth(raw: ApiHealthData): HealthScoreData {
       volume: raw.volume_sub,
     },
     weights: {
-      holders: 0.3,
-      devActivity: 0.05,
-      liquidity: 0.2,
       social: 0.35,
-      volume: 0.1,
+      volume: 0.25,
+      holders: 0.2,
+      liquidity: 0.15,
+      devActivity: 0.05,
     },
   };
 }
