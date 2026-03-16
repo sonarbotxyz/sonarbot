@@ -68,6 +68,32 @@ export async function fetchHolderCount(
     }
   }
 
-  // Strategy 3: Keep previous value if available
+  // Strategy 3: Scrape Basescan meta tag for holder count
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const res = await fetch(
+      `https://basescan.org/token/${contractAddress}`,
+      {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; Sonarbot/1.0)" },
+        signal: controller.signal,
+      }
+    );
+    clearTimeout(timeout);
+
+    if (res.ok) {
+      const html = await res.text();
+      const match = html.match(/Holders:\s*([\d,]+)/);
+      if (match) {
+        const count = parseInt(match[1].replace(/,/g, ""), 10);
+        if (count > 0) return count;
+      }
+    }
+  } catch {
+    // Fall through
+  }
+
+  // Strategy 4: Keep previous value if available
   return previousHolders ?? 0;
 }
