@@ -1,8 +1,8 @@
 /**
- * Signal Classifier — Gemini AI
+ * Signal Classifier — Gemini via OpenRouter
  *
  * Classifies crypto project content into signal categories using
- * Google Gemini 2.0 Flash.
+ * Google Gemini 2.0 Flash through OpenRouter API.
  */
 
 // ---------------------------------------------------------------------------
@@ -32,16 +32,25 @@ const VALID_TYPES = new Set([
 const VALID_CONFIDENCE = new Set(["high", "medium", "low"]);
 
 // ---------------------------------------------------------------------------
-// Gemini API
+// OpenRouter API
 // ---------------------------------------------------------------------------
 
-const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL = "google/gemini-2.0-flash";
 
-function getGeminiKey(): string {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY environment variable is not set");
+function getOpenRouterKey(): string {
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) throw new Error("OPENROUTER_API_KEY environment variable is not set");
   return key;
+}
+
+function buildHeaders(): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getOpenRouterKey()}`,
+    "HTTP-Referer": "https://sonarbot.vercel.app",
+    "X-Title": "Sonarbot Signal Classifier",
+  };
 }
 
 function buildPrompt(projectName: string, content: string): string {
@@ -59,8 +68,55 @@ Respond with JSON only:
 {"type": "...", "title": "...", "description": "...", "confidence": "high|medium|low"}`;
 }
 
+function buildRequestBody(projectName: string, content: string): string {
+  return JSON.stringify({
+    model: MODEL,
+    messages: [
+      {
+        role: "user",
+        content: buildPrompt(projectName, content),
+      },
+    ],
+  });
+}
+
 /**
- * Classify a single piece of content using Gemini.
+ * Parse OpenRouter response into ClassificationResult.
+ */
+function parseResponse(data: Record<string, unknown>): ClassificationResult | null {
+  const rawText: string =
+    (data?.choices as Array<{ message?: { content?: string } }>)?.[0]?.message?.content ?? "";
+
+  // Extract JSON from response (may be wrapped in markdown code fences)
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    console.error("[Classifier] No parseable JSON in response:", rawText);
+    return null;
+  }
+
+  const parsed = JSON.parse(jsonMatch[0]);
+
+  // Validate fields
+  if (!VALID_TYPES.has(parsed.type)) {
+    parsed.type = "all_updates";
+  }
+  if (!VALID_CONFIDENCE.has(parsed.confidence)) {
+    parsed.confidence = "medium";
+  }
+  if (typeof parsed.title !== "string" || !parsed.title) {
+    return null;
+  }
+
+  return {
+    type: parsed.type,
+    title: parsed.title.slice(0, 100),
+    description: typeof parsed.description === "string" ? parsed.description : "",
+    confidence: parsed.confidence,
+  };
+}
+
+/**
+ * Classify a single piece of content using Gemini via OpenRouter.
  * Returns null if classification fails (non-fatal).
  */
 export async function classifyContent(
@@ -69,102 +125,55 @@ export async function classifyContent(
 ): Promise<ClassificationResult | null> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-    const res = await fetch(`${GEMINI_URL}?key=${getGeminiKey()}`, {
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(OPENROUTER_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(projectName, content) }] }],
-      }),
+      headers: buildHeaders(),
+      body: buildRequestBody(projectName, content),
       signal: controller.signal,
     });
     clearTimeout(timeout);
 
     if (res.status === 429) {
-      // Rate limited — wait 15s and retry once
-      console.error("[Classifier] Gemini rate limited, retrying in 15s...");
-      await new Promise((r) => setTimeout(r, 15000));
+      // Rate limited — wait 10s and retry once
+      console.error("[Classifier] OpenRouter rate limited, retrying in 10s...");
+      await new Promise((r) => setTimeout(r, 10000));
       const retryController = new AbortController();
-      const retryTimeout = setTimeout(() => retryController.abort(), 10000);
-      const retry = await fetch(`${GEMINI_URL}?key=${getGeminiKey()}`, {
+      const retryTimeout = setTimeout(() => retryController.abort(), 15000);
+      const retry = await fetch(OPENROUTER_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: buildPrompt(projectName, content) }] }],
-        }),
+        headers: buildHeaders(),
+        body: buildRequestBody(projectName, content),
         signal: retryController.signal,
       });
       clearTimeout(retryTimeout);
       if (!retry.ok) {
-        console.error(`Gemini retry failed: ${retry.status}`);
+        console.error(`[Classifier] OpenRouter retry failed: ${retry.status}`);
         return null;
       }
-      const retryData = await retry.json();
-      const retryText: string = retryData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-      const retryMatch = retryText.match(/\{[\s\S]*\}/);
-      if (!retryMatch) return null;
-      const retryParsed = JSON.parse(retryMatch[0]);
-      if (!VALID_TYPES.has(retryParsed.type)) retryParsed.type = "all_updates";
-      if (!VALID_CONFIDENCE.has(retryParsed.confidence)) retryParsed.confidence = "medium";
-      if (typeof retryParsed.title !== "string" || !retryParsed.title) return null;
-      return {
-        type: retryParsed.type,
-        title: retryParsed.title.slice(0, 100),
-        description: typeof retryParsed.description === "string" ? retryParsed.description : "",
-        confidence: retryParsed.confidence,
-      };
+      return parseResponse(await retry.json());
     }
 
     if (!res.ok) {
-      console.error(`Gemini API error ${res.status}: ${await res.text()}`);
+      console.error(`[Classifier] OpenRouter API error ${res.status}: ${await res.text()}`);
       return null;
     }
 
-    const data = await res.json();
-    const rawText: string =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-    // Extract JSON from response (may be wrapped in markdown code fences)
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error("Gemini returned no parseable JSON:", rawText);
-      return null;
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    // Validate fields
-    if (!VALID_TYPES.has(parsed.type)) {
-      parsed.type = "all_updates";
-    }
-    if (!VALID_CONFIDENCE.has(parsed.confidence)) {
-      parsed.confidence = "medium";
-    }
-    if (typeof parsed.title !== "string" || !parsed.title) {
-      return null;
-    }
-
-    return {
-      type: parsed.type,
-      title: parsed.title.slice(0, 100),
-      description:
-        typeof parsed.description === "string" ? parsed.description : "",
-      confidence: parsed.confidence,
-    };
+    return parseResponse(await res.json());
   } catch (err) {
-    console.error("Gemini classification error:", err);
+    console.error("[Classifier] Classification error:", err);
     return null;
   }
 }
 
-/** Delay helper to respect Gemini rate limits (15 req/min) */
+/** Delay helper */
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
  * Classify multiple items in sequence with throttling.
- * 4-second delay between calls = max 15 req/min (Gemini free tier limit).
+ * 1-second delay between calls (OpenRouter has better rate limits than free Gemini).
  */
 export async function classifyBatch(
   projectName: string,
@@ -172,7 +181,7 @@ export async function classifyBatch(
 ): Promise<(ClassificationResult | null)[]> {
   const results: (ClassificationResult | null)[] = [];
   for (let i = 0; i < items.length; i++) {
-    if (i > 0) await delay(4000); // 4s between calls
+    if (i > 0) await delay(1000);
     results.push(await classifyContent(projectName, items[i]));
   }
   return results;
