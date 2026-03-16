@@ -36,7 +36,7 @@ const VALID_CONFIDENCE = new Set(["high", "medium", "low"]);
 // ---------------------------------------------------------------------------
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "google/gemini-2.0-flash";
+const MODEL = "google/gemini-2.0-flash-001";
 
 function getOpenRouterKey(): string {
   const key = process.env.OPENROUTER_API_KEY;
