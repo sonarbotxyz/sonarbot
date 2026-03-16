@@ -3,6 +3,7 @@ import { getSupabase } from "@/lib/supabase";
 import { authenticateRequest } from "@/lib/auth";
 import { sanitizeText, clampInt } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
+import { calculateHealthScore } from "@/lib/pipeline/health-score";
 
 const VALID_CATEGORIES = [
   "defi",
@@ -12,6 +13,8 @@ const VALID_CATEGORIES = [
   "gaming",
   "social",
   "tools",
+  "meme",
+  "memes",
   "other",
 ];
 
@@ -284,6 +287,11 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Run health score pipeline for the new project (fire-and-forget — don't block the response)
+    calculateHealthScore(project.id).catch((err) =>
+      console.error(`Health score failed for new project ${project.id}:`, err)
+    );
 
     return NextResponse.json(
       { success: true, project, message: "Project submitted successfully" },
