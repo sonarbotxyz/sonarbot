@@ -31,6 +31,7 @@ const categories: {
   { value: "Infra", label: "Infra", icon: Cpu },
   { value: "Gaming", label: "Gaming", icon: Gamepad2 },
   { value: "Tools", label: "Tools", icon: Wrench },
+  { value: "Meme", label: "Meme", icon: Palette },
 ];
 
 const CATEGORY_TO_API: Record<Category, string> = {
@@ -40,6 +41,7 @@ const CATEGORY_TO_API: Record<Category, string> = {
   Infra: "infrastructure",
   Gaming: "gaming",
   Tools: "tools",
+  Meme: "meme",
 };
 
 export default function SubmitPage() {

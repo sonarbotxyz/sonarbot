@@ -4,7 +4,7 @@
 
 /* ─── Domain types (frontend) ─── */
 
-export type Category = "DeFi" | "Social" | "NFT" | "Infra" | "Gaming" | "Tools";
+export type Category = "DeFi" | "Social" | "NFT" | "Infra" | "Gaming" | "Tools" | "Meme";
 
 export interface Project {
   id: string;
@@ -77,9 +77,10 @@ export const CATEGORY_COLORS: Record<Category, { from: string; to: string; glow:
   Infra: { from: "#00D897", to: "#34D399", glow: "shadow-glow-green" },
   Gaming: { from: "#F59E0B", to: "#FBBF24", glow: "shadow-glow-orange" },
   Tools: { from: "#6B7280", to: "#9CA3AF", glow: "shadow-glow-gray" },
+  Meme: { from: "#FACC15", to: "#FDE047", glow: "shadow-glow-yellow" },
 };
 
-export const CATEGORIES: Category[] = ["DeFi", "Social", "NFT", "Infra", "Gaming", "Tools"];
+export const CATEGORIES: Category[] = ["DeFi", "Social", "NFT", "Infra", "Gaming", "Tools", "Meme"];
 
 /* ─── Raw API types (Supabase snake_case) ─── */
 

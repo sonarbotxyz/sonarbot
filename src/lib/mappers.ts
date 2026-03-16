@@ -74,6 +74,8 @@ const CATEGORY_MAP: Record<string, Category> = {
   tools: "Tools",
   agents: "Tools",
   consumer: "Social",
+  meme: "Meme",
+  memes: "Meme",
   other: "Tools",
 };
 

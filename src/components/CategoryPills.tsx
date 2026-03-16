@@ -10,6 +10,7 @@ const categories: { label: string; value: Category | "All" }[] = [
   { label: "Infra", value: "Infra" },
   { label: "Gaming", value: "Gaming" },
   { label: "Tools", value: "Tools" },
+  { label: "Meme", value: "Meme" },
 ];
 
 interface CategoryPillsProps {
