@@ -84,7 +84,7 @@ const CHART_TABS: { key: ChartMetric; label: string; icon: React.ElementType; co
 ];
 
 function getAvatar(project: Project): string {
-  if (project.twitterHandle) return `https://unavatar.io/twitter/${project.twitterHandle}`;
+  if (project.logoUrl) return project.logoUrl;
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(project.name)}&background=111111&color=F5F5F5&size=128`;
 }
 
@@ -467,7 +467,7 @@ export function ProjectDetail({
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                 <div className="flex items-start gap-3 sm:gap-5">
                   <div className="h-12 w-12 flex-shrink-0 overflow-hidden sm:h-20 sm:w-20" style={{ border: "1px solid var(--border)" }}>
-                    <img src={avatar} alt={project.name} className="h-full w-full object-cover" loading="lazy" />
+                    <img src={avatar} alt={project.name} className="h-full w-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(project.name)}&background=111111&color=F5F5F5&size=128`; }} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
